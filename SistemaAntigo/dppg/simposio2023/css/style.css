@@ -1,0 +1,401 @@
+body {
+    font-family: arial;
+    font-size: 14px;
+    background: #EEE9E9;
+    /*text-align: center;*/
+    /* Para Mozilla/Gecko (Firefox etc) */
+    background: -moz-linear-gradient(top, #bce88f, #f7fbf3) repeat-X;
+    /*Para WebKit (Safari, Google Chrome etc)*/
+    background: -webkit-gradient(linear, left top, left bottom, from(#bce88f), to(#f7fbf3)) repeat-X;
+    /*Para IE 8*/
+    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#bce88f, endColorstr=#FFFFFFFF)";
+    /*Para IE 5.5 - 7*/
+    filter: progid: DXImageTransform.Microsoft.gradient(startColorstr=#bce88f, endColorstr=#FFFFFFFF);
+}
+h1 {
+    padding: 25px;
+    color: #000000;
+    text-align: center;
+}
+h4 {
+    color: #FFFFFF;
+    font-size: 12px;
+    text-align: center;
+}
+h3 {
+    color: #FFFFFF;
+    font-size: 11px;
+    text-align: center;
+}
+tr {
+    font-size: 12px;
+}
+hr {
+    color: #ccc;
+}
+p {
+    text-align: justify;
+}
+p.conteudo {
+    text-align: justify;
+    text-indent: 30px;
+    /*Table*/
+    line-height: 30px;
+    /*Espaçamento entre linhas*/
+    /*letter-spacing: 20px; Espaçamento entre letras
+            word-spacing: 20px; Espaçamento entre palavras
+    */
+}
+p.pesquisa {
+    text-align: justify;
+    text-indent: 30px;
+    /*Table*/
+    line-height: 25px;
+    /*Espaçamento entre linhas*/
+    word-spacing: 2px;
+}
+p.descricao {
+    text-align: justify;
+    line-height: 20px;
+    /*Espaçamento entre linhas*/
+}
+p.graduacao {
+    text-align: justify;
+    line-height: 25px;
+    text-indent: 20px;
+}
+p.conteudo {
+    text-align: justify;
+    line-height: 24px;
+}
+#fundo {
+    alignment-adjust: central;
+    background: #FFFFFF;
+    /*Cor de Fundo*/
+    width: 1074px;
+    /*Largura*/
+    margin: 0px auto;
+    /*Posição site mexi*/
+    border: 2px solid #fff;
+    /*BEBEBEBorda sólida*/
+    box-shadow: 0px 0px 23px rgba(55, 55, 55, 1.5);
+    -moz-box-shadow: 0px 0px 23px rgba(55, 55, 55, 1.5);
+    -webkit-box-shadow: 0px 0px 23px rgba(55, 55, 55, 1.5);
+}
+#topo {
+    background: #A2CD5A;
+    /*#FFA500*/
+    /*Tamanho e altura do topo*/
+    width: 1074px;
+    /* height: 118px; */
+    border: 1px solid #FFFFFF;
+    border-bottom: 2px solid #ccc;
+}
+#box {
+    /*background: #A2CD5A;*/
+    /*#FFFFFF #A2CD5A*/
+    /*Tamanho e altura do topo*/
+    width: 180px;
+    height: 134px;
+    /*margin: 6px;*/
+    margin: 6px 3px;
+    border-style: double;
+    border-color: #FFF;
+    border-width: 4px;
+}
+#box2 {
+    background: #A2CD5A;
+    /*#FFFFFF #A2CD5A*/
+    /*Tamanho e altura do topo*/
+    width: 300px;
+    height: 220px;
+    margin: 10px 150px;
+    border-style: double;
+    border-color: #FFF;
+    border-width: 4px;
+}
+#menu_principal {
+    background: #FFFFFF;
+    /*#E8E8E8 cinza #8B008B roxo*/
+    width: 800px;
+    height: 28px;
+    /*border-top: 2px solid #ccc;*/
+    border-bottom: 2px solid #ccc;
+    /*border: 0px solid #FFFFFF;*/
+}
+#conteudo2 {
+    float: left;
+    width: 800px;
+    background: #FFFFFF;
+    /*border: 2px solid #A2CD5A;*/
+    margin: 8px 3px;
+    padding: 0px 8px;
+}
+#conteudo {
+    margin: 8px 5px;
+    padding: 0px 24px;
+    float: left;
+    background: #FFFFFF;
+    width: 540px;
+    border: 2px solid #A2CD5A;
+    /*mexi*/
+    /*display:inline;*/
+    /*height: 50px;*/
+    /*border: 3px ridge #ccc;*/
+}
+#conteudo3 {
+    margin: 0px 40px;
+    padding: 0px 5px;
+    float: justify;
+    background: #FFFFFF;
+    width: 730px;
+    border: 4px double #A2CD5A;
+    /*height: 50px;*/
+    /*border: 3px ridge #ccc;*/
+}
+#menu_vertical2 {
+    float: left;
+    width: 240px;
+    background: #FFFFFF;
+    border-right: 2px solid #ccc;
+    border-bottom: 2px solid #ccc;
+}
+#menu_vertical {
+    background: #FFFFFF;
+    float: right;
+    width: 196px;
+    /*border: 1px solid #ccc;*/
+    border-top: 0px solid #ccc;
+    /*Pq aparece um traço do nada*/
+    border-left: 2px solid #ccc;
+    /*Pq aparece um traço do nada*/
+    border-bottom: 1px solid #ccc;
+    /*Pq aparece um traço do nada*/
+    /*border-left: 2px solid #ccc;*/
+}
+
+/*
+#conteudo
+{
+        background: #FFFFFF;
+        width: 600px;
+        /*height: 500px;*/
+
+
+/*border: 0px solid #FFFFFF;
+}*/
+
+
+/*#conteudo2
+{
+        margin: 1px 201px;
+        padding: 0px 20px;
+        background: #FFFFFF;
+        width: 548px;
+        /*height: 500px;*/
+
+
+/*border: 3px ridge #ccc;
+}*/
+
+ul.menubar {
+    margin: 0;
+    padding: 0;
+    background-color: #006400;
+    /* IE6 Bug */
+    font-size: 12px;
+}
+ul.menuv {
+    margin: 0;
+    padding: 0;
+    background-color: #006400;
+    /* IE6 Bug */
+    font-size: 13px;
+}
+ul.menubar .submenu {
+    /*Mexer na largura do menu é aqui*/
+    margin: 0px 1px;
+    padding: 4px 20px;
+    /*Largura barra horizontal */
+    list-style: none;
+    background-color: #FFFFFF;
+    /*cor fundo menu*/
+    border: 0px solid #ccc;
+    float: left;
+}
+ul.menuv .submenu {
+    /*Mexer na largura do menu é aqui*/
+    margin: 0px 1px;
+    padding: 0px 5px;
+    /*Largura barra horizontal */
+    list-style: none;
+    background-color: #FFFFFF;
+    /*cor fundo menu*/
+    border: 0px solid #ccc;
+    float: left;
+}
+ul.menubar ul.menu {
+    display: none;
+    position: absolute;
+    margin: 0px;
+}
+ul.menubar a {
+    padding: 2px;
+    /*Altura barra horizontal */
+    display: block;
+    text-decoration: none;
+    color: #006400;
+    /* #777 Cinza Cor letra menu horizontal sem menu*/
+    padding: 2px;
+    /*Altura barra horizontal */
+}
+ul.menuv a {
+    padding: 0px;
+    /*Altura barra horizontal */
+    /*display:block;*/
+    text-decoration: none;
+    /*tira subnhado link*/
+    color: #006400;
+    /* #777 Cinza Cor letra menu horizontal sem menu*/
+    padding: 2px;
+    /*Altura barra horizontal */
+}
+ul.menu, ul.menu ul {
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid #ccc;
+    width: 160px;
+    /* Width of Menu Items */
+    background-color: #FFFFFF;
+    /* Cor fundo submenu*/
+}
+ul.menu li {
+    position: relative;
+    list-style: none;
+    border: 0px;
+}
+ul.menu li a {
+    display: block;
+    text-decoration: none;
+    /*tirar subliado*/
+    border: 1px solid #ccc;
+    border-bottom: 0px;
+    color: #006400;
+    /*Cor submenu*/
+    /*padding: 5px 10px 5px 5px;*/
+}
+
+/*ul.menu li sup
+{
+  font-weight:bold;
+  font-size:7px;
+  color: red;
+}*/
+
+ul.menu ul {
+    position: absolute;
+    display: none;
+    left: 149px;
+    /* Set 1px less than menu width */
+    top: 0px;
+}
+ul.menu li.submenu ul {
+    display: none;
+}
+
+/* Hide sub-menus initially */
+
+
+/*ul.menu li.submenu
+{
+        background: transparent url(arrow.gif) right center no-repeat;
+}*/
+
+
+/*ul.menu a:hover { color: #006400; } cor quando passar o mouse submenu*/
+
+ul.menubar a:hover {
+    /*background-color:#248391;*/
+    color: #248391;
+    border-right: 1px solid #ccc;
+    border-left: 1px solid #ccc;
+}
+
+/* #Acor quando passar o mouse menu*/
+
+ul.menuv a:hover {
+    color: #248391;
+}
+
+/* #Acor quando passar o mouse menu*/
+
+a:hover {
+    color: #248391;
+}
+a {
+    font-size: 12px;
+    text-decoration: none;
+    color: #006400;
+}
+a.link {
+    font-size: 12px;
+    text-decoration: none;
+    color: #000000;
+}
+a:hover.link {
+    color: #248391;
+}
+a img {
+    font-size: 10px;
+    text-decoration: none;
+    /*color: #000000;*/
+    border: 0px #FFFFFF solid;
+}
+input {
+    border: 1px solid #ccc;
+}
+textarea {
+    border: 1px solid #ccc;
+}
+
+/*Galeria de fotos*/
+
+.thumb {
+    border: 1px solid #fff;
+    border-bottom: 10px solid #fff;
+    padding: 2px;
+    width: 120px;
+    height: 100px;
+}
+table.esquerda {
+    text-align: left;
+}
+table.center {
+    text-align: center;
+}
+table.letra td {
+    font-size: 11px;
+}
+tr.linha {
+    background-color: #E0EEEE;
+    /* #FFA500 #248391*/
+    text-align: left;
+}
+.normas {
+    width: 500px;
+    height: 300px;
+    border: 2px solid #ccc;
+    overflow: auto;
+}
+.texto {
+    width: 450px;
+    padding-left: 10px;
+}
+#rodape {
+    background: #A2CD5A;
+    width: 1074px;
+    /*height: 75px;*/
+    border: 1px solid #FFFFFF;
+    border-top: 3px solid #ccc;
+    clear: both;
+}

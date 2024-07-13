@@ -1,0 +1,16 @@
+<?php return array (
+  'plugins.generic.googleAnalytics.displayName' => 'Plugin Google Analytics',
+  'plugins.generic.googleAnalytics.description' => 'Integre o sistema com o Google Analytics, a aplicação da Google para análise de tráfego do portal. Exige uma conta no Google Analytics. Saiba mais em <a href="http://www.google.com/analytics/" title="Google Analytics site">Google Analytics</a>.',
+  'plugins.generic.googleAnalytics.manager.settings' => 'Configurações',
+  'plugins.generic.googleAnalytics.manager.googleAnalyticsSettings' => 'Configurações Google Analytics',
+  'plugins.generic.googleAnalytics.manager.settings.description' => '<p>Com este plugin habilitado, pode-se coletar informações e analisar o tráfego de uso do portal para esta revista. Este plugin exige uma conta no Google Analytics. Saiba mais em <a href="http://www.google.com/analytics/" title="Google Analytics site">Google Analytics</a>.</p>',
+  'plugins.generic.googleAnalytics.manager.settings.googleAnalyticsSiteId' => 'Número da conta',
+  'plugins.generic.googleAnalytics.manager.settings.googleAnalyticsSiteIdInstructions' => 'Dentro do Google Analytics, clique em Verificar Status (Check Status) para visualizar o código de acompanhamento do portal. O número da conta é exibido dentro o código de acompanhamento : _uacct = "###". Informe o texto que corresponde a ###.',
+  'plugins.generic.googleAnalytics.manager.settings.googleAnalyticsSiteIdRequired' => 'Informe o número da conta.',
+  'plugins.generic.googleAnalytics.manager.settings.trackingCode' => 'Código de acompanhamento',
+  'plugins.generic.googleAnalytics.manager.settings.trackingCodeRequired' => 'Informe o código de acompanhamento a ser usado.',
+  'plugins.generic.googleAnalytics.manager.settings.urchin' => 'Código de acompanhamento legado (urchin.js)',
+  'plugins.generic.googleAnalytics.manager.settings.ga' => 'Novo código de acompanhamento (ga.js)',
+  'plugins.generic.googleAnalytics.enabled' => 'O Plugin do Google Analytics foi habilitado.',
+  'plugins.generic.sgoogleAnalyticsehl.disabled' => 'O Plugin do Google Analytics foi desabilitado.',
+); ?>

@@ -1,0 +1,40 @@
+<?php
+
+include('includes/config.php');
+include('acentuacao.php');
+
+
+$dir = "images/";
+
+$arquivo = $_FILES[arquivo][name];
+
+$tamanho = getimagesize($_FILES[arquivo][tmp_name]);
+
+if (eregi("^image\/(pjpeg|jpeg)", $_FILES[arquivo]["type"])) {
+    if ($_FILES[arquivo][size] < 1048576) /*1MB*/ {
+        /*Verificar a largura e altura da imagem*/
+        if (($tamanho[0] == 600) && ($tamanho[1] == 113)) {
+            $sql = "select topo from conteudo where codigo_conteudo ='7'";
+            $resultado = mysql_query($sql);
+            $campos = mysql_fetch_array($resultado);
+
+            chmod($dir, 777);
+
+            unlink($dir . $campos[topo]);
+
+            if (move_uploaded_file($_FILES[arquivo][tmp_name], $dir . $arquivo)) {
+                $sql1 = "update conteudo set topo='$arquivo' where codigo_conteudo='7'";
+                $resultado1 = mysql_query($sql1);
+
+                echo '<center><font color="#006400"><b>Imagem Topo Certificado alterada com sucesso!!!</b></font></center>';
+            }
+        } else
+            echo '<center><font color="#FF0000"><b>A imagem deve ter dimensão 600(largura) X 113(Altura) pixels!!!</b></font></center>';
+    } else
+        echo '<center><font color="#FF0000"><b>Tamanho  da imagem tem que ser no máximo 1 Mb</b></font></center>';
+} else {
+    echo '<center><font color="#FF0000"><b>Arquivo em formato inválido! A imagem deve ser jpg ou jpeg.</b></font></center>';
+}
+
+echo '<meta http-equiv="refresh" content="3; URL=form_alterar_topo_certificado.php">';
+?>

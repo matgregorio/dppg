@@ -1,0 +1,59 @@
+/**
+ * common.css
+ *
+ * Copyright (c) 2000-2012 John Willinsky
+ * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
+ *
+ * PKP-wide shared stylesheet.
+ *
+ * $Id$
+*/
+
+/**
+ * Common HTML elements
+*/
+#header{
+    background-color: #dfffdf;/*#7FFFD4*/
+}
+#fundo /*centro*/
+{ 
+    float: left;
+    background: #F5FFFA;
+    /*background: #f7f7f7;                Cor de Fundo*/
+    min-width: 1024px;		          /*Largura Central*/
+    width: 95%;
+    min-height: 800px;		        /*Altura Pagina Central*/
+
+    /*PosiÃ§Ã£o do site*/
+    margin-top: 10px;                     /*Distancia de cima da pagina*/
+    margin-left: 2.5%;                    /*Distancia Margem Esquerda*/
+    margin-right: 2.5%;                   /*Distancia Margem Direita*/
+    border: 2px solid #7bb800;				  /*Bordas*/
+    border-bottom: 2px solid #7bb800;	  /*Bordas*/
+    margin-bottom: 10px;                  /*Distancia de baixo da pagina*/ 	
+
+}
+
+.shadow{ 
+    box-shadow: 0px 0px 23px rgba(55, 55, 55, 1.5);
+    -moz-box-shadow: 0px 0px 23px rgba(55, 55, 55, 1.5);
+    -webkit-box-shadow: 0px 0px 23px rgba(55, 55, 55, 1.5);
+}
+
+body {
+    color: #111;
+    font-family: Verdana,Arial,Helvetica,sans-serif;
+    text-align: center;
+    
+    /*background: #BCE88F;*/
+    background: #C1FFC1;
+
+    /*Para Mozilla/Gecko (Firefox etc)*/ 
+    background: -moz-linear-gradient(top, #C1FFC1, #fff) repeat-X;
+
+    /*Para WebKit (Safari, Google Chrome etc)*/ 
+    background: -webkit-gradient(linear, left top, left bottom, from(#C1FFC1), to(#fff)) repeat-X;
+
+    /*Para Opera*/
+    background: -o-linear-gradient(top, #C1FFC1, #c6c6c6);
+}

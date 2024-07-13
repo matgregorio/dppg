@@ -1,0 +1,68 @@
+<?php
+
+include('includes/config.php');
+
+$sa = mysql_real_escape_string($_GET[sa]);
+$a = mysql_real_escape_string($_GET[a]);
+
+if ($sa != "t") {
+    $query_tt = mysql_query("SELECT t.codigo_trab, t.titulo, t.palavra_chave FROM trabalhos t, acervo ac WHERE ac.codigo_trab=t.codigo_trab AND t.codigo_sa=$sa AND ac.codigo_ano='8' ORDER BY t.titulo");
+    $query_ap = mysql_query("SELECT p.nome, p.cpf FROM participantes p, trabalhos t, acervo ac WHERE p.cpf=t.autor1 AND t.codigo_trab=ac.codigo_trab AND t.codigo_sa=$sa AND ac.codigo_ano='8' ORDER BY p.nome");
+} else {
+    $query_tt = mysql_query("SELECT t.codigo_trab, t.titulo, t.palavra_chave FROM trabalhos t, acervo ac WHERE ac.codigo_trab=t.codigo_trab AND ac.codigo_ano='8' ORDER BY t.titulo");
+    $query_ap = mysql_query("SELECT t.codigo_trab, p.nome, p.cpf FROM participantes p, trabalhos t, acervo ac WHERE p.cpf=t.autor1 AND t.codigo_trab=ac.codigo_trab AND ac.codigo_ano='8' ORDER BY p.nome");
+}
+
+
+if (mysql_num_rows($query_tt) > 0) {
+    echo "<table border='0'>";
+    echo "<tr>";
+    echo "<td>";
+    echo "Título:";
+    echo "</td>";
+    echo "<td>";
+    echo "<select name='titulo' style='width: 450px'>";
+    echo "<option value=''>Todos</option>";
+    while ($campos_tt = mysql_fetch_array($query_tt)) {
+        echo "<option value='$campos_tt[codigo_trab]'>$campos_tt[titulo]</option>";
+    }
+    echo "</select>";
+    echo "</td>";
+    echo "</tr>";
+    echo "<tr>";
+    echo "<td>";
+    echo "Autor1:";
+    echo "</td>";
+    echo "<td>";
+    echo "<select name='autor1' style='width: 450px'>";
+    echo "<option value=''>Todos</option>";
+    while ($campos_ap = mysql_fetch_array($query_ap)) {
+        echo "<option value='$campos_ap[codigo_trab]'>$campos_ap[nome]</option>";
+    }
+    echo "</select>";
+    echo "</td>";
+    echo "</tr>";
+    echo "<tr>";
+    echo "<td>";
+    echo "Palavra Chave:";
+    echo "</td>";
+    echo "<td>";
+    echo "<select name='palavrachave' style='width: 450px'>";
+    echo "<option value=''>Todos</option>";
+    mysql_data_seek($query_tt, 0);
+    while ($campos_tt = mysql_fetch_array($query_tt)) {
+        echo "<option value='$campos_tt[palavra_chave]'>$campos_tt[palavra_chave]</option>";
+    }
+    echo "</select>";
+    echo "</td>";
+    echo "</tr>";
+    echo "<table>";
+    echo "<br>";
+    echo "<input type='hidden' name='arquivo2' value='acervo_new.php'>";
+    echo "<input type='submit' name='consultar' value='consultar'>";
+} else {
+    echo "<br><br><center><b>Não há de Trabalhos dessa Sub Área!<br>";
+}
+
+mysql_close($conexao);
+?>

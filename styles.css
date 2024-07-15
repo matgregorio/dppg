@@ -1,0 +1,46 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Estilos para a estrutura do layout */
+.container {
+    display: flex; /* Layout em flexbox para alinhar os menus */
+    max-width: 1200px; /* Largura máxima do conteúdo */
+    margin: 0 auto; /* Centraliza na página */
+}
+
+.left-menu, .center-menu, .right-menu {
+    flex-grow: 1; /* Cada menu pode crescer igualmente */
+    flex-basis: 0; /* Define a base inicial */
+    padding: 20px; /* Espaçamento interno */
+    background-color: #f0f0f0; /* Cor de fundo */
+    border: 1px solid #ccc; /* Borda para separar os menus */
+}
+
+/* Largura percentual dos menus */
+.left-menu {
+    flex-basis: 25%; /* Menu esquerdo ocupa 25% da largura */
+}
+
+.center-menu {
+    flex-basis: 50%; /* Menu central ocupa 50% da largura */
+}
+
+.right-menu {
+    flex-basis: 25%; /* Menu direito ocupa 25% da largura */
+}
+
+/* Estilos adicionais para responsividade */
+@media only screen and (max-width: 768px) {
+    .container {
+        flex-direction: column; /* Empilhar os menus verticalmente */
+    }
+    
+    .left-menu, .center-menu, .right-menu {
+        flex-basis: 100%; /* Cada menu ocupa toda a largura em telas pequenas */
+        margin: 10px 0; /* Menor margem vertical */
+    }
+}
+

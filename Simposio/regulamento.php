@@ -6,6 +6,10 @@
     <title>Regulamento</title>
 </head>
 <body>
-    <h1>Teste regulamento</h1>
+    <?php 
+        include './controller/controllerRegulamento.php';
+        $dados = getDados();
+        echo $dados[0][1];/* id, texto*/
+    ?>
 </body>
 </html>

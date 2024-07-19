@@ -39,6 +39,10 @@
                 <a onclick="atualizarDiv('validarCertificado.php')">Validar Certificado</a>
                 <a onclick="atualizarDiv('cadastrarUsuario.php')">Cadastro Simpósio</a>
             </div>
+            <h4>ADMINISTRATIVO</h4>
+            <div class="menu-vertical">
+                <a onclick="atualizarDiv('configSistema.php')">Configurações do Sistema</a>
+            </div>
         </div>
 
         <div class="center-menu" class="tab-content" id="menuCentral">

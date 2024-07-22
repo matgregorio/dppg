@@ -14,7 +14,7 @@
 .left-menu, .center-menu{
     flex-grow: 1; /* Cada menu pode crescer igualmente */
     flex-basis: 0; /* Define a base inicial */
-    padding: 20px; /* Espaçamento interno */
+    padding: 0px; /* Espaçamento interno */
     background-color: #f0f0f0; /* Cor de fundo */
     border: 1px solid #ccc; /* Borda para separar os menus */
 }
@@ -36,11 +36,10 @@
     
     .left-menu{
         flex-basis: 25%;
-        margin: 10px 0;
+        margin: 1px 0;
     }
     .center-menu{
         flex-basis: 75%;
-        margin: 10px 0;
     }
 
 }

@@ -7,7 +7,7 @@
 </head>
 <body>
     <?php 
-        include './controller/controllerRegulamento.php';
+        include './controller/DAO/controllerRegulamento.php';
         $dados = getDados();
         echo $dados[0][1];/* id, texto*/
     ?>

@@ -1,0 +1,70 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Estilos para a estrutura do layout */
+.container {
+    display: flex; /* Layout em flexbox para alinhar os menus */
+    max-width: 1000px; /* Largura máxima do conteúdo */
+    margin: 0 auto; /* Centraliza na página */
+}
+
+.left-menu, .center-menu{
+    flex-grow: 1; /* Cada menu pode crescer igualmente */
+    flex-basis: 0; /* Define a base inicial */
+    padding: 0px; /* Espaçamento interno */
+    background-color: #f0f0f0; /* Cor de fundo */
+    border: 1px solid #ccc; /* Borda para separar os menus */
+}
+
+/* Largura percentual dos menus */
+.left-menu {
+    flex-basis: 25%; /* Menu esquerdo ocupa 25% da largura */
+}
+
+.center-menu {
+    flex-basis: 75%; /* Menu central ocupa 50% da largura */
+}
+
+/* Estilos adicionais para responsividade */
+@media only screen and (max-width: 768px) {
+    .container {
+        flex-direction: row;
+    }
+    
+    .left-menu{
+        flex-basis: 25%;
+        margin: 1px 0;
+    }
+    .center-menu{
+        flex-basis: 75%;
+    }
+
+}
+
+h4{
+    text-align: center;
+}
+
+.menu-vertical {
+    width: 200px; /* Set a width if you like */
+  }
+  
+  .menu-vertical a {
+    background-color: #eee; /* Grey background color */
+    color: black; /* Black text color */
+    display: block; /* Make the links appear below each other */
+    padding: 12px; /* Add some padding */
+    text-decoration: none; /* Remove underline from links */
+  }
+  
+  .menu-vertical a:hover {
+    background-color: #ccc; /* Dark grey background on mouse-over */
+  }
+  
+  .menu-vertical a.active {
+    background-color: #04AA6D; /* Add a green color to the "active/current" link */
+    color: white;
+  }

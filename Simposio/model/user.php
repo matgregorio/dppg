@@ -9,6 +9,7 @@ class User {
     public $email;
     public $password;
     public $user_type;
+    public $reset_token;
 
     public $created_at;
     public $updated_at;
@@ -86,6 +87,39 @@ class User {
             return true;
         }
         return false;
+    }
+
+    public function updateResetToken(){
+        $query = "UPDATE " . $this->table_name . "SET reset_token = :reset_token WHERE email =:email";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':reset_token' , $this->reset_token);
+        $stmt->bindParam(':email' , $this->email);
+        return $stmt->execute();
+    }
+
+    public function validateToken(){
+        $query = "SELECT id FROM " . $this->table_name . " WHERE reset_token = :reset_token LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':reset_token', $this->reset_token);
+        $stmt->execute();
+
+        if($stmt->rouCount()==1){
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $this->id = $row['id'];
+            return true;
+        }
+        return false;
+    }
+
+    public function updatePassword(){
+        $query = "UPDATE " . $this->table_name . " SET password = :password, reset_token = NULL, updated_at = :updated_at WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':password', password_hash($this->password, PASSWORD_BCRYPT));
+        date_default_timezone_set('America/Sao_Paulo');
+        $dataEHora = date("Y-m-d H:i:s");
+        $stmt->bindParam(':updated_at' , $dataEHora);
+        $stmt->bindParam(':id', $this->id);
+        return $stmt->execute();
     }
 }
 ?>

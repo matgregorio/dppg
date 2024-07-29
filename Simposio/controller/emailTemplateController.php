@@ -39,7 +39,6 @@
             header("Location: ../controller/emailTemplateController.php?action=index");
         }
     }
-
     if(isset($_GET['action'])){
         $controller = new EmailTemplateController();
         switch($_GET['action']){

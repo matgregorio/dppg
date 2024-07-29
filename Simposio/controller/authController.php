@@ -127,13 +127,16 @@ class AuthController {
                 }
             }else{
                 $_SESSION['error_message'] = "Token inválido ou expirado.";
-                header("Location: ../views/reser_password.php?token=$token");
+                header("Location: ../view/reser_password.php?token=$token");
             }
     }
 
     public function logout() {
+        session_start();
+        session_unset();
         session_destroy();
         header("Location: ../view/login.php");
+        exit();
     }
 }
 

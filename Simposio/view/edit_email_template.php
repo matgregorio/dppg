@@ -23,7 +23,7 @@
         unset($_SESSION['message']);
     }
     ?>
-    <form method="post" action="../controllers/EmailTemplateController.php?action=update">
+    <form method="post" action="../controller/emailTemplateController.php?action=update">
         <input type="hidden" name="id" value="<?php echo $template['id']; ?>">
         <div>
             <label for="subject_<?php echo $template['id']; ?>">Assunto:</label>

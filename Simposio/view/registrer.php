@@ -12,9 +12,13 @@
         echo "<div class'error-message'>" . $_SESSION['error_message'] . "</div>";
         unset($_SESSION['error_message']);
     }
+    if(isset($_SESSION['message'])){
+        echo "<div class 'message'>" . $_SESSION['message'] . "</div>";
+        unset($_SESSION['message']);
+    }
     $form_data = $_SESSION['form_data'] ??[];
     ?>
-    <form method="post" action="../controller/authController.php">
+    <form method="post" action="../controller/authController.php?action=register">
         <div>
             <label for="name">Nome:</label>
             <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($form_data['name'] ?? '', ENT_QUOTES); ?>" required>

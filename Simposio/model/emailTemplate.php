@@ -28,6 +28,14 @@ class EmailTemplate{
         return $stmt->fetch(PDO::FETCH_ASSOC);  
     }
 
+    public function readByType($type){
+        $query = "SELECT * FROM " . $this->table_name . " WHERE type = :type LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':type', $type);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
     public function update(){
         $query = "UPDATE " . $this->table_name . " SET subject = :subject, body = :body WHERE id = :id";
         $stmt = $this->conn->prepare($query);

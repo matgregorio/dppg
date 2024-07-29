@@ -3,15 +3,19 @@ session_start();
 include_once '../config/database.php';
 include_once '../model/user.php';
 include_once '../util/validateCpf.php';
+include_once '../util/send_mail.php';
+include_once '../model/emailTemplate.php';
 
 class AuthController {
     private $db;
     private $user;
+    private $emailTemplate;
 
     public function __construct() {
         $database = new Database();
         $this->db = $database->getConnection();
         $this->user = new User($this->db);
+        $this->emailTemplate = new EmailTemplate($this->db);
     }
 
     public function login($email, $password) {
@@ -73,6 +77,7 @@ class AuthController {
         $this->user->user_type = $user_type;
 
         if($this->user->create()) { #se o usuário foi criado, então resete os dados do formulário
+            $_SESSION['message'] = "Usuário cadastrado com sucesso";
             unset($_SESSION['form_data']);
             header("Location: ../view/login.php");
         } else {#se não, emite erro!
@@ -81,33 +86,37 @@ class AuthController {
         }
     }
 
-    public function forgotPassword($email){
-        $this->user->email = $email;
-        if($this->user->emailExists()){//se o email inserido existir
-            $reset_token = bin2hex(random_bytes(16));
-            $this->user->reset_token = $reset_token;
+    public function forgotPassword() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $email = $_POST['email'];
+            $token = bin2hex(random_bytes(50)); // Gera um token aleatório
 
-            if($this->user->updateResetToken()){
-                $reset_link = "localhost/dppg/simposio/view/reset_password.php?token=$reset_token";
-                $to = $email;
-                $subject = "DPPG - Recuperação de senha";
-                $message = "Clique aqui para redefinir sua senha: $reset_link";
-                $headers = "dppg@ifsudestemg.com";
+            // Verifica se o email existe
+            $this->user->email = $email;
+            if ($this->user->emailExists()) {
+                $this->user->reset_token = $token;
+                if ($this->user->updateResetToken()) {               
+                    $template = $this->emailTemplate->readByType('password_reset');
+                    $resetLink = "localhost/view/reset_password.php?token=$token";
+                    $subject = $template['subject'];
+                    $body = str_replace('{resetLink}', $resetLink, $template['body']);
 
-                if(mail($to,$subject,$message,$headers)){
-                    $_SESSION['message'] = "Um link de recuperação de senha foi enviado para o seu email.";
-                }else{
-                   $_SESSION['error_message'] = "Falha ao enviar o email de recuperação."; 
+                    $result = sendEmail($email, $subject, $body);
+                    if ($result === true) {
+                        $_SESSION['message'] = "Verifique seu email para o link de recuperação de senha.";
+                    } else {
+                        $_SESSION['error_message'] = $result;
+                    }
+                } else {
+                    $_SESSION['error_message'] = "Erro ao salvar o token de recuperação.";
                 }
-            }else{
-                $_SESSION['error_message'] = "Falha ao gerar o token de recuperação.";
+            } else {
+                $_SESSION['error_message'] = "Email não encontrado.";
             }
-        }else{
-            $_SESSION['error_message'] = "Email não encontrado.";
         }
         header("Location: ../view/forgot_password.php");
+        exit();
     }
-
     public function resetPassword($token,$password, $confirm_password){
         if($password !== $confirm_password){
             $_SESSION['error_message'] = "Senhas não conferem.";
@@ -127,7 +136,7 @@ class AuthController {
                 }
             }else{
                 $_SESSION['error_message'] = "Token inválido ou expirado.";
-                header("Location: ../view/reser_password.php?token=$token");
+                header("Location: ../view/reset_password.php?token=$token");
             }
     }
 
@@ -140,20 +149,28 @@ class AuthController {
     }
 }
 
-if($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $auth = new AuthController();
-    if(isset($_POST['login'])) {
-        $auth->login($_POST['email'], $_POST['password']);
-    } elseif(isset($_POST['register'])) {
-        $auth->register($_POST['name'], $_POST['cpf'], $_POST['email'], $_POST['password'],$_POST['confirm_password'],$_POST['user_type']);
-    } elseif(isset($_POST['forgot_password'])){
-        $auth->forgotPassword($_POST['email']);
-    } elseif(isset($_POST['reset_password'])){
-        $auth->resetPassword(
-            $_POST['token'],
-            $_POST['password'],
-            $_POST['confirm_password']
-        );
+if(isset($_GET['action'])){
+    $controller = new AuthController();
+    switch($_GET['action']){
+        case 'login':
+            $controller->login($_POST['email'], $_POST['password']);
+            break;
+        case 'register':
+            $controller->register($_POST['name'], $_POST['cpf'], $_POST['email'], $_POST['password'], $_POST['confirm_password'], $_POST['user_type']);
+            break;
+        case 'forgotPassword':
+            $controller->forgotPassword();
+            break;
+        case 'resetPassword':
+            $controller->resetPassword(
+                $_POST['token'],
+                $_POST['password'],
+                $_POST['confirm_password']
+            );
+            break;
+        case 'logout':
+            $controller->logout();
+            break;
     }
 }
 ?>

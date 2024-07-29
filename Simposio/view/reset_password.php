@@ -17,7 +17,7 @@
         unset($_SESSION['message']);
     }
     ?>
-    <form method="post" action="../controller/authController.php">
+    <form method="post" action="../controller/authController.php?action=resetPassword">
         <input type="hidden" name="token" value="<?php echo htmlspecialchars($_GET['token']); ?>">
         <div>
             <label for="password">Nova Senha:</label>

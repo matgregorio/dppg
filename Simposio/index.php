@@ -1,2 +1,2 @@
 <?php
-    header("Location: view/registrer.php");   
+    header("Location: view/home.php");   

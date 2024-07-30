@@ -42,10 +42,12 @@
         <div>
             <label for="user_type">Tipo de Usuário:</label>
             <select id="user_type" name="user_type" required>
-                <option value="1">Estudante</option>
-                <option value="1">Professor</option>
-                <option value="1">Sub-Administrador</option>
-                <option value="1">Administrador</option>
+                <option value="4">Estudante</option>
+                <option value="3">Professor</option>
+                <option value="4">Ex-aluno</option>
+                <option value="4">Técnico Administrativo</option>
+                <option value="4">Outros</option>
+                <option value="4">Tipo não declarado</option>
             </select>
         </div>
         <div>

@@ -23,12 +23,17 @@ class AuthController {
         $this->user->password = $password;
 
         if($this->user->login()) {
+            if($this->user->is_approved == 0 && $this->user->user_type == 3){
+                $_SESSION['error_message'] = "Seu cadastro como professor ainda não foi aprovado. Por favor, aguarde!";
+                header("Location: ../view/login.php");
+                exit();
+            }
             $_SESSION['user_id'] = $this->user->id;
             $_SESSION['user_name'] = $this->user->name;
             $_SESSION['user_type'] = $this->user->user_type;
             header("Location: ../view/home.php");
         } else {
-            $_SESSION['error_message'] = "Falha no login. CPF ou senha inválido.";
+            $_SESSION['error_message'] = "Falha no login. email ou senha inválido.";
             header("Location: ../view/login.php");
         }
     }
@@ -76,8 +81,28 @@ class AuthController {
         $this->user->password = $password;
         $this->user->user_type = $user_type;
 
+        if($user_type == 3){
+            $this->user->is_approved = 0;
+        }else{
+            $this->user->is_approved = 1;
+        }
+
         if($this->user->create()) { #se o usuário foi criado, então resete os dados do formulário
-            $_SESSION['message'] = "Usuário cadastrado com sucesso";
+            $template = $this->emailTemplate->readByType('registration_confirmation');
+            $subject = $template['subject'];
+            $name = $this->user->name;
+            $body = str_replace('{name}', $name, $template['body']);
+
+            $result = sendEmail($email, $subject, $body);
+            if($result === false){
+                $_SESSION['error_message'] = $result;
+            }
+            if($this->user->user_type == 3){
+                $_SESSION['message'] = "Usuário cadastrado. Por favor, aguarde sua aprovação";
+            }else{
+                $_SESSION['message'] = "Usuário cadastrado com sucesso";
+            }
+                
             unset($_SESSION['form_data']);
             header("Location: ../view/login.php");
         } else {#se não, emite erro!
@@ -97,9 +122,9 @@ class AuthController {
                 $this->user->reset_token = $token;
                 if ($this->user->updateResetToken()) {               
                     $template = $this->emailTemplate->readByType('password_reset');
-                    $resetLink = "localhost/view/reset_password.php?token=$token";
+                    $resetLink = "localhost/dppg/simposio/view/reset_password.php?token=$token";
                     $subject = $template['subject'];
-                    $body = str_replace('{resetLink}', $resetLink, $template['body']);
+                    $body = str_replace('{link}', $resetLink, $template['body']);
 
                     $result = sendEmail($email, $subject, $body);
                     if ($result === true) {
@@ -144,7 +169,7 @@ class AuthController {
         session_start();
         session_unset();
         session_destroy();
-        header("Location: ../view/login.php");
+        header("Location: ../view/home.php");
         exit();
     }
 }

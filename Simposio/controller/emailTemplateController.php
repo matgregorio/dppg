@@ -30,6 +30,10 @@
             $this->template->id = $id;
             $this->template->subject = $subject;
             $this->template->body = $body;
+            date_default_timezone_set('America/Sao_Paulo');
+            $dataEHora = date("Y-m-d H:i:s");
+            $this->template->updated_at = $dataEHora;
+            $this->template->user_id = $_SESSION['user_id']; 
 
             if($this->template->update()){
                 $_SESSION['message'] = "Template atualizado com sucesso.";

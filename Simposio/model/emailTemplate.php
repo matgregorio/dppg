@@ -8,6 +8,11 @@ class EmailTemplate{
     public $subject;
     public $body;
 
+    public $user_id;
+    public $created_at;
+    public $updated_at;
+    public $deleted_at;
+
     public function __construct($db)
     {
         $this->conn = $db;
@@ -37,11 +42,13 @@ class EmailTemplate{
     }
 
     public function update(){
-        $query = "UPDATE " . $this->table_name . " SET subject = :subject, body = :body WHERE id = :id";
+        $query = "UPDATE " . $this->table_name . " SET subject = :subject, body = :body, user_id = :user_id, updated_at = :updated_at WHERE id = :id";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':subject', $this->subject);
         $stmt->bindParam(':body', $this->body);
         $stmt->bindParam(':id', $this->id);
+        $stmt->bindParam(':user_id', $this->user_id);
+        $stmt->bindParam(':updated_at', $this->updated_at);
 
         if($stmt->execute()){
             return true;

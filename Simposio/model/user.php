@@ -10,6 +10,7 @@ class User {
     public $password;
     public $user_type;
     public $reset_token;
+    public $is_approved;
 
     public $created_at;
     public $updated_at;
@@ -59,6 +60,7 @@ class User {
                 $this->cpf = $row['cpf'];
                 $this->email = $row['email'];
                 $this->user_type = $row['user_type'];
+                $this->is_approved = $row['is_approved'];
                 return true;
             }
         }
@@ -90,7 +92,7 @@ class User {
     }
 
     public function updateResetToken(){
-        $query = "UPDATE " . $this->table_name . "SET reset_token = :reset_token WHERE email =:email";
+        $query = "UPDATE " . $this->table_name . " SET reset_token = :reset_token WHERE email =:email";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':reset_token' , $this->reset_token);
         $stmt->bindParam(':email' , $this->email);
@@ -103,7 +105,7 @@ class User {
         $stmt->bindParam(':reset_token', $this->reset_token);
         $stmt->execute();
 
-        if($stmt->rouCount()==1){
+        if($stmt->rowCount()==1){
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             $this->id = $row['id'];
             return true;
@@ -118,6 +120,20 @@ class User {
         date_default_timezone_set('America/Sao_Paulo');
         $dataEHora = date("Y-m-d H:i:s");
         $stmt->bindParam(':updated_at' , $dataEHora);
+        $stmt->bindParam(':id', $this->id);
+        return $stmt->execute();
+    }
+
+    public function getPendingTeachers(){
+        $query = "SELECT id, name, email,cpf FROM " . $this->table_name . " WHERE user_type = 3 AND is_approved = 0";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function approveTeacher(){
+        $query = "UPDATE " . $this->table_name . " SET is_approved = 1 WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':id', $this->id);
         return $stmt->execute();
     }

@@ -2,6 +2,11 @@
  user types = 1 - Admnistrador | 2 - subAdministrador | 3 - professor | 4 - aluno, ex-aluno, técnico-administrativo, outros, tipo não declarado
  -Algumas alterações que devem ser feitas:
  1) alterar senha para, no mínimo, 8 caracteres.
+ 2) padronizar o cpf
+ 3) login por cpf ou email
+ 4) esqueci a senha usando cpf
+ 5) cadastrar usuários separados(aluno, ex-aluno, ténico-administrativo, outros, tipo não declarado)
+
 
  -Algumas duvidas
     Como funciona presença e presença trabalho?

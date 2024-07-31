@@ -1,5 +1,5 @@
 <?php
-session_start(); 
+session_start();
 ?>
 <!DOCTYPE html>
 <html>
@@ -8,7 +8,7 @@ session_start();
     <link rel="stylesheet" type="text/css" href="../assets/css/styles.css">
 </head>
 <body>
-    <h2>Login</h2>
+    <h2>Acesso ao Simposio</h2>
     <?php
         if(isset($_SESSION['error_message'])){
             echo "<div class= 'error_message'>" .$_SESSION['error_message'] . "</div>";

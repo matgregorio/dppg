@@ -1,0 +1,65 @@
+/* styles.css */
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    height: 100%;
+    overflow: hidden;
+}
+
+.container {
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 25%;
+    background-color: #333;
+    color: white;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.sidebar ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.sidebar ul li {
+    margin: 15px 0;
+}
+
+.sidebar ul li a {
+    color: white;
+    text-decoration: none;
+    display: block;
+}
+
+.sidebar ul li a:hover {
+    background-color: #575757;
+    padding-left: 10px;
+}
+
+.content {
+    width: 75%;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+    .container {
+        flex-direction: row;  
+    }
+    .sidebar {
+        width: 100%;
+        height: auto;
+    }
+    .content {
+        width: 100%;
+        height: calc(100vh - 100px);
+    }
+}

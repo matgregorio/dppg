@@ -14,9 +14,9 @@
             <ul>
                 <li><a href="#" data-content="home">Home</a></li>
                 <li><a href="#" data-content="presentation">Apresentação</a></li>
-                <?php if (!isset($_SESSION['user_type'])) {
-                    include './login.php';
-                } else { ?>
+                <?php if (!isset($_SESSION['user_type'])) {?>
+                <li> <?php include './login.php';?></li>
+                <?php } else { ?>
                     <h2>Welcome, <?php echo $_SESSION['user_name']; ?></h2>
                     <p>Your user type is: <?php echo $_SESSION['user_type']; ?></p>
                     <a href="../controller/authController.php?action=logout">Logout</a>

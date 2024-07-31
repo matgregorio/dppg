@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 26/07/2024 às 16:05
+-- Tempo de geração: 31/07/2024 às 03:13
 -- Versão do servidor: 10.4.32-MariaDB
--- Versão do PHP: 8.0.30
+-- Versão do PHP: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -20,28 +20,6 @@ SET time_zone = "+00:00";
 --
 -- Banco de dados: `config_simposio`
 --
-
--- --------------------------------------------------------
-
---
--- Estrutura para tabela `email_templates`
---
-
-CREATE TABLE `email_templates` (
-  `id` int(11) NOT NULL,
-  `type` varchar(50) NOT NULL,
-  `subject` varchar(255) NOT NULL,
-  `body` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Despejando dados para a tabela `email_templates`
---
-
-INSERT INTO `email_templates` (`id`, `type`, `subject`, `body`) VALUES
-(1, 'password_reset', 'Redefinição de Senha', 'Clique no link para redefinir sua senha: {link}'),
-(2, 'registration_confirmation', 'Confirmação de Registro', 'Bem-vindo, {name}! Obrigado por se registrar.'),
-(3, 'account_activation', 'Ativação de Conta', 'Ative sua conta clicando no link: {link}');
 
 -- --------------------------------------------------------
 
@@ -83,18 +61,21 @@ CREATE TABLE `user` (
   `reset_token` varchar(255) NOT NULL,
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
-  `deleted_at` datetime NOT NULL
+  `deleted_at` datetime NOT NULL,
+  `is_approved` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Despejando dados para a tabela `user`
+--
+
+INSERT INTO `user` (`id`, `name`, `cpf`, `email`, `password`, `user_type`, `reset_token`, `created_at`, `updated_at`, `deleted_at`, `is_approved`) VALUES
+(7, 'mateus pereira gregorio', 'admin', 'admin@admin.com', '$2y$10$6wbAXGxwAYSaCKtnlg3rCeh1h/v.nA5xSkgvj/aYdryCfRpNL/eoe', 1, '', '2024-07-30 08:14:11', '0000-00-00 00:00:00', '0000-00-00 00:00:00', 0),
+(10, 'Davi Tiago Erick Duarte', '22396345290', 'davi_tiago_duarte@ceuazul.ind.br', '$2y$10$E5gsfcNlJCM4FGNVrAkBoOpr4bKSaDAEyysPPX5yw9dTJos/rwUZu', 3, '', '2024-07-30 10:44:12', '0000-00-00 00:00:00', '0000-00-00 00:00:00', 1);
 
 --
 -- Índices para tabelas despejadas
 --
-
---
--- Índices de tabela `email_templates`
---
-ALTER TABLE `email_templates`
-  ADD PRIMARY KEY (`id`);
 
 --
 -- Índices de tabela `regulamento`
@@ -113,12 +94,6 @@ ALTER TABLE `user`
 --
 
 --
--- AUTO_INCREMENT de tabela `email_templates`
---
-ALTER TABLE `email_templates`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
 -- AUTO_INCREMENT de tabela `regulamento`
 --
 ALTER TABLE `regulamento`
@@ -128,7 +103,7 @@ ALTER TABLE `regulamento`
 -- AUTO_INCREMENT de tabela `user`
 --
 ALTER TABLE `user`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

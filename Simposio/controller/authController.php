@@ -25,7 +25,7 @@ class AuthController {
         if($this->user->login()) {
             if($this->user->is_approved == 0 && $this->user->user_type == 3){
                 $_SESSION['error_message'] = "Seu cadastro como professor ainda não foi aprovado. Por favor, aguarde!";
-                header("Location: ../view/login.php");
+                header("Location: ../view/home.php");
                 exit();
             }
             $_SESSION['user_id'] = $this->user->id;
@@ -34,7 +34,7 @@ class AuthController {
             header("Location: ../view/home.php");
         } else {
             $_SESSION['error_message'] = "Falha no login. email ou senha inválido.";
-            header("Location: ../view/login.php");
+            header("Location: ../view/home.php");
         }
     }
 
@@ -169,7 +169,7 @@ class AuthController {
         session_start();
         session_unset();
         session_destroy();
-        header("Location: ../view/home.php");
+        header("Location: ../view/logout.php");
         exit();
     }
 }

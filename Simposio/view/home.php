@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html>
+<?php
 
+session_start();
+?>
 <head>
     <title>Home</title>
     <meta charset="UTF-8">
@@ -12,14 +15,15 @@
     <div class="container">
         <nav class="sidebar">
             <ul>
-                <li><a href="#" data-content="home">Home</a></li>
+                <li><a href="#" data-content="home_page">Home</a></li>
                 <li><a href="#" data-content="presentation">Apresentação</a></li>
+                <li><a href="#" data-content="registrer">Cadastrar</a></li>
                 <?php if (!isset($_SESSION['user_type'])) {?>
                 <li> <?php include './login.php';?></li>
                 <?php } else { ?>
                     <h2>Welcome, <?php echo $_SESSION['user_name']; ?></h2>
                     <p>Your user type is: <?php echo $_SESSION['user_type']; ?></p>
-                    <a href="../controller/authController.php?action=logout">Logout</a>
+                    <li><a href="#" data-content="logout">Logout</a></li>
                     <?php if (isset($_SESSION['user_type']) && $_SESSION['user_type'] == 1) : ?>
                         <a href="../controller/emailTemplateController.php?action=index">Editar Templates de email</a>
                     <?php endif; ?>
@@ -30,8 +34,7 @@
             </ul>
         </nav>
         <div class="content" id="content">
-            <h1>Welcome</h1>
-            <p>Select an option from the menu</p>
+            <?php include './home_page.php' ?>
         </div>
     </div>
     <?php if (!isset($_SESSION['user_type'])) { ?>

@@ -1,6 +1,3 @@
-<?php
-session_start();
-?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -10,6 +7,7 @@ session_start();
 <body>
     <h2>Acesso ao Simposio</h2>
     <?php
+
         if(isset($_SESSION['error_message'])){
             echo "<div class= 'error_message'>" .$_SESSION['error_message'] . "</div>";
             unset($_SESSION['error_message']);
@@ -32,6 +30,6 @@ session_start();
             <button type="submit" name="login">Login</button>
         </div>
     </form>
-        <a href="forgot_password.php">Esqueceu sua senha?</a>
+        <a href="forgot_password.php" data-content="forgot_password">Esqueceu sua senha?</a>
 </body>
 </html>

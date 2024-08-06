@@ -54,6 +54,5 @@
             <button type="submit" name="register">Registrar</button>
         </div>
     </form>
-    <p>Já tem uma conta? <a href="login.php">Faça login aqui</a>.</p>
 </body>
 </html>

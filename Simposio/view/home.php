@@ -18,6 +18,7 @@ session_start();
                 <li><a href="#" data-content="home_page">Home</a></li>
                 <li><a href="#" data-content="presentation">Apresentação</a></li>
                 <li><a href="#" data-content="registrer">Cadastrar</a></li>
+                <li><a href="#" data-content="regulations">Regulamento</a></li>
                 <?php if (!isset($_SESSION['user_type'])) {?>
                 <li> <?php include './login.php';?></li>
                 <?php } else { ?>
@@ -29,6 +30,7 @@ session_start();
                     <?php endif; ?>
                     <?php if (isset($_SESSION['user_type']) && ($_SESSION['user_type'] == 1 || $_SESSION['user_type'] == 2)) : ?>
                         <a href="../view/approve_teachers.php">Aprovar Professores</a>
+                        <a href="#" data-content="upload_regulation">Mudar o regulamento</a>
                     <?php endif; ?>
                 <?php } ?>
             </ul>

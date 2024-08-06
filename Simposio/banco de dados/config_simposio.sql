@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 31/07/2024 às 03:13
+-- Tempo de geração: 06/08/2024 às 22:17
 -- Versão do servidor: 10.4.32-MariaDB
 -- Versão do PHP: 8.2.12
 
@@ -24,26 +24,43 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Estrutura para tabela `regulamento`
+-- Estrutura para tabela `email_templates`
 --
 
-CREATE TABLE `regulamento` (
-  `idRegulamento` int(11) NOT NULL,
-  `textoRegulamento` text DEFAULT NULL,
-  `idUsuario` int(11) NOT NULL,
-  `arquivoRegulamento` text DEFAULT NULL,
-  `created_at` datetime NOT NULL,
-  `updated_at` datetime NOT NULL,
-  `deleted_at` datetime NOT NULL
+CREATE TABLE `email_templates` (
+  `id` int(11) NOT NULL,
+  `type` varchar(50) NOT NULL,
+  `subject` varchar(255) NOT NULL,
+  `body` text NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Despejando dados para a tabela `regulamento`
+-- Despejando dados para a tabela `email_templates`
 --
 
-INSERT INTO `regulamento` (`idRegulamento`, `textoRegulamento`, `idUsuario`, `arquivoRegulamento`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(2, 'teste', 2, 'teste.pdf', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(3, 'novo teste <h1>isso tambem</h1>', 1, NULL, '2024-07-19 19:06:27', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
+INSERT INTO `email_templates` (`id`, `type`, `subject`, `body`, `user_id`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, 'password_reset', 'Redefinição de Senha!', 'Clique no link para redefinir sua senha: {link}', 7, NULL, '2024-07-30 08:36:21', NULL),
+(2, 'registration_confirmation', 'Confirmação de Registro', 'Bem-vindo, {name}! Obrigado por se registrar.', 0, NULL, NULL, NULL),
+(3, 'account_activation', 'Ativação de Conta', 'Ative sua conta clicando no link: {link}', 0, NULL, NULL, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura para tabela `regulations`
+--
+
+CREATE TABLE `regulations` (
+  `id` int(11) NOT NULL,
+  `file_name` int(11) NOT NULL,
+  `id_user` int(11) NOT NULL,
+  `created_at` int(11) NOT NULL,
+  `updated_at` int(11) NOT NULL,
+  `deleted_at` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -78,10 +95,16 @@ INSERT INTO `user` (`id`, `name`, `cpf`, `email`, `password`, `user_type`, `rese
 --
 
 --
--- Índices de tabela `regulamento`
+-- Índices de tabela `email_templates`
 --
-ALTER TABLE `regulamento`
-  ADD PRIMARY KEY (`idRegulamento`);
+ALTER TABLE `email_templates`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Índices de tabela `regulations`
+--
+ALTER TABLE `regulations`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Índices de tabela `user`
@@ -94,10 +117,16 @@ ALTER TABLE `user`
 --
 
 --
--- AUTO_INCREMENT de tabela `regulamento`
+-- AUTO_INCREMENT de tabela `email_templates`
 --
-ALTER TABLE `regulamento`
-  MODIFY `idRegulamento` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+ALTER TABLE `email_templates`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT de tabela `regulations`
+--
+ALTER TABLE `regulations`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de tabela `user`

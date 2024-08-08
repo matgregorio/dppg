@@ -41,7 +41,7 @@ class RegulationController{
 
                 if(move_uploaded_file($_FILES['regulation']['tmp_name'], $destination)){
                     $this->regulation->file_name = $new_file_name;
-                    $this->regulation->id_user = $_SESSION['user_name'];
+                    $this->regulation->id_user = $_SESSION['user_id'];
                     if($this->regulation->upload()){
                         $_SESSION['message'] = "Regulamento enviado com sucesso.";
                         header("Location: ../view/home_page.php");
@@ -61,21 +61,25 @@ class RegulationController{
     public function viewAll(){
         return $this->regulation->getAll();
     }
-}
 
-$action = isset($_GET['action']) ? $_GET['action'] : '';
+    public function dispatch(){
+        $action = isset($_GET['action']) ? $_GET['action'] : '';
+
+        switch($action){
+            case 'upload':
+                $this->upload();
+                break;
+            case 'viewAll':
+                $regulations = $this->viewAll();
+                include '../view/regulations.php';
+                break;
+            default:
+                header("Location: ../view/login.php");
+                break;
+        }
+    }
+}
 
 $controller = new RegulationController();
-
-switch($action){
-    case 'upload':
-        $controller->upload();
-        break;
-    case 'viewAll':
-        $controller->viewAll();
-        break;
-    default:
-        header("Location: ../view/login.php");
-        break;
-}
+$controller->dispatch();
 ?>

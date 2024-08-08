@@ -5,6 +5,9 @@ include_once '../controller/regulationController.php';
 
 $controller = new RegulationController();
 $regulations = $controller->viewAll();
+if ($regulations === false) {
+    die("Erro ao acessar regulamentos.");
+}
 ?>
 
 <!DOCTYPE html>

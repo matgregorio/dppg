@@ -1,5 +1,4 @@
 <?php
-session_start();
 
 include_once '../controller/regulationController.php';
 
@@ -20,10 +19,17 @@ if ($regulations === false) {
 <body>
     <h2>Regulamento</h2>
     <?php
-    if($regulations->rowCount()>0){
-        echo "<ul>";
+    if(isset($regulations) && $regulations->rowCount()>0){
         while($row = $regulations->fetch(PDO::FETCH_ASSOC)){
-            echo "<li><a href='../uploads/" . htmlspecialchars($row['file_name']) . "' target='_blank'>Ver Regulamento (PDF)</a> - Enviado em: " . $row['updated_at'] . "</li>";
+            $file_path = "../uploads/" . htmlspecialchars($row['file_name']);
+        ?>
+        <div>
+            <h3>Regulamento enviado em: <?php echo $row['updated_at'];?></h3>
+            <!--EXIBIR O PDF-->
+            <iframe src="<?php echo $file_path; ?>" width="100%" height="700px"></iframe>
+        </div>
+        <hr>
+        <?php
         }
         echo "</ul>";
     }else{

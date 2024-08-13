@@ -62,24 +62,21 @@ class RegulationController{
         return $this->regulation->getAll();
     }
 
-    public function dispatch(){
-        $action = isset($_GET['action']) ? $_GET['action'] : '';
+}
 
-        switch($action){
-            case 'upload':
-                $this->upload();
-                break;
-            case 'viewAll':
-                $regulations = $this->viewAll();
-                include '../view/regulations.php';
-                break;
-            default:
-                header("Location: ../view/login.php");
-                break;
-        }
+if(isset($_GET['action'])){
+    $controller = new RegulationController();
+    switch($_GET['action']){
+        case 'upload':
+            $controller->upload();
+            break;
+        case 'viewAll':
+            $controller->viewAll();
+            break;
+        default:
+            header("Location ../view/login.php");
+            break;
     }
 }
 
-$controller = new RegulationController();
-$controller->dispatch();
 ?>

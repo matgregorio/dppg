@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 06/08/2024 às 22:17
+-- Tempo de geração: 14/08/2024 às 21:59
 -- Versão do servidor: 10.4.32-MariaDB
 -- Versão do PHP: 8.2.12
 
@@ -50,17 +50,39 @@ INSERT INTO `email_templates` (`id`, `type`, `subject`, `body`, `user_id`, `crea
 -- --------------------------------------------------------
 
 --
+-- Estrutura para tabela `presentation`
+--
+
+CREATE TABLE `presentation` (
+  `id` int(11) NOT NULL,
+  `content` text NOT NULL,
+  `id_user` int(11) NOT NULL,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL,
+  `deleted_at` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Estrutura para tabela `regulations`
 --
 
 CREATE TABLE `regulations` (
   `id` int(11) NOT NULL,
-  `file_name` int(11) NOT NULL,
+  `file_name` varchar(256) NOT NULL,
   `id_user` int(11) NOT NULL,
-  `created_at` int(11) NOT NULL,
-  `updated_at` int(11) NOT NULL,
-  `deleted_at` int(11) NOT NULL
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL,
+  `deleted_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Despejando dados para a tabela `regulations`
+--
+
+INSERT INTO `regulations` (`id`, `file_name`, `id_user`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(3, '66bb4d3d2b1f9.pdf', 7, '0000-00-00 00:00:00', '2024-08-13 09:10:37', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -101,6 +123,12 @@ ALTER TABLE `email_templates`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Índices de tabela `presentation`
+--
+ALTER TABLE `presentation`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Índices de tabela `regulations`
 --
 ALTER TABLE `regulations`
@@ -123,10 +151,16 @@ ALTER TABLE `email_templates`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
+-- AUTO_INCREMENT de tabela `presentation`
+--
+ALTER TABLE `presentation`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de tabela `regulations`
 --
 ALTER TABLE `regulations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de tabela `user`

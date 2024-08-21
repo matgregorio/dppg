@@ -1,7 +1,7 @@
 <?php
 session_start();
 if(!isset($_SESSION['user_type']) || ($_SESSION['user_type'] != 1 && $_SESSION['user_type'] != 2)){
-    header("Location: presentation.php");
+    header("Location: ./home.php");
     exit();
 }
 
@@ -15,7 +15,17 @@ if (!isset($presentation)) {
 <head>
     <meta charset="UTF-8">
     <title>Editar Apresentação</title>
-    <script src="https://cdn.ckeditor.com/4.20.1/standard/ckeditor.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+  <script>
+    tinymce.init({
+      selector: '#meuEditor',
+      plugins: 'a11ychecker advcode advlist link lists checklist media mediaembed pageembed powerpaste table tinymcespellchecker',
+      toolbar: 'undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | outdent indent | link image',
+      menubar: false,
+      breading: false
+    });
+  </script>
 </head>
 <body>
     <h2>Editar Apresentação</h2>
@@ -30,13 +40,10 @@ if (!isset($presentation)) {
     }
     ?>
     <form method="post" action="../controller/presentationController.php?action=edit">
-        <textarea name="content" rows="15" cols="80"><?php echo htmlspecialchars($presentation['content']);?></textarea>
+        <textarea id="meuEditor" name="content" rows="15" cols="80"><?php echo htmlspecialchars($presentation['content']);?></textarea>
         <br>
-        <input type="submit" value="Salvar">
+        <button type="submit">Salvar</button>
     </form>
     <a href="../view/presentation.php">Cancelar</a>
-    <script>
-        CKEDITOR.replace('content');
-    </script>
 </body>
 </html>

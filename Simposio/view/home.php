@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="../assets/css/style_home.css">
-    <script src="https://cdn.ckeditor.com/4.20.1/standard/ckeditor.js"></script>
 </head>
 
 <body>
@@ -36,7 +35,6 @@
         }
     </script>
     <script src="../assets/js/script_home.js"></script>
-    <script src="https://cdn.ckeditor.com/4.20.1/standard/ckeditor.js"></script>
 </body>
 
 </html>

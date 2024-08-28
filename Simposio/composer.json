@@ -2,6 +2,7 @@
     "require": {
         "phpmailer/phpmailer": "^6.9",
         "google/apiclient": "*",
-        "ralouphie/getallheaders": "*"
+        "ralouphie/getallheaders": "*",
+        "tinymce/tinymce": "^7.3"
     }
 }

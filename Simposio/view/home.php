@@ -22,7 +22,7 @@
     <?php } else { ?>
 
     <?php } ?>
-        <script>
+    <script>
         function carregarConteudo(pagina){
             var xhr = new XMLHttpRequest();
             xhr.open('GET', pagina, true);

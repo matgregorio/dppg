@@ -12,6 +12,9 @@
 <body>
     <h2>Editar Templates de email</h2>
     <?php
+    include_once '../controller/emailTemplateController.php';
+    $emailTemplate = new EmailTemplateController();
+    $templates = $emailTemplate->index();
     if(!isset($_SESSION['user_type']) || $_SESSION['user_type'] != 1){
         header("Location: ../view/login.php");
         exit();

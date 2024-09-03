@@ -1,5 +1,4 @@
 <?php
-session_start();
 include_once '../config/database.php';
 include_once '../model/user.php';
 include_once '../util/validateCpf.php';
@@ -18,9 +17,11 @@ class AuthController {
         $this->emailTemplate = new EmailTemplate($this->db);
     }
 
-    public function login($email, $password) {
-        $this->user->email = $email;
-        $this->user->password = $password;
+    public function login() {
+        if($_SERVER['REQUEST_METHOD'] === 'POST'){
+            $this->user->email = $_POST['email'];
+            $this->user->password = $_POST['password'];
+        }
 
         if($this->user->login()) {
             if($this->user->is_approved == 0 && $this->user->user_type == 3){
@@ -28,6 +29,7 @@ class AuthController {
                 header("Location: ../view/home.php");
                 exit();
             }
+            session_start();
             $_SESSION['user_id'] = $this->user->id;
             $_SESSION['user_name'] = $this->user->name;
             $_SESSION['user_type'] = $this->user->user_type;
@@ -38,76 +40,71 @@ class AuthController {
         }
     }
 
-    public function register($name, $cpf, $email, $password,$confirm_password, $user_type) {
-        #função para não apagar dados do formulário caso aconteça algum erro na hora do preenchimento
-        $_SESSION['form_data'] = [
-            'name' => $name,
-            'cpf' => $cpf,
-            'email' => $email,
-            'user_type' => $user_type
+    public function register() {
+        $_SESSION['form_data'] = [ #não apagar dados do formulário em caso de erro
+            'name' => $_POST['name'],
+            'cpf' => $_POST['cpf'],
+            'email' => $_POST['email'],
+            'user_type' => $_POST['user_type']
         ];
-        if($password !== $confirm_password){#verifica se as senhas conferem
-           $_SESSION['error_message'] = "Senhas não conferem.";
-           header("Location: ../view/registrer.php");
-            return;
-        }
-
-        if(!filter_var($email, FILTER_VALIDATE_EMAIL)){#verifica se o formato de email é valido(não faz busca no bd)
-            $_SESSION['error_message'] = "Formato inválido de email.";
-            header("Location: ../view/registrer.php");
-            return;
-        }
-
-        if(!isValidCPF($cpf)){#verifica se o cpf é válido(não faz busca no bd)
-            $_SESSION['error_message'] = "CPF inválido.";
-            header("Location: ../view/registrer.php");
-            return;
-
-        }
-        $this->user->cpf = $cpf;
-        if($this->user->cpfExists()){#verifica se o cpf está sendo utlizado na base de dados
-            $_SESSION['error_message'] = "CPF já cadastrado!";
-            header("Location: ../view/registrer.php");
-            return;
-        }
-        if($this->user->emailExists()){#verifica se o email está sendo utilizado na base de dados
-            $_SESSION['error_message'] = "Email já utilizado na base de dados.";
-            header("Location: ../view/registrer.php");
-            return;
-        }
-
-        $this->user->name = $name;
-        $this->user->email = $email;
-        $this->user->password = $password;
-        $this->user->user_type = $user_type;
-
-        if($user_type == 3){
-            $this->user->is_approved = 0;
-        }else{
-            $this->user->is_approved = 1;
-        }
-
-        if($this->user->create()) { #se o usuário foi criado, então resete os dados do formulário
-            $template = $this->emailTemplate->readByType('registration_confirmation');
-            $subject = $template['subject'];
-            $name = $this->user->name;
-            $body = str_replace('{name}', $name, $template['body']);
-
-            $result = sendEmail($email, $subject, $body);
-            if($result === false){
-                $_SESSION['error_message'] = $result;
+        if($_SERVER['REQUEST_METHOD'] === 'POST'){
+            if($_POST['password'] !== $_POST['confirm_password']){#verifica se as senhas conferem
+                $_SESSION['error_message'] = "Senhas não conferem.";
+                header("Location: ../view/registrer.php");
+                 return;
+             }
+             if(!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)){#verifica se o formato de email é valido(não faz busca no bd)
+                $_SESSION['error_message'] = "Formato inválido de email.";
+                header("Location: ../view/registrer.php");
+                return;
             }
-            if($this->user->user_type == 3){
-                $_SESSION['message'] = "Usuário cadastrado. Por favor, aguarde sua aprovação";
+            if(!isValidCPF($_POST['cpf'])){#verifica se o cpf é válido(não faz busca no bd)
+                $_SESSION['error_message'] = "CPF inválido.";
+                header("Location: ../view/registrer.php");
+                return;
+            }
+            $this->user->cpf = $_POST['cpf'];
+            if($this->user->cpfExists()){#verifica se o cpf está sendo utlizado na base de dados
+                $_SESSION['error_message'] = "CPF já cadastrado!";
+                header("Location: ../view/registrer.php");
+                return;
+            }
+            $this->user->email = $_POST['email'];
+            if($this->user->emailExists()){#verifica se o email está sendo utilizado na base de dados
+                $_SESSION['error_message'] = "Email já utilizado na base de dados.";
+                header("Location: ../view/registrer.php");
+                return;
+            }
+            if($_POST['user_type'] == 3){
+                $this->user->is_approved = 0;
             }else{
-                $_SESSION['message'] = "Usuário cadastrado com sucesso";
+                $this->user->is_approved = 1;
             }
-                
-            unset($_SESSION['form_data']);
-            header("Location: ../view/login.php");
-        } else {#se não, emite erro!
-            $_SESSION['error_message'] = "Erro ao registrar.";
-            header("Location: ../view/registrer.php");
+            $this->user->name = $_POST['name'];
+            $this->user->password = $_POST['password'];
+            $this->user->user_type = $_POST['user_type'];
+            if($this->user->create()){
+                $template = $this->emailTemplate->readByType('registration_confirmation');
+                $subject = $template['subject'];
+                $name = $this->user->name;
+                $body = str_replace('{name}', $name, $template['body']);
+
+                $result = sendEmail($_POST['email'], $subject, $body);
+                if($result === false){
+                    $_SESSION['error_message'] = $result;
+                }
+                if($this->user->user_type == 3){
+                    $_SESSION['message'] = "Usuário cadastrado. Por favor, aguarde sua aprovação";
+                }else{
+                    $_SESSION['message'] = "Usuário cadastrado com sucesso";
+                }
+
+                unset($_SESSION['form_data']);
+                header("Location: ../view/login.php");
+            }else{
+                $_SESSION['error_message'] = "Erro ao registrar.";
+                header("Location: ../view/registrer.php");
+            }
         }
     }
 
@@ -143,12 +140,15 @@ class AuthController {
         exit();
     }
     public function resetPassword($token,$password, $confirm_password){
-        if($password !== $confirm_password){
-            $_SESSION['error_message'] = "Senhas não conferem.";
-            header("Location: ../view/reset_password.php?token=$token");
-            return;
+        if($_SERVER['REQUEST_METHOD'] == 'POST'){
+            if($_POST['password'] !== $_POST['confirm_password']){
+                $_SESSION['error_message'] = "Senhas não conferem.";
+                $token = $_POST['token'];
+                header("Location: ../view/reset_password.php?token=$token");
+                return;
+            }
         }
-        $this->user->reset_token = $token;
+        $this->user->reset_token = $_POST['token'];
             if($this->user->validateToken()){
                 $this->user->password = $password;
 
@@ -171,31 +171,6 @@ class AuthController {
         session_destroy();
         header("Location: ../view/logout.php");
         exit();
-    }
-}
-
-if(isset($_GET['action'])){
-    $controller = new AuthController();
-    switch($_GET['action']){
-        case 'login':
-            $controller->login($_POST['email'], $_POST['password']);
-            break;
-        case 'register':
-            $controller->register($_POST['name'], $_POST['cpf'], $_POST['email'], $_POST['password'], $_POST['confirm_password'], $_POST['user_type']);
-            break;
-        case 'forgotPassword':
-            $controller->forgotPassword();
-            break;
-        case 'resetPassword':
-            $controller->resetPassword(
-                $_POST['token'],
-                $_POST['password'],
-                $_POST['confirm_password']
-            );
-            break;
-        case 'logout':
-            $controller->logout();
-            break;
     }
 }
 ?>

@@ -1,7 +1,7 @@
 <?php 
     session_start();
-    include_once '../config/database.php';
     include_once '../model/emailTemplate.php';
+    include_once '../config/database.php';
 
     class EmailTemplateController{
         private $db;
@@ -14,6 +14,15 @@
             $this->template = new EmailTemplate($this->db);
         }
 
+        public function view(){
+            return $this->template->readAll();
+        }
+
+        public function editi($id){
+            if($_SESSION['user_type'] == 1){
+                $template = $this->template->
+            }
+        }
         public function index(){
             $stmt = $this->template->readAll();
             $templates = $stmt->fetchAll(PDO::FETCH_ASSOC);

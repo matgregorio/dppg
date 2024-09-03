@@ -14,7 +14,7 @@ session_start();
     <ul>
         <?php if (!isset($_SESSION['user_type']) || ($_SESSION['user_type'] == 1)) { ?>
             <li><a href="#" onclick="carregarConteudo('approve_teachers.php')">Aprovar Professores</a></li>
-            <li><a href="#" onclick="carregarConteudo('edit_email_templates.php')">Editar email automático</a></li>
+            <li><a href="../controller/emailTemplateController.php?action=index" onclick="carregarConteudo('edit_email_templates.php')">Editar email automático</a></li>
             <li><a href="#" onclick="carregarConteudo('edit_presentation.php')">Editar apresentação</a></li>
         <?php } ?>
     </ul>

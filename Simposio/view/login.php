@@ -17,7 +17,7 @@
             unset($_SESSION['message']);
         }
     ?>
-    <form method="post" action="../controller/authController.php?action=login">
+    <form method="post" action="/login">
         <div>
             <label for="email">Email:</label>
             <input type="email" id="email" name="email" required>

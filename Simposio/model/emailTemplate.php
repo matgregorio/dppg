@@ -1,4 +1,6 @@
 <?php
+
+require_once '../config/database.php';
 class EmailTemplate{
     public $conn;
     private $table_name = "email_templates";

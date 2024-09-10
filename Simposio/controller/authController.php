@@ -1,9 +1,9 @@
 <?php
-include_once '../config/database.php';
-include_once '../model/user.php';
-include_once '../util/validateCpf.php';
-include_once '../util/send_mail.php';
-include_once '../model/emailTemplate.php';
+include_once __DIR__ . '/../config/database.php';
+include_once __DIR__ . '/../model/user.php';
+include_once __DIR__ . '/../util/validateCpf.php';
+include_once __DIR__ . '/../util/send_mail.php';
+include_once __DIR__ . '/../model/emailTemplate.php';
 
 class AuthController {
     private $db;
@@ -17,6 +17,9 @@ class AuthController {
         $this->emailTemplate = new EmailTemplate($this->db);
     }
 
+    public function viewLogin(){
+        include_once __DIR__ . '/../view/login.php';
+    }
     public function login() {
         if($_SERVER['REQUEST_METHOD'] === 'POST'){
             $this->user->email = $_POST['email'];
@@ -26,17 +29,17 @@ class AuthController {
         if($this->user->login()) {
             if($this->user->is_approved == 0 && $this->user->user_type == 3){
                 $_SESSION['error_message'] = "Seu cadastro como professor ainda não foi aprovado. Por favor, aguarde!";
-                header("Location: ../view/home.php");
+                header("Location: /dppg/simposio/");
                 exit();
             }
             session_start();
             $_SESSION['user_id'] = $this->user->id;
             $_SESSION['user_name'] = $this->user->name;
             $_SESSION['user_type'] = $this->user->user_type;
-            header("Location: ../view/home.php");
+            header("Location: /dppg/simposio/");
         } else {
             $_SESSION['error_message'] = "Falha no login. email ou senha inválido.";
-            header("Location: ../view/home.php");
+            header("Location: /dppg/simposio/");
         }
     }
 
@@ -139,18 +142,18 @@ class AuthController {
         header("Location: ../view/forgot_password.php");
         exit();
     }
-    public function resetPassword($token,$password, $confirm_password){
+
+    public function resetPassword(){
         if($_SERVER['REQUEST_METHOD'] == 'POST'){
+            $token = $_POST['token'];
             if($_POST['password'] !== $_POST['confirm_password']){
                 $_SESSION['error_message'] = "Senhas não conferem.";
-                $token = $_POST['token'];
                 header("Location: ../view/reset_password.php?token=$token");
                 return;
             }
-        }
-        $this->user->reset_token = $_POST['token'];
+            $this->user->reset_token = $_POST['token'];
             if($this->user->validateToken()){
-                $this->user->password = $password;
+                $this->user->password = $_POST['password'];
 
                 if($this->user->updatePassword()){
                     $_SESSION['message'] = "Senha alterada com sucesso";
@@ -163,6 +166,8 @@ class AuthController {
                 $_SESSION['error_message'] = "Token inválido ou expirado.";
                 header("Location: ../view/reset_password.php?token=$token");
             }
+        }
+        
     }
 
     public function logout() {

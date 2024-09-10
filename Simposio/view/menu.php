@@ -6,7 +6,7 @@ session_start();
 </head>
 <body>
 <ul>
-    <li><a href="#" onclick="carregarConteudo('home_page.php')">Home</a></li>
+    <li><a href="./">Home</a></li>
     <li><a href="#" onclick="carregarConteudo('presentation.php')">Apresentação</a></li>
     <li><a href="#" onclick="carregarConteudo('regulations.php')">Regulamento</a></li>
     <li><a href="#" onclick="carregarConteudo('')">Corpo Editorial</a></li>

@@ -1,30 +1,26 @@
 <?php 
 
-class router{
+class Router{
     public static function route($url){
-        require '../controller/authController.php';
+        if($url == '/dppg/simposio/'){ #homePage
+            require __DIR__ . '/../controller/homeController.php';
+            $controller = new HomeController();
+            $controller->inicial();
+        }
+        elseif($url == '/dppg/simposio/login'){ #viewLogin
+            include_once __DIR__ . '/../controller/authController.php';
+            $controller = new AuthController();
+            $controller->viewLogin();
+        }else if($url == '/dppg/simposio/loginn'){ #solicitação de login
+            require __DIR__ . '/../controller/authController.php';
+            $controller = new AuthController();
+            $controller->login();
+        }else if($url == '/dppg/simposio/'){
 
-
-
-        switch($url){
-            case '/login':
-                $controller = new AuthController();
-                $controller->login();
-                break;
-            case '/registrer':
-                $controller = new AuthController();
-                $controller->register();
-                break;
-            case '/resetPassword':
-                $controller = new AuthController();
-                $controller->resetPassword();
-                break;
-            case '/logout':
-                $controller = new AuthController();
-                $controller->logout();
-                break;
-            default:
-                echo "404 - Página não encontrada";
+        }
+        else{
+            echo("Error 404 - Página não encontrada");
         }
     }
 }
+?>

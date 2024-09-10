@@ -17,7 +17,7 @@
             unset($_SESSION['message']);
         }
     ?>
-    <form method="post" action="/login">
+    <form method="post" action="./loginn">
         <div>
             <label for="email">Email:</label>
             <input type="email" id="email" name="email" required>

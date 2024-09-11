@@ -29,17 +29,17 @@ class AuthController {
         if($this->user->login()) {
             if($this->user->is_approved == 0 && $this->user->user_type == 3){
                 $_SESSION['error_message'] = "Seu cadastro como professor ainda não foi aprovado. Por favor, aguarde!";
-                header("Location: /dppg/simposio/");
+                header("Location: /dppg/Simposio/");
                 exit();
             }
             session_start();
             $_SESSION['user_id'] = $this->user->id;
             $_SESSION['user_name'] = $this->user->name;
             $_SESSION['user_type'] = $this->user->user_type;
-            header("Location: /dppg/simposio/");
+            header("Location: /dppg/Simposio/");
         } else {
             $_SESSION['error_message'] = "Falha no login. email ou senha inválido.";
-            header("Location: /dppg/simposio/");
+            header("Location: /dppg/Simposio/");
         }
     }
 

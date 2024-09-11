@@ -313,7 +313,7 @@
         </script>
         <a href="#home" class="active">Home</a>
         <a href="#quemSomos">Quem somos</a>
-        <a href="#simposio">Simpósio</a>
+        <a href="Simposio/">Simpósio</a>
         <div class="dropdown">
             <button class="dropbtn">Anais do Simpósio
                 <i class="fa fa-caret-down"></i>

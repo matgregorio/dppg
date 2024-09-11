@@ -2,7 +2,7 @@
 session_start();
 ?>
 <head>
-    <link rel="stylesheet" type="text/css" href="../assets/css/style_menu.css">
+    <link rel="stylesheet" type="text/css" href="./assets/css/style_menu.css">
 </head>
 <body>
 <ul>
@@ -19,9 +19,9 @@ session_start();
     <li><a href="/index.php">DPPG</a></li>
     <?php if(!isset($_SESSION['user_type'])) {?>
     <li><a href="#" onclick="carregarConteudo('registrer.php')">Cadastrar</a></li>
-    <li><?php include './login.php';?></li>
+    <li><?php include 'login.php';?></li>
     <?php } else {?>
-        <li><a href="#" onclick="carregarConteudo('logout.php')">Logout</a></li>
+        <li><a href="#" onclick="carregarConteudo('logout')">Logout</a></li>
     <?php } ?>
     <?php if(isset($_SESSION['user_type']) && ($_SESSION['user_type'] == 1 || $_SESSION['user_type'] == 2)){ ?> <!-- se for adminsitrador ou subadministrador, abre a página de administração -->
         <li><a href="#" onclick="carregarConteudo('administrator.php')">Administração</a></li>

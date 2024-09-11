@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Login</title>
-    <link rel="stylesheet" type="text/css" href="../assets/css/styles.css">
+    <link rel="stylesheet" type="text/css" href="./assets/css/styles.css">
 </head>
 <body>
     <h2>Acesso ao Simposio</h2>
@@ -30,6 +30,6 @@
             <button type="submit" name="login">Login</button>
         </div>
     </form>
-        <a href="forgot_password.php" data-content="forgot_password">Esqueceu sua senha?</a>
+        <a href="/dppg/Simposio/forgotPassword" data-content="forgot_password">Esqueceu sua senha?</a>
 </body>
 </html>

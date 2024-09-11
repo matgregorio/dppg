@@ -1,5 +1,11 @@
 RewriteEngine On
 RewriteBase /dppg/simposio/
+
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
+
 RewriteRule ^(.*)$ index.php [QSA,L]
+
+# Redireciona qualquer acesso à pasta view para a página inicial
+RedirectMatch 403 ^/dppg/Simposio/view/
+

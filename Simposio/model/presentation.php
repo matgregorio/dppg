@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../config/database.php';
 class Presentation{
     private $conn;
     private $table_name = "presentation";
@@ -20,13 +21,13 @@ class Presentation{
         $query = "SELECT * FROM " . $this->table_name . " WHERE id = 1 LIMIT 1";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        return $stmt->fetch(PDO::FETCH_ASSOC)['content'];
     }
 
     public function updatePresentation($content){
         $query = "UPDATE " . $this->table_name . " SET content = :content WHERE id = 1";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':content', $content);
-        return $stmt->execute();
+        return $stmt->execute(['content' => $content]);
     }
 }

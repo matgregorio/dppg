@@ -1,12 +1,3 @@
-<?php 
-include_once '../controller/presentationController.php';
-
-$controller = new PresentationController();
-$presentation = $controller->view();
-if($presentation === false){
-    die("Erro ao acessar apresentação");
-}
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -27,7 +18,7 @@ if($presentation === false){
     }
     ?>
     <div>
-        <?php echo nl2br(htmlspecialchars($presentation['content'])); ?>
+        <?php echo nl2br(htmlspecialchars($content)); ?>
     </div>
 </body>
 </html>

@@ -1,22 +1,21 @@
 <?php
 session_start();
-include_once '../config/database.php';
-include_once '../model/presentation.php';
+include_once __DIR__ . '/../model/presentation.php';
+require_once __DIR__ . '/../config/database.php';
 
 class PresentationController{
-    private $database;
-    private $db;
     private $presentation;
 
     public function __construct()
     {
-        $this->database = new Database();
-        $this->db = $this->database->getConnection();
-        $this->presentation = new Presentation($this->db);
+        $database = new Database();
+        $db = $database->getConnection();
+        $this->presentation = new Presentation($db);
     }
 
     public function view(){
-        return $this->presentation->getPresentation();
+        $content = $this->presentation->getPresentation();
+        include_once __DIR__ . '/../view/presentation.php';
     }
 
     public function edit(){
@@ -37,19 +36,5 @@ class PresentationController{
             $_SESSION['error_message'] = "Você não tem permissão para editar o texto de apresentação.";
             header("Location: ../view/home.php");
         }
-    }
-}
-
-if(isset($_GET['action'])){
-    $controller = new PresentationController();
-    switch($_GET['action']){
-        case 'view':
-            $controller->view();
-            break;
-        case 'edit':
-            $controller->edit();
-            break;
-        default:
-            header("Location: ../view/login.php");
     }
 }

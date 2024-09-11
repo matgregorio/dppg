@@ -14,7 +14,7 @@ session_destroy();
 ?>
 Você saiu do sistema!
 
-<?php echo '<META HTTP-EQUIV="Refresh" Content="1; URL=/">';?>
+<?php echo '<META HTTP-EQUIV="Refresh" Content="1; URL=/dppg/Simposio/">';?>
 
 </body>
 </html>

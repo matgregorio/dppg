@@ -1,13 +1,5 @@
 <?php
 session_start();
-if (!isset($_SESSION['user_type']) || ($_SESSION['user_type'] != 1 && $_SESSION['user_type'] != 2)) {
-    header("Location: ./home.php");
-    exit();
-}
-
-if (!isset($presentation)) {
-    $presentation = ['content' => '']; // Evita erro caso $presentation esteja indefinido
-}
 ?>
 
 <!DOCTYPE html>
@@ -32,19 +24,7 @@ if (!isset($presentation)) {
         unset($_SESSION['error_message']);
     }
     ?>
-        <script>
-        function carregarConteudo(pagina) {
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', pagina, true);
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    document.getElementById('content').innerHTML = xhr.responseText;
-                }
-            };
-            xhr.send();
-        }
-    </script>
-    <form method="post" action="../controller/presentationController.php?action=edit">
+    <form method="post" action="/saveEditPresentation">
         <textarea id="meuEditor" name="content" rows="15" cols="80"><?php echo htmlspecialchars($presentation['content']); ?></textarea>
         <br>
         <button type="submit">Salvar</button>

@@ -2,11 +2,36 @@
 
 class Router{
     public static function route($url){
-        if($url == '/dppg/Simposio/'){ #homePage
+        #menu completo
+        #homePage
+        if($url == '/dppg/Simposio/'){
             require __DIR__ . '/../controller/homeController.php';
             $controller = new HomeController();
             $controller->inicial();
         }
+        #apresentação
+        else if($url == '/dppg/Simposio/apresentacao'){
+            include_once __DIR__ . '/../controller/presentationController.php';
+            $controller = new PresentationController();
+            $controller->view();
+        }
+        #regulamento
+        else if($url == '/dppg/Simposio/regulamento'){
+            include_once __DIR__ . '/../controller/regulationController.php';
+            $controller = new RegulationController();
+            $controller->viewAll();
+        }
+        #corpo editorial
+        #expediente
+        #Normas para publicação
+        #Programação
+        #Modelo de Pôster
+        #Validar certificado
+        #Anais
+        #DPPG - Já inserido no HREF do código
+        #Se o usuário não tiver feito login
+        #Cadastrar
+        #Mostar view login
         else if($url == '/dppg/Simposio/login'){ #viewLogin
             include_once __DIR__ . '/../controller/authController.php';
             $controller = new AuthController();
@@ -19,15 +44,11 @@ class Router{
             include_once __DIR__ . '/../view/forgot_password.php';
         }else if($url == '/dppg/Simposio/logout'){#view logout
             include_once __DIR__ . '/../view/logout.php';
-        }else if($url == '/dppg/Simposio/presentation'){#view apresentação
-            include_once __DIR__ . '/../controller/presentationController.php';
-            $controller = new PresentationController();
-            $controller->view();
         }else if($url == '/dppg/Simposio/editPresentation'){#view editar apresentação
             require __DIR__ . '/../controller/presentationController.php';
             $controller = new PresentationController();
             $controller->edit();
-        }else if($url == '/dppg/Simposio/administracao'){
+        }else if($url == '/dppg/Simposio/administracao'){#view de administração
             include_once __DIR__ . '/../view/administrator.php';
         }else if($url == '/dppg/Simposio/saveEditPresentation'){
             require __DIR__ . '/../controller/presentationController.php';

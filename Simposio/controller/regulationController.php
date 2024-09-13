@@ -1,7 +1,7 @@
 <?php
 session_start();
-include_once '../config/database.php';
-include_once '../model/regulation.php';
+include_once __dir__ . '/../config/database.php';
+include_once __dir__ . '/../model/regulation.php';
 
 class RegulationController{
     private $database;
@@ -59,24 +59,9 @@ class RegulationController{
     }
     
     public function viewAll(){
-        return $this->regulation->getAll();
+        $content = $this->regulation->getRegulation();
+        include_once __DIR__ . '/../view/regulation.php';
     }
 
 }
-
-if(isset($_GET['action'])){
-    $controller = new RegulationController();
-    switch($_GET['action']){
-        case 'upload':
-            $controller->upload();
-            break;
-        case 'viewAll':
-            $controller->viewAll();
-            break;
-        default:
-            header("Location ../view/login.php");
-            break;
-    }
-}
-
 ?>

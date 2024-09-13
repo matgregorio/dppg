@@ -1,14 +1,17 @@
 <?php
-session_start();
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 ?>
+
 <head>
     <link rel="stylesheet" type="text/css" href="./assets/css/style_menu.css">
 </head>
 <body>
 <ul>
     <li><a href="./">Home</a></li>
-    <li><a href="presentation" onclick="carregarConteudo('presentation')">Apresentação</a></li>
-    <li><a href="#" onclick="carregarConteudo('regulations.php')">Regulamento</a></li>
+    <li><a href="./apresentacao">Apresentação</a></li>
+    <li><a href="./regulamento">Regulamento</a></li>
     <li><a href="#" onclick="carregarConteudo('')">Corpo Editorial</a></li>
     <li><a href="#" onclick="carregarConteudo('')">Expediente</a></li>
     <li><a href="#" onclick="carregarConteudo('')">Normas para Publicação</a></li>
@@ -21,10 +24,10 @@ session_start();
     <li><a href="#" onclick="carregarConteudo('registrer.php')">Cadastrar</a></li>
     <li><?php include 'login.php';?></li>
     <?php } else {?>
-        <li><a href="#" onclick="carregarConteudo('logout')">Logout</a></li>
+        <li><a href="./logout">Logout</a></li>
     <?php } ?>
     <?php if(isset($_SESSION['user_type']) && ($_SESSION['user_type'] == 1 || $_SESSION['user_type'] == 2)){ ?> <!-- se for adminsitrador ou subadministrador, abre a página de administração -->
-        <li><a href="#" onclick="carregarConteudo('administracao')">Administração</a></li>
+        <li><a href="./administracao">Administração</a></li>
     <?php } ?>
 </ul>
 </body>

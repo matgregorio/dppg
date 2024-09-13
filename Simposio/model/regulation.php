@@ -27,11 +27,11 @@ class Regulation{
         return $stmt->execute();
     }
 
-    public function getAll(){
-        $query = "SELECT * FROM " . $this->table_name . " ORDER BY updated_at DESC";
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute();
-        return $stmt;
+    public function getRegulation(){
+        $query = $this->conn->prepare("SELECT * FROM " . $this->table_name . " ORDER BY updated_at DESC");
+        $query->execute();
+        $result = $query->fetch(PDO::FETCH_ASSOC);
+        return $result['file_name'];
     }
 }
 ?>

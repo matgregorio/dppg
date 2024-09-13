@@ -16,19 +16,6 @@
             <?php include 'home_page.php' ?>
         </div>
     </div>
-    <script>
-        function carregarConteudo(pagina){
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', pagina, true);
-            xhr.onreadystatechange = function(){
-                if(xhr.readyState == 4 && xhr.status == 200){
-                    document.getElementById('content').innerHTML = xhr.responseText;
-                }   
-            };
-            xhr.send();
-        }
-    </script>
-    <script src="../assets/js/script_home.js"></script>
 </body>
 
 </html>

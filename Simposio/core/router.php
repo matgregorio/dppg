@@ -1,4 +1,6 @@
-<?php 
+<?php
+
+use Google\Service\ServiceControl\Auth;
 
 class Router{
     public static function route($url){
@@ -48,9 +50,16 @@ class Router{
             require __DIR__ . '/../controller/presentationController.php';
             $controller = new PresentationController();
             $controller->edit();
-        }else if($url == '/dppg/Simposio/administracao'){#view de administração
+        }
+        #parte administrativa
+        else if($url == '/dppg/Simposio/administracao'){#view de administração
             include_once __DIR__ . '/../view/administrator.php';
-        }else if($url == '/dppg/Simposio/saveEditPresentation'){
+        }else if($url == '/dppg/Simposio/administracao/aprovarProfessores'){
+            require __DIR__ . '/../controller/authController.php';
+            $controller = new AuthController();
+            $controller->viewApproveTeachers();
+        }
+        else if($url == '/dppg/Simposio/saveEditPresentation'){
             require __DIR__ . '/../controller/presentationController.php';
             
         }

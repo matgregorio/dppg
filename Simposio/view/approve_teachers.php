@@ -4,25 +4,6 @@
         header("Location: login.php");
         exit();
     }
-
-    include_once '../config/database.php';
-    include_once '../model/user.php';
-
-    $database = new Database();
-    $db = $database->getConnection();
-
-    $user = new User($db);
-
-    if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['approve'])){
-        $user->id = $_POST['user_id'];
-        if($user->approveTeacher()){
-            $_SESSION['message'] = "Professor aprovado com sucesso.";
-        }else{
-            $_SESSION['error_message'] = "Erro ao aprovar professor";
-        }
-    }
-
-    $teachers = $user->getPendingTeachers();
 ?>
 
 <!DOCTYPE html>
@@ -44,30 +25,38 @@
             unset($_SESSION['message']);
         }
     ?>
-    <table>
-        <thead>
-            <tr>
-                <th>Nome</th>
-                <th>Email</th>
-                <th>CPF</th>
-                <th>Ação</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach($teachers as $teacher): ?>
-            <tr>
-                <td><?php echo htmlspecialchars($teacher['name'])?></td>
-                <td><?php echo htmlspecialchars($teacher['email'])?></td>
-                <td><?php echo htmlspecialchars($teacher['cpf'])?></td>
-                <td>
-                    <form method="post" action="approve_teachers.php">
+     <!-- Verifica se há professores pendentes -->
+     <?php if (!empty($teachers)): ?>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>CPF</th>
+                    <th>Aprovar</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Loop através dos professores pendentes e exibe cada um -->
+                <?php foreach ($teachers as $teacher): ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($teacher['id']); ?></td>
+                        <td><?php echo htmlspecialchars($teacher['name']); ?></td>
+                        <td><?php echo htmlspecialchars($teacher['email']); ?></td>
+                        <td><?php echo htmlspecialchars($teacher['cpf']); ?></td>
+                        <td>
+                    <form method="post" action="../controller/authController.php?action=approveTeachers">
                         <input type="hidden" name="user_id" value="<?php echo $teacher['id'];?>">
                         <button type="submit" name="approve">Aprovar</button>
                     </form>
                 </td>
-            </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    <?php else: ?>
+        <p>Nenhum professor pendente de aprovação.</p>
+    <?php endif; ?>
 </body>
 </html>

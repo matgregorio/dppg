@@ -20,6 +20,17 @@ class AuthController {
     public function viewLogin(){
         include_once __DIR__ . '/../view/login.php';
     }
+    public function viewApproveTeachers(){
+        $teachers = $this->user->getPendingTeachers();
+        include_once __DIR__ . '/../view/approve_teachers.php';
+    }
+
+    public function approveTeachers(){
+        $this->user->id = $_POST['user_id'];
+        $this->user->approveTeacher(); 
+        include_once __DIR__ . '/../view/approve_teachers.php';
+    }
+
     public function login() {
         if($_SERVER['REQUEST_METHOD'] === 'POST'){
             $this->user->email = $_POST['email'];

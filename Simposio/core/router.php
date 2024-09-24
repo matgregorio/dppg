@@ -52,16 +52,40 @@ class Router{
             $controller->edit();
         }
         #parte administrativa
-        else if($url == '/dppg/Simposio/administracao'){#view de administração
+        #view de administração
+        else if($url == '/dppg/Simposio/administracao'){
             include_once __DIR__ . '/../view/administrator.php';
-        }else if($url == '/dppg/Simposio/administracao/aprovarProfessores'){
+        }
+        #view de aprovar professores
+        else if($url == '/dppg/Simposio/administracao/aprovarProfessores'){
             require __DIR__ . '/../controller/authController.php';
             $controller = new AuthController();
             $controller->viewApproveTeachers();
         }
-        else if($url == '/dppg/Simposio/saveEditPresentation'){
+        #confirmação de formulário
+        else if($url == '/dppg/Simposio/administracao/aprovarProfessor'){
+            require __DIR__ . '/../controller/authController.php';
+            $controller = new AuthController();
+            $controller->approveTeachers();
+        }
+        #view de editar template de email
+        else if($url == '/dppg/Simposio/administracao/editarEmail'){
+            require __DIR__ . '/../controller/emailTemplateController.php';
+            $controller = new EmailTemplateController();
+            $controller->viewEmailsTemplateController();
+        }
+        #formulário de envio de edição de template de email
+        else if($url == '/dppg/Simposio/administracao/editEmailTemplate'){
+            require __DIR__ . '/../controller/emailTemplateController.php';
+            $controller = new EmailTemplateController();
+            $controller->update();
+ 
+        }
+        #view de editar apresentação
+        else if($url == '/dppg/Simposio/administracao/editarApresentacao'){
             require __DIR__ . '/../controller/presentationController.php';
-            
+            $controller = new PresentationController();
+            $controller->edit();
         }
         else{
             echo("Error 404 - Página não encontrada");

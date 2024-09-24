@@ -38,23 +38,21 @@ if (!isset($_SESSION['user_type']) || ($_SESSION['user_type'] != 1 && $_SESSION[
                 <table border="1">
                     <thead>
                         <tr>
-                            <th>ID</th>
                             <th>Nome</th>
                             <th>Email</th>
                             <th>CPF</th>
-                            <th>Aprovar</th>
+                            <th>Situação</th>
                         </tr>
                     </thead>
                     <tbody>
                         <!-- Loop através dos professores pendentes e exibe cada um -->
                         <?php foreach ($teachers as $teacher): ?>
                             <tr>
-                                <td><?php echo htmlspecialchars($teacher['id']); ?></td>
                                 <td><?php echo htmlspecialchars($teacher['name']); ?></td>
                                 <td><?php echo htmlspecialchars($teacher['email']); ?></td>
                                 <td><?php echo htmlspecialchars($teacher['cpf']); ?></td>
                                 <td>
-                                    <form method="post" action="../controller/authController.php?action=approveTeachers">
+                                    <form method="post" action="./aprovarProfessor">
                                         <input type="hidden" name="user_id" value="<?php echo $teacher['id']; ?>">
                                         <button type="submit" name="approve">Aprovar</button>
                                     </form>

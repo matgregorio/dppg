@@ -4,14 +4,6 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] != 1) {
     header("Location: login.php");
     exit();
 }
-
-include_once '../config/database.php';
-include_once '../model/emailTemplate.php';
-
-$database = new Database();
-$db = $database->getConnection();
-
-$emailTemplate = new EmailTemplate($db);
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $emailTemplate->id = $_POST['id'];
     $emailTemplate->subject = $_POST['subject'];
@@ -23,10 +15,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $_SESSION['error_message'] = "Erro ao atualizar o template de email.";
     }
 }
-
-$templateId = isset($_GET['id']) ? $_GET['id'] : die('ID do template não especificado.');
-$emailTemplate->id = $templateId;
-$template = $emailTemplate->readOne();
 ?>
 
 <!DOCTYPE html>

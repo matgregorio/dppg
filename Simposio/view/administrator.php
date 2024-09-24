@@ -23,8 +23,8 @@ if(!isset($_SESSION['user_type']) || $_SESSION['user_type'] != 1 && $_SESSION['u
             <ul>
                 <?php if (!isset($_SESSION['user_type']) || ($_SESSION['user_type'] == 1)) { ?>
                     <li><a href="./administracao/aprovarProfessores">Aprovar Professores</a></li>
-                    <li><a href="../controller/emailTemplateController.php?action=index" onclick="carregarConteudo('edit_email_templates.php')">Editar email automático</a></li>
-                    <li><a href="./editPresentation">Editar apresentação</a></li>
+                    <li><a href="./administracao/editarEmail">Editar email automático</a></li>
+                    <li><a href="./administracao/editarApresentacao">Editar apresentação</a></li>
                 <?php } ?>
             </ul>
         </div>

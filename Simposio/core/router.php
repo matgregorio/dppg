@@ -24,6 +24,11 @@ class Router{
             $controller->viewAll();
         }
         #corpo editorial
+        else if($url == '/dpp/Simposio/corpoEditorial'){
+            include_once __DIR__ . '/../controller/regulationController.php';
+            $controller = new EditorialController();
+            $controller->view();
+        }
         #expediente
         #Normas para publicação
         #Programação

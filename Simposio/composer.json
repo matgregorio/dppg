@@ -3,6 +3,7 @@
         "phpmailer/phpmailer": "^6.9",
         "google/apiclient": "*",
         "ralouphie/getallheaders": "*",
-        "tinymce/tinymce": "^7.3"
+        "tinymce/tinymce": "^7.3",
+        "ckeditor/ckeditor": "^4.25"
     }
 }

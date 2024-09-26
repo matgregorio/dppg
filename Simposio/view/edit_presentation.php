@@ -1,16 +1,18 @@
 <?php
-session_start();
+if (session_status() ==  PHP_SESSION_NONE) {
+    session_start();
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-    <script src="../vendor/tinymce/tinymce/tinymce.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="../assets/css/style_home.css">
     <meta charset="UTF-8">
     <title>Editar Apresentação</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="../assets/css/style_home.css">
+    <script src="https://cdn.tiny.cloud/1/rr4lcfw2c3ig3vuqllm9z9eoiuvxmxxhxpjf7upq6e3v7x5j/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script> 
 </head>
 
 <body>
@@ -31,10 +33,23 @@ session_start();
             }
             ?>
             <form method="post" action="/saveEditPresentation">
-                <textarea id="meuEditor" name="content" rows="15" cols="80"><?php echo htmlspecialchars($presentation['content']); ?></textarea>
+                <textarea id="default">
+                    Welcome to tinymce
+                </textarea>
                 <br>
                 <button type="submit">Salvar</button>
             </form>
+
+            <script>
+                tinymce.init({
+                    selector: '#default',
+                     toolbar: 'undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | outdent indent'
+                })
+            </script>
+
+
+
+
             <a href="../view/presentation.php">Cancelar</a>
             <?php if (!isset($_SESSION['user_type'])) { ?>
                 <h2>Você não está logado</h2>

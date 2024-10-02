@@ -93,7 +93,7 @@ class Router{
             $controller->edit();
         }
         else{
-            echo("Error 404 - Página não encontrada");
+            include_once __DIR__ . '/../view/error404.php';
         }
     }
 }

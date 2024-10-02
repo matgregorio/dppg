@@ -31,3 +31,4 @@ class Presentation{
         return $stmt->execute(['content' => $content]);
     }
 }
+?>

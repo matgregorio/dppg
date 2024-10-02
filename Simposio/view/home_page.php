@@ -1,34 +1,35 @@
-<!-- app/views/home.php -->
+
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Page</title>
-    <link rel="stylesheet" href="/assets/css/style.css"> <!-- Inclua seu CSS -->
+    <title>Document</title>
+    <!-- Place the first <script> tag in your HTML's <head> -->
+<script src="https://cdn.tiny.cloud/1/rr4lcfw2c3ig3vuqllm9z9eoiuvxmxxhxpjf7upq6e3v7x5j/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+      tinymce.init({
+        selector: 'textarea#content', // Seleciona a textarea a ser transformada
+        menubar: false
+      });
+    </script>
 </head>
 <body>
-    <header>
-        <h1>Bem-vindo à Home Page</h1>
-        <nav>
-            <ul>
-                <li><a href="./">Home</a></li>
-                <li><a href="./login">Login</a></li>
-                <li><a href="/contato">Contato</a></li>
-            </ul>
-        </nav>
-        <?php
-            if(isset($_SESSION['user_type'])){
-                $name = $_SESSION['user_name'];
-                echo("Seja bem-vindo,$name");
-            }
-        ?>
-    </header>
-    <main>
-        <p>Este é o conteúdo da página inicial.</p>
-    </main>
-    <footer>
-        <p>Copyright &copy; 2024</p>
-    </footer>
+ <!-- Formulário de Edição -->
+ <form method="post" action="../controller/EmailTemplateController.php?action=edit&id=<?php echo $_GET['id']; ?>">
+        <label for="template_title">Título do Template:</label>
+        <input type="text" name="template_title" id="template_title" value="<?php echo htmlspecialchars($emailTemplate['title']); ?>" required>
+        <br><br>
+        
+        <label for="content">Conteúdo do E-mail:</label>
+        <textarea name="content" id="content" rows="15" cols="80"><?php echo htmlspecialchars($emailTemplate['content']); ?></textarea>
+        <br><br>
+        
+        <input type="submit" value="Salvar">
+    </form>
+
 </body>
 </html>
+
+
+

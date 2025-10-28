@@ -1,0 +1,55 @@
+const mongoose = require('mongoose');
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     AreaAtuacao:
+ *       type: object
+ *       required:
+ *         - nome
+ *       properties:
+ *         nome:
+ *           type: string
+ *         grandeArea:
+ *           type: string
+ */
+const areaAtuacaoSchema = new mongoose.Schema({
+  nome: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  grandeArea: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'GrandeArea',
+  },
+  deleted_at: {
+    type: Date,
+    default: null,
+  },
+}, {
+  timestamps: true,
+});
+
+// Índices
+areaAtuacaoSchema.index({ nome: 1, deleted_at: 1 }, { unique: true });
+areaAtuacaoSchema.index({ grandeArea: 1 });
+
+// Escopo padrão: não incluir deletados
+areaAtuacaoSchema.pre(/^find/, function(next) {
+  if (!this.getQuery().deleted_at) {
+    this.where({ deleted_at: null });
+  }
+  next();
+});
+
+// Método para soft delete
+areaAtuacaoSchema.methods.softDelete = function() {
+  this.deleted_at = new Date();
+  return this.save();
+};
+
+const AreaAtuacao = mongoose.model('AreaAtuacao', areaAtuacaoSchema);
+
+module.exports = AreaAtuacao;

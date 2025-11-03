@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import MainLayout from '../layouts/MainLayout';
 import api from '../services/api';
 import useNotification from '../hooks/useNotification';
@@ -16,6 +18,29 @@ const AdminPaginas = () => {
     linkExterno: '',
     pdf: null
   });
+
+  // Configuração do ReactQuill
+  const quillModules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      [{ 'indent': '-1'}, { 'indent': '+1' }],
+      [{ 'color': [] }, { 'background': [] }],
+      [{ 'align': [] }],
+      ['link', 'image', 'video'],
+      ['clean']
+    ],
+  };
+
+  const quillFormats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike',
+    'list', 'bullet', 'indent',
+    'color', 'background',
+    'align',
+    'link', 'image', 'video'
+  ];
 
   const slugLabels = {
     'home': 'Página Inicial',
@@ -243,19 +268,20 @@ const AdminPaginas = () => {
               <form onSubmit={handleSubmit}>
                 <div className="row">
                   <div className="col-12 mb-3">
-                    <div className="br-textarea">
-                      <label htmlFor="conteudo">Conteúdo HTML</label>
-                      <textarea
-                        id="conteudo"
-                        rows="10"
-                        value={formData.conteudo}
-                        onChange={(e) => setFormData({ ...formData, conteudo: e.target.value })}
-                        placeholder="Cole aqui o HTML da página..."
-                      ></textarea>
-                      <small className="text-muted">
-                        Você pode usar tags HTML como &lt;h1&gt;, &lt;p&gt;, &lt;ul&gt;, etc.
-                      </small>
-                    </div>
+                    <label htmlFor="conteudo" className="d-block mb-2">
+                      <strong>Conteúdo HTML</strong>
+                    </label>
+                    <ReactQuill
+                      theme="snow"
+                      value={formData.conteudo}
+                      onChange={(content) => setFormData({ ...formData, conteudo: content })}
+                      modules={quillModules}
+                      formats={quillFormats}
+                      style={{ height: '300px', marginBottom: '50px' }}
+                    />
+                    <small className="text-muted d-block mt-2">
+                      Use o editor para formatar o conteúdo da página com negrito, listas, links, imagens, etc.
+                    </small>
                   </div>
                   
                   <div className="col-12 mb-3">

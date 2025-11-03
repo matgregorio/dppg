@@ -157,6 +157,9 @@ const Menu = () => {
                 <>
                   <div className="br-divider my-3"></div>
                   <div className="menu-title">Administração</div>
+                  <Link className={`menu-item ${isActive('/admin/dashboard')}`} to="/admin/dashboard" onClick={closeMobileMenu}>
+                    <span className="content">Dashboard</span>
+                  </Link>
                   <Link 
                     className={`menu-item ${isActive(`/admin/simposios/${new Date().getFullYear()}`)}`} 
                     to={`/admin/simposios/${new Date().getFullYear()}`}
@@ -172,6 +175,12 @@ const Menu = () => {
                   </Link>
                   <Link className={`menu-item ${isActive('/admin/participantes')}`} to="/admin/participantes" onClick={closeMobileMenu}>
                     <span className="content">Participantes</span>
+                  </Link>
+                  <Link className={`menu-item ${isActive('/admin/avaliadores')}`} to="/admin/avaliadores" onClick={closeMobileMenu}>
+                    <span className="content">Avaliadores</span>
+                  </Link>
+                  <Link className={`menu-item ${isActive('/admin/subeventos')}`} to="/admin/subeventos" onClick={closeMobileMenu}>
+                    <span className="content">Subeventos</span>
                   </Link>
                   <Link className={`menu-item ${isActive('/admin/avaliacoes-externas')}`} to="/admin/avaliacoes-externas" onClick={closeMobileMenu}>
                     <span className="content">Avaliações Externas</span>

@@ -143,36 +143,68 @@ const TrabalhoDetalhesModal = ({ trabalho, isOpen, onClose, isAdmin = false }) =
                     {/* Competências */}
                     {avaliacao.competencias && Object.keys(avaliacao.competencias).length > 0 && (
                       <div className="mb-3">
-                        <strong className="d-block mb-2">Competências Avaliadas:</strong>
+                        <strong className="d-block mb-3">
+                          <i className="fas fa-clipboard-check mr-2"></i>
+                          Competências Avaliadas:
+                        </strong>
                         <div className="row">
                           {Object.entries(competenciasLabels).map(([key, label]) => (
                             avaliacao.competencias[key] !== undefined && (
-                              <div key={key} className="col-md-6 mb-2">
-                                <div className="d-flex justify-content-between align-items-center">
-                                  <span className="text-sm">{label}:</span>
-                                  <span className="br-tag info ml-2">
-                                    {avaliacao.competencias[key].toFixed(1)}
+                              <div key={key} className="col-md-12 mb-3">
+                                <div className="d-flex justify-content-between align-items-center p-2" 
+                                     style={{ 
+                                       backgroundColor: '#f0f8ff', 
+                                       borderRadius: '4px',
+                                       border: '1px solid #d1e7fd'
+                                     }}>
+                                  <span className="text-weight-medium">
+                                    <i className="fas fa-star text-warning mr-2"></i>
+                                    {label}
+                                  </span>
+                                  <span className="br-tag info" style={{ fontSize: '1rem', fontWeight: 'bold' }}>
+                                    {avaliacao.competencias[key].toFixed(1)} / 10
                                   </span>
                                 </div>
                               </div>
                             )
                           ))}
                         </div>
+                        
+                        {/* Média das Competências */}
+                        <div className="d-flex justify-content-between align-items-center p-3 mt-2" 
+                             style={{ 
+                               backgroundColor: '#e8f4f8', 
+                               borderRadius: '4px',
+                               border: '2px solid #0c326f'
+                             }}>
+                          <span className="text-weight-semi-bold">
+                            <i className="fas fa-calculator mr-2 text-primary-default"></i>
+                            Média das Competências:
+                          </span>
+                          <span className="text-primary-default text-weight-bold" style={{ fontSize: '1.3rem' }}>
+                            {calcularMedia(avaliacao.competencias)} / 10
+                          </span>
+                        </div>
                       </div>
                     )}
 
                     {/* Nota Final */}
                     {avaliacao.notaFinal !== undefined && avaliacao.notaFinal !== null && (
-                      <div className="mb-3">
-                        <strong>Nota Final:</strong>
-                        <span className="text-primary text-weight-bold ml-2" style={{ fontSize: '1.2rem' }}>
-                          {avaliacao.notaFinal.toFixed(2)}
-                        </span>
-                        {avaliacao.competencias && Object.keys(avaliacao.competencias).length > 0 && (
-                          <span className="text-muted ml-2">
-                            (Média: {calcularMedia(avaliacao.competencias)})
+                      <div className="mb-3 p-3" 
+                           style={{ 
+                             backgroundColor: '#d4edda', 
+                             borderRadius: '4px',
+                             border: '2px solid #28a745'
+                           }}>
+                        <div className="d-flex justify-content-between align-items-center">
+                          <span className="text-weight-bold" style={{ fontSize: '1.1rem' }}>
+                            <i className="fas fa-award mr-2" style={{ color: '#28a745' }}></i>
+                            Nota Final da Avaliação:
                           </span>
-                        )}
+                          <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#28a745' }}>
+                            {avaliacao.notaFinal.toFixed(2)} / 10
+                          </span>
+                        </div>
                       </div>
                     )}
                     

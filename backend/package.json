@@ -11,7 +11,12 @@
     "test": "jest --runInBand --detectOpenHandles",
     "test:watch": "jest --watch"
   },
-  "keywords": ["simposio", "express", "mongodb", "govbr"],
+  "keywords": [
+    "simposio",
+    "express",
+    "mongodb",
+    "govbr"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
@@ -31,12 +36,14 @@
     "mongoose": "^8.0.3",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
+    "nodemailer": "^7.0.10",
     "pdfkit": "^0.14.0",
     "qrcode": "^1.5.3",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
     "uuid": "^9.0.1",
     "winston": "^3.11.0",
+    "xlsx": "^0.18.5",
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
@@ -47,7 +54,9 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "coveragePathIgnorePatterns": ["/node_modules/"],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
+    ],
     "testTimeout": 30000
   }
 }

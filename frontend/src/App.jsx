@@ -38,6 +38,9 @@ import ConfigurarDatas from './pages/ConfigurarDatas';
 import AdminTrabalhos from './pages/AdminTrabalhos';
 import AdminAreas from './pages/AdminAreas';
 import AdminParticipantes from './pages/AdminParticipantes';
+import AdminAvaliadores from './pages/AdminAvaliadores';
+import AdminSubeventos from './pages/AdminSubeventos';
+import DashboardAdmin from './pages/DashboardAdmin';
 import AdminAcervo from './pages/AdminAcervo';
 import AdminPaginas from './pages/AdminPaginas';
 import AvaliacoesExternas from './pages/AvaliacoesExternas';
@@ -160,6 +163,17 @@ function App() {
       
       {/* Rotas de admin */}
       <Route
+        path="/admin/dashboard"
+        element={
+          <RequireAuth>
+            <RequireRoles roles={['ADMIN', 'SUBADMIN']}>
+              <DashboardAdmin />
+            </RequireRoles>
+          </RequireAuth>
+        }
+      />
+      
+      <Route
         path="/admin/simposios/:ano"
         element={
           <RequireAuth>
@@ -209,6 +223,28 @@ function App() {
           <RequireAuth>
             <RequireRoles roles={['ADMIN', 'SUBADMIN']}>
               <AdminParticipantes />
+            </RequireRoles>
+          </RequireAuth>
+        }
+      />
+      
+      <Route
+        path="/admin/avaliadores"
+        element={
+          <RequireAuth>
+            <RequireRoles roles={['ADMIN', 'SUBADMIN']}>
+              <AdminAvaliadores />
+            </RequireRoles>
+          </RequireAuth>
+        }
+      />
+      
+      <Route
+        path="/admin/subeventos"
+        element={
+          <RequireAuth>
+            <RequireRoles roles={['ADMIN', 'SUBADMIN']}>
+              <AdminSubeventos />
             </RequireRoles>
           </RequireAuth>
         }

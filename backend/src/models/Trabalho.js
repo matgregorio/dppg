@@ -32,6 +32,10 @@ const trabalhoSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  autor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Participant',
+  },
   autores: [{
     nome: { type: String, required: true },
     cpf: { type: String },
@@ -57,6 +61,11 @@ const trabalhoSchema = new mongoose.Schema({
     type: String,
     enum: ['SUBMETIDO', 'EM_AVALIACAO', 'ACEITO', 'REJEITADO', 'PUBLICADO'],
     default: 'SUBMETIDO',
+  },
+  tipoApresentacao: {
+    type: String,
+    enum: ['POSTER', 'ORAL', 'NAO_DEFINIDO'],
+    default: 'NAO_DEFINIDO',
   },
   atribuicoes: [{
     avaliador: {

@@ -4,12 +4,14 @@ import MainLayout from '../layouts/MainLayout';
 import api from '../services/api';
 import useNotification from '../hooks/useNotification';
 import TrabalhoDetalhesModal from '../components/modals/TrabalhoDetalhesModal';
+import EditarTrabalhoModal from '../components/modals/EditarTrabalhoModal';
 
 const AdminTrabalhos = () => {
   const [trabalhos, setTrabalhos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showDetalhesModal, setShowDetalhesModal] = useState(false);
+  const [showEditarModal, setShowEditarModal] = useState(false);
   const [selectedTrabalho, setSelectedTrabalho] = useState(null);
   const [trabalhoDetalhes, setTrabalhoDetalhes] = useState(null);
   const [avaliadores, setAvaliadores] = useState([]);
@@ -83,11 +85,42 @@ const AdminTrabalhos = () => {
         setShowDetalhesModal(true);
       }
     } catch (err) {
-      showError(err.response?.data?.message || 'Erro ao carregar detalhes do trabalho');
+      showError(err.response?.data?.message || 'Erro ao carregar detalhes');
     }
   };
   
-  const confirmAtribuicao = async () => {
+  const baixarRelatorio = async (formato) => {
+    try {
+      const params = new URLSearchParams({
+        ano: filtros.ano,
+        ...(filtros.status && { status: filtros.status }),
+      });
+      
+      const endpoint = formato === 'pdf' 
+        ? `/admin/reports/trabalhos/pdf?${params}`
+        : `/admin/reports/trabalhos/excel?${params}`;
+      
+      const response = await api.get(endpoint, {
+        responseType: 'blob',
+      });
+      
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `trabalhos_${filtros.ano}.${formato === 'pdf' ? 'pdf' : 'xlsx'}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      showSuccess(`Relatório ${formato.toUpperCase()} gerado com sucesso!`);
+    } catch (err) {
+      showError(err.response?.data?.message || 'Erro ao gerar relatório');
+    }
+  };
+  
+  const handleSubmit = async (e) => {
     if (!selectedAvaliadorId || !selectedTrabalho) return;
     
     try {
@@ -116,6 +149,26 @@ const AdminTrabalhos = () => {
   const handleBuscar = (e) => {
     e.preventDefault();
     setPagination(prev => ({ ...prev, page: 1 }));
+  };
+  
+  const handleEditar = (trabalho) => {
+    setSelectedTrabalho(trabalho);
+    setShowEditarModal(true);
+  };
+  
+  const handleSalvarEdicao = async (formData) => {
+    try {
+      const { data } = await api.put(`/admin/trabalhos/${selectedTrabalho._id}`, formData);
+      
+      if (data.success) {
+        showSuccess('Trabalho atualizado com sucesso!');
+        fetchTrabalhos();
+        setShowEditarModal(false);
+        setSelectedTrabalho(null);
+      }
+    } catch (err) {
+      showError(err.response?.data?.message || 'Erro ao atualizar trabalho');
+    }
   };
   
   const getStatusBadge = (status) => {
@@ -147,7 +200,29 @@ const AdminTrabalhos = () => {
       </div>
       
       <div className="my-4">
-        <h1 className="text-up-03 text-weight-bold mb-4">Gerenciar Trabalhos</h1>
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h1 className="text-up-03 text-weight-bold mb-0">Gerenciar Trabalhos</h1>
+          
+          {/* Botões de Exportação */}
+          <div className="d-flex gap-2">
+            <button
+              onClick={() => baixarRelatorio('excel')}
+              className="br-button secondary"
+              title="Exportar para Excel"
+            >
+              <i className="fas fa-file-excel mr-2"></i>
+              Excel
+            </button>
+            <button
+              onClick={() => baixarRelatorio('pdf')}
+              className="br-button secondary"
+              title="Exportar para PDF"
+            >
+              <i className="fas fa-file-pdf mr-2"></i>
+              PDF
+            </button>
+          </div>
+        </div>
         
         {/* Filtros */}
         <div className="row mb-4">
@@ -282,6 +357,13 @@ const AdminTrabalhos = () => {
                             <i className="fas fa-eye"></i>
                           </button>
                           <button
+                            onClick={() => handleEditar(trabalho)}
+                            className="br-button secondary small"
+                            title="Editar status e tipo"
+                          >
+                            <i className="fas fa-edit"></i>
+                          </button>
+                          <button
                             onClick={() => handleAtribuir(trabalho)}
                             className="br-button primary small"
                             title="Atribuir avaliador"
@@ -395,6 +477,17 @@ const AdminTrabalhos = () => {
           setTrabalhoDetalhes(null);
         }}
         isAdmin={true}
+      />
+      
+      {/* Modal de Edição do Trabalho */}
+      <EditarTrabalhoModal
+        trabalho={selectedTrabalho}
+        isOpen={showEditarModal}
+        onClose={() => {
+          setShowEditarModal(false);
+          setSelectedTrabalho(null);
+        }}
+        onSave={handleSalvarEdicao}
       />
     </MainLayout>
   );

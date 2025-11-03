@@ -32,14 +32,35 @@ const MeusTrabalhos = () => {
   
   const getStatusBadge = (status) => {
     const statusMap = {
-      SUBMETIDO: { class: 'info', text: 'Submetido' },
-      EM_AVALIACAO: { class: 'warning', text: 'Em Avaliação' },
-      ACEITO: { class: 'success', text: 'Aceito' },
-      REJEITADO: { class: 'danger', text: 'Rejeitado' },
-      PUBLICADO: { class: 'success', text: 'Publicado' },
+      SUBMETIDO: { class: 'info', text: 'Submetido', icon: 'fa-paper-plane' },
+      EM_AVALIACAO: { class: 'warning', text: 'Em Avaliação', icon: 'fa-clock' },
+      ACEITO: { class: 'success', text: 'Aceito', icon: 'fa-check-circle' },
+      REJEITADO: { class: 'danger', text: 'Rejeitado', icon: 'fa-times-circle' },
+      PUBLICADO: { class: 'success', text: 'Publicado', icon: 'fa-check-double' },
     };
-    const { class: className, text } = statusMap[status] || { class: 'secondary', text: status };
-    return <span className={`br-tag ${className}`}>{text}</span>;
+    const { class: className, text, icon } = statusMap[status] || { class: 'secondary', text: status, icon: 'fa-question' };
+    return (
+      <span className={`br-tag ${className}`}>
+        <i className={`fas ${icon} mr-1`}></i>
+        {text}
+      </span>
+    );
+  };
+  
+  const getTipoApresentacaoBadge = (tipo) => {
+    if (!tipo || tipo === 'NAO_DEFINIDO') return null;
+    
+    const tipoMap = {
+      POSTER: { class: 'info', text: 'Poster', icon: 'fa-image' },
+      ORAL: { class: 'warning', text: 'Oral', icon: 'fa-microphone' },
+    };
+    const { class: className, text, icon } = tipoMap[tipo] || { class: 'secondary', text: tipo, icon: 'fa-question' };
+    return (
+      <span className={`br-tag ${className} ml-2`}>
+        <i className={`fas ${icon} mr-1`}></i>
+        {text}
+      </span>
+    );
   };
   
   const handleVerDetalhes = async (trabalhoId) => {
@@ -115,52 +136,117 @@ const MeusTrabalhos = () => {
                         <h5 className="text-weight-semi-bold mb-2">{trabalho.titulo}</h5>
                         <div className="mb-2">
                           {getStatusBadge(trabalho.status)}
+                          {getTipoApresentacaoBadge(trabalho.tipoApresentacao)}
                         </div>
                       </div>
                     </div>
                   </div>
                   <div className="card-content">
-                    <div className="mb-2">
-                      <strong>Autores:</strong>{' '}
-                      {trabalho.autores?.map(a => a.nome).join(', ') || 'N/A'}
-                    </div>
-                    <div className="mb-2">
-                      <strong>Palavras-chave:</strong>{' '}
-                      {trabalho.palavras_chave?.join(', ') || 'N/A'}
-                    </div>
-                    {trabalho.media && (
-                      <div className="mb-2">
-                        <strong>Média das avaliações:</strong>{' '}
-                        <span className="text-primary-default text-weight-semi-bold">
-                          {trabalho.media.toFixed(1)}
-                        </span>
+                    <div className="row mb-3">
+                      <div className="col-md-6">
+                        <div className="mb-2">
+                          <strong><i className="fas fa-users mr-2 text-primary-default"></i>Autores:</strong>
+                          <div className="ml-4">
+                            {trabalho.autores?.map((a, idx) => (
+                              <div key={idx} className="text-down-01">
+                                {a.nome} {a.email && `(${a.email})`}
+                              </div>
+                            )) || 'N/A'}
+                          </div>
+                        </div>
                       </div>
-                    )}
-                    {trabalho.qtd_avaliados > 0 && (
-                      <div className="mb-2">
-                        <strong>Avaliações:</strong> {trabalho.qtd_avaliados} de {trabalho.qtd_enviados}
+                      <div className="col-md-6">
+                        <div className="mb-2">
+                          <strong><i className="fas fa-tags mr-2 text-primary-default"></i>Palavras-chave:</strong>
+                          <div className="ml-4">
+                            {trabalho.palavras_chave?.map((palavra, idx) => (
+                              <span key={idx} className="br-tag secondary small mr-1 mb-1">
+                                {palavra}
+                              </span>
+                            )) || 'N/A'}
+                          </div>
+                        </div>
                       </div>
+                    </div>
+                    
+                    <div className="row mb-3">
+                      <div className="col-md-4">
+                        {trabalho.grandeArea && (
+                          <div className="mb-2">
+                            <strong><i className="fas fa-book mr-2 text-primary-default"></i>Grande Área:</strong>
+                            <div className="ml-4 text-down-01">{trabalho.grandeArea.nome}</div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="col-md-4">
+                        {trabalho.areaAtuacao && (
+                          <div className="mb-2">
+                            <strong><i className="fas fa-bookmark mr-2 text-primary-default"></i>Área:</strong>
+                            <div className="ml-4 text-down-01">{trabalho.areaAtuacao.nome}</div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="col-md-4">
+                        {trabalho.subarea && (
+                          <div className="mb-2">
+                            <strong><i className="fas fa-tag mr-2 text-primary-default"></i>Subárea:</strong>
+                            <div className="ml-4 text-down-01">{trabalho.subarea.nome}</div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {(trabalho.media || trabalho.qtd_avaliados > 0) && (
+                      <div className="br-divider mb-3"></div>
                     )}
-                    {trabalho.arquivo && (
-                      <a
-                        href={`${import.meta.env.VITE_API_BASE_URL.replace('/api/v1', '')}/uploads/${trabalho.arquivo}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="br-button secondary small mt-2 mr-2"
-                      >
-                        <i className="fas fa-download mr-2"></i>
-                        Baixar Arquivo
-                      </a>
-                    )}
-                    {trabalho.qtd_avaliados > 0 && (
-                      <button
-                        onClick={() => handleVerDetalhes(trabalho._id)}
-                        className="br-button primary small mt-2"
-                      >
-                        <i className="fas fa-eye mr-2"></i>
-                        Ver Avaliações
-                      </button>
-                    )}
+                    
+                    <div className="row">
+                      {trabalho.media && (
+                        <div className="col-md-4">
+                          <div className="text-center p-3 bg-primary-lighten-01 rounded">
+                            <div className="text-up-02 text-weight-bold text-primary-default">
+                              {trabalho.media.toFixed(1)}
+                            </div>
+                            <div className="text-down-01">Média das Avaliações</div>
+                          </div>
+                        </div>
+                      )}
+                      {trabalho.qtd_avaliados > 0 && (
+                        <div className="col-md-4">
+                          <div className="text-center p-3 bg-info-lighten-01 rounded">
+                            <div className="text-up-02 text-weight-bold text-info-default">
+                              {trabalho.qtd_avaliados} / {trabalho.qtd_enviados}
+                            </div>
+                            <div className="text-down-01">Avaliações Concluídas</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="br-divider mt-3 mb-3"></div>
+                    
+                    <div className="d-flex gap-2 flex-wrap">
+                      {trabalho.arquivo && (
+                        <a
+                          href={`${import.meta.env.VITE_API_BASE_URL.replace('/api/v1', '')}/uploads/${trabalho.arquivo}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="br-button secondary small"
+                        >
+                          <i className="fas fa-download mr-2"></i>
+                          Baixar Arquivo
+                        </a>
+                      )}
+                      {trabalho.qtd_avaliados > 0 && (
+                        <button
+                          onClick={() => handleVerDetalhes(trabalho._id)}
+                          className="br-button primary small"
+                        >
+                          <i className="fas fa-eye mr-2"></i>
+                          Ver Avaliações
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

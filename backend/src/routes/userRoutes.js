@@ -31,6 +31,10 @@ const userController = {
   getTrabalhos: async (req, res) => {
     try {
       const Trabalho = require('../models/Trabalho');
+      const Participant = require('../models/Participant');
+      const GrandeArea = require('../models/GrandeArea');
+      const AreaAtuacao = require('../models/AreaAtuacao');
+      const Subarea = require('../models/Subarea');
       const ano = req.query.ano || process.env.DEFAULT_SIMPOSIO_ANO;
       const Simposio = require('../models/Simposio');
       const simposio = await Simposio.findOne({ ano: parseInt(ano) });
@@ -39,10 +43,20 @@ const userController = {
         return res.status(404).json({ success: false, message: 'Simpósio não encontrado' });
       }
       
+      // Busca o participante associado ao usuário
+      const participant = await Participant.findOne({ user: req.user.id });
+      if (!participant) {
+        return res.status(404).json({ success: false, message: 'Participante não encontrado' });
+      }
+      
       const trabalhos = await Trabalho.find({
         simposio: simposio._id,
-        'autores.email': req.user.email,
-      });
+        autor: participant._id,
+      })
+        .populate('grandeArea', 'nome')
+        .populate('areaAtuacao', 'nome')
+        .populate('subarea', 'nome')
+        .sort({ createdAt: -1 });
       
       res.json({ success: true, data: trabalhos });
     } catch (error) {
@@ -54,19 +68,31 @@ const userController = {
   getTrabalho: async (req, res) => {
     try {
       const Trabalho = require('../models/Trabalho');
+      const Participant = require('../models/Participant');
+      const GrandeArea = require('../models/GrandeArea');
+      const AreaAtuacao = require('../models/AreaAtuacao');
+      const Subarea = require('../models/Subarea');
+      const Simposio = require('../models/Simposio');
       
       const trabalho = await Trabalho.findById(req.params.id)
         .populate('simposio', 'ano status')
         .populate('grandeArea', 'nome')
         .populate('areaAtuacao', 'nome')
-        .populate('subarea', 'nome');
+        .populate('subarea', 'nome')
+        .populate('autor');
       
       if (!trabalho) {
         return res.status(404).json({ success: false, message: 'Trabalho não encontrado' });
       }
       
-      // Verifica se o usuário é autor
-      const isAutor = trabalho.autores.some(a => a.email === req.user.email);
+      // Verifica se o usuário é autor (busca o participante pelo usuário logado)
+      const participant = await Participant.findOne({ user: req.user.id });
+      if (!participant) {
+        return res.status(403).json({ success: false, message: 'Participante não encontrado' });
+      }
+      
+      // Verifica se o participante é o autor do trabalho
+      const isAutor = trabalho.autor && trabalho.autor._id.toString() === participant._id.toString();
       if (!isAutor) {
         return res.status(403).json({ success: false, message: 'Acesso negado' });
       }
@@ -124,6 +150,7 @@ const userController = {
       
       const trabalho = await Trabalho.create({
         titulo,
+        autor: participant._id,
         autores: JSON.parse(autores),
         palavras_chave: JSON.parse(palavras_chave || '[]'),
         grandeArea,

@@ -75,6 +75,18 @@ const AdminSimposio = () => {
     return badges[status] || 'secondary';
   };
   
+  const formatDateTime = (dateString) => {
+    if (!dateString) return 'Não configurado';
+    const date = new Date(dateString);
+    return date.toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+  
   return (
     <MainLayout>
       <div className="br-breadcrumb">
@@ -181,6 +193,115 @@ const AdminSimposio = () => {
                 </div>
               </div>
             </div>
+            
+            {/* Calendário de Datas Configuradas */}
+            {simposio.datasConfig && (
+              <div className="br-card mb-3">
+                <div className="card-header">
+                  <h3 className="text-weight-semi-bold">
+                    <i className="fas fa-calendar-alt mr-2"></i>
+                    Datas Configuradas
+                  </h3>
+                </div>
+                <div className="card-content">
+                  <div className="row">
+                    <div className="col-md-6 mb-3">
+                      <div className="br-card" style={{ background: '#E8F5E9', border: '1px solid #4CAF50' }}>
+                        <div className="card-content p-3">
+                          <h5 className="text-weight-semi-bold mb-2">
+                            <i className="fas fa-users text-success mr-2"></i>
+                            Inscrição de Participantes
+                          </h5>
+                          <div className="mb-2">
+                            <small className="text-muted">Início:</small>
+                            <br />
+                            <strong>{formatDateTime(simposio.datasConfig.inscricaoParticipante?.inicio)}</strong>
+                          </div>
+                          <div>
+                            <small className="text-muted">Fim:</small>
+                            <br />
+                            <strong>{formatDateTime(simposio.datasConfig.inscricaoParticipante?.fim)}</strong>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="col-md-6 mb-3">
+                      <div className="br-card" style={{ background: '#E3F2FD', border: '1px solid #2196F3' }}>
+                        <div className="card-content p-3">
+                          <h5 className="text-weight-semi-bold mb-2">
+                            <i className="fas fa-file-alt text-primary mr-2"></i>
+                            Submissão de Trabalhos
+                          </h5>
+                          <div className="mb-2">
+                            <small className="text-muted">Início:</small>
+                            <br />
+                            <strong>{formatDateTime(simposio.datasConfig.submissaoTrabalhos?.inicio)}</strong>
+                          </div>
+                          <div>
+                            <small className="text-muted">Fim:</small>
+                            <br />
+                            <strong>{formatDateTime(simposio.datasConfig.submissaoTrabalhos?.fim)}</strong>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="col-md-6 mb-3">
+                      <div className="br-card" style={{ background: '#FFF3E0', border: '1px solid #FF9800' }}>
+                        <div className="card-content p-3">
+                          <h5 className="text-weight-semi-bold mb-2">
+                            <i className="fas fa-clipboard-check text-warning mr-2"></i>
+                            Prazo de Avaliação
+                          </h5>
+                          <div className="mb-2">
+                            <small className="text-muted">Início:</small>
+                            <br />
+                            <strong>{formatDateTime(simposio.datasConfig.prazoAvaliacao?.inicio)}</strong>
+                          </div>
+                          <div>
+                            <small className="text-muted">Fim:</small>
+                            <br />
+                            <strong>{formatDateTime(simposio.datasConfig.prazoAvaliacao?.fim)}</strong>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="col-md-6 mb-3">
+                      <div className="br-card" style={{ background: '#FCE4EC', border: '1px solid #E91E63' }}>
+                        <div className="card-content p-3">
+                          <h5 className="text-weight-semi-bold mb-2">
+                            <i className="fas fa-star text-danger mr-2"></i>
+                            Notas de Avaliação Externa
+                          </h5>
+                          <div className="mb-2">
+                            <small className="text-muted">Início:</small>
+                            <br />
+                            <strong>{formatDateTime(simposio.datasConfig.notasAvaliacaoExterna?.inicio)}</strong>
+                          </div>
+                          <div>
+                            <small className="text-muted">Fim:</small>
+                            <br />
+                            <strong>{formatDateTime(simposio.datasConfig.notasAvaliacaoExterna?.fim)}</strong>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-center mt-3">
+                    <Link
+                      to={`/admin/simposios/${currentYear}/datas`}
+                      className="br-button primary"
+                    >
+                      <i className="fas fa-edit mr-2"></i>
+                      Editar Datas
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            )}
             
             <div className="br-card">
               <div className="card-header">

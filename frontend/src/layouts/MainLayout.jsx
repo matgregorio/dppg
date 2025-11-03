@@ -18,12 +18,17 @@ const MainLayout = ({ children }) => {
       </a>
       
       <Header />
-      <Menu />
-      <main id="main-content" className="content-wrapper flex-fill" role="main" aria-label="Conteúdo principal">
-        <div className="container-lg">
-          {children}
-        </div>
-      </main>
+      
+      {/* Container para menu e conteúdo lado a lado */}
+      <div className="layout-container">
+        <Menu />
+        <main id="main-content" className="content-wrapper flex-fill" role="main" aria-label="Conteúdo principal">
+          <div className="container-lg">
+            {children}
+          </div>
+        </main>
+      </div>
+      
       <Footer />
     </div>
   );

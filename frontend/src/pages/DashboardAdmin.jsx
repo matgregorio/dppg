@@ -133,59 +133,119 @@ const DashboardAdmin = () => {
         {/* Cards de Resumo */}
         <div className="row mb-4">
           <div className="col-md-3">
-            <div className="br-card" style={{ background: '#E8F5E9', borderLeft: '4px solid #28A745' }}>
-              <div className="card-content p-3">
-                <div className="d-flex justify-content-between align-items-center">
-                  <div>
-                    <p className="text-muted mb-1">Total de Trabalhos</p>
-                    <h2 className="mb-0">{stats.totais.trabalhos}</h2>
+            <Link to="/admin/trabalhos" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div className="br-card" style={{ 
+                background: '#E8F5E9', 
+                borderLeft: '4px solid #28A745',
+                cursor: 'pointer',
+                transition: 'transform 0.2s, box-shadow 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}>
+                <div className="card-content p-3">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <p className="text-muted mb-1">Total de Trabalhos</p>
+                      <h2 className="mb-0">{stats.totais.trabalhos}</h2>
+                    </div>
+                    <i className="fas fa-file-alt fa-3x" style={{ color: '#28A745', opacity: 0.3 }}></i>
                   </div>
-                  <i className="fas fa-file-alt fa-3x" style={{ color: '#28A745', opacity: 0.3 }}></i>
                 </div>
               </div>
-            </div>
+            </Link>
           </div>
 
           <div className="col-md-3">
-            <div className="br-card" style={{ background: '#E3F2FD', borderLeft: '4px solid #2196F3' }}>
-              <div className="card-content p-3">
-                <div className="d-flex justify-content-between align-items-center">
-                  <div>
-                    <p className="text-muted mb-1">Participantes</p>
-                    <h2 className="mb-0">{stats.totais.participantes}</h2>
+            <Link to="/admin/participantes" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div className="br-card" style={{ 
+                background: '#E3F2FD', 
+                borderLeft: '4px solid #2196F3',
+                cursor: 'pointer',
+                transition: 'transform 0.2s, box-shadow 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}>
+                <div className="card-content p-3">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <p className="text-muted mb-1">Participantes</p>
+                      <h2 className="mb-0">{stats.totais.participantes}</h2>
+                    </div>
+                    <i className="fas fa-users fa-3x" style={{ color: '#2196F3', opacity: 0.3 }}></i>
                   </div>
-                  <i className="fas fa-users fa-3x" style={{ color: '#2196F3', opacity: 0.3 }}></i>
                 </div>
               </div>
-            </div>
+            </Link>
           </div>
 
           <div className="col-md-3">
-            <div className="br-card" style={{ background: '#FFF3E0', borderLeft: '4px solid #FF9800' }}>
-              <div className="card-content p-3">
-                <div className="d-flex justify-content-between align-items-center">
-                  <div>
-                    <p className="text-muted mb-1">Avaliadores</p>
-                    <h2 className="mb-0">{stats.totais.avaliadores}</h2>
+            <Link to="/admin/avaliadores" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div className="br-card" style={{ 
+                background: '#FFF3E0', 
+                borderLeft: '4px solid #FF9800',
+                cursor: 'pointer',
+                transition: 'transform 0.2s, box-shadow 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}>
+                <div className="card-content p-3">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <p className="text-muted mb-1">Avaliadores</p>
+                      <h2 className="mb-0">{stats.totais.avaliadores}</h2>
+                    </div>
+                    <i className="fas fa-user-check fa-3x" style={{ color: '#FF9800', opacity: 0.3 }}></i>
                   </div>
-                  <i className="fas fa-user-check fa-3x" style={{ color: '#FF9800', opacity: 0.3 }}></i>
                 </div>
               </div>
-            </div>
+            </Link>
           </div>
 
           <div className="col-md-3">
-            <div className="br-card" style={{ background: '#FCE4EC', borderLeft: '4px solid #E91E63' }}>
-              <div className="card-content p-3">
-                <div className="d-flex justify-content-between align-items-center">
-                  <div>
-                    <p className="text-muted mb-1">Inscrições</p>
-                    <h2 className="mb-0">{stats.totais.inscricoes}</h2>
+            <Link to="/admin/participantes" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div className="br-card" style={{ 
+                background: '#FCE4EC', 
+                borderLeft: '4px solid #E91E63',
+                cursor: 'pointer',
+                transition: 'transform 0.2s, box-shadow 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}>
+                <div className="card-content p-3">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <p className="text-muted mb-1">Inscrições</p>
+                      <h2 className="mb-0">{stats.totais.inscricoes}</h2>
+                    </div>
+                    <i className="fas fa-clipboard-check fa-3x" style={{ color: '#E91E63', opacity: 0.3 }}></i>
                   </div>
-                  <i className="fas fa-clipboard-check fa-3x" style={{ color: '#E91E63', opacity: 0.3 }}></i>
                 </div>
               </div>
-            </div>
+            </Link>
           </div>
         </div>
 

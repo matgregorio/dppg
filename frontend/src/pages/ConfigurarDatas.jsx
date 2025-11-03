@@ -41,21 +41,33 @@ const ConfigurarDatas = () => {
         if (data.success && data.data.datasConfig) {
           const cfg = data.data.datasConfig;
           
+          // Função para formatar data para datetime-local (YYYY-MM-DDTHH:mm)
+          const formatDateTimeLocal = (dateString) => {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+          };
+          
           if (cfg.inscricaoParticipante) {
-            setValue('inscricaoParticipante_inicio', cfg.inscricaoParticipante.inicio?.split('T')[0] || '');
-            setValue('inscricaoParticipante_fim', cfg.inscricaoParticipante.fim?.split('T')[0] || '');
+            setValue('inscricaoParticipante_inicio', formatDateTimeLocal(cfg.inscricaoParticipante.inicio));
+            setValue('inscricaoParticipante_fim', formatDateTimeLocal(cfg.inscricaoParticipante.fim));
           }
           if (cfg.submissaoTrabalhos) {
-            setValue('submissaoTrabalhos_inicio', cfg.submissaoTrabalhos.inicio?.split('T')[0] || '');
-            setValue('submissaoTrabalhos_fim', cfg.submissaoTrabalhos.fim?.split('T')[0] || '');
+            setValue('submissaoTrabalhos_inicio', formatDateTimeLocal(cfg.submissaoTrabalhos.inicio));
+            setValue('submissaoTrabalhos_fim', formatDateTimeLocal(cfg.submissaoTrabalhos.fim));
           }
           if (cfg.prazoAvaliacao) {
-            setValue('prazoAvaliacao_inicio', cfg.prazoAvaliacao.inicio?.split('T')[0] || '');
-            setValue('prazoAvaliacao_fim', cfg.prazoAvaliacao.fim?.split('T')[0] || '');
+            setValue('prazoAvaliacao_inicio', formatDateTimeLocal(cfg.prazoAvaliacao.inicio));
+            setValue('prazoAvaliacao_fim', formatDateTimeLocal(cfg.prazoAvaliacao.fim));
           }
           if (cfg.notasAvaliacaoExterna) {
-            setValue('notasAvaliacaoExterna_inicio', cfg.notasAvaliacaoExterna.inicio?.split('T')[0] || '');
-            setValue('notasAvaliacaoExterna_fim', cfg.notasAvaliacaoExterna.fim?.split('T')[0] || '');
+            setValue('notasAvaliacaoExterna_inicio', formatDateTimeLocal(cfg.notasAvaliacaoExterna.inicio));
+            setValue('notasAvaliacaoExterna_fim', formatDateTimeLocal(cfg.notasAvaliacaoExterna.fim));
           }
         }
       } catch (err) {
@@ -153,15 +165,21 @@ const ConfigurarDatas = () => {
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="br-card mb-3">
               <div className="card-header">
-                <h3 className="text-weight-semi-bold">Inscrição de Participantes</h3>
+                <h3 className="text-weight-semi-bold">
+                  <i className="fas fa-users mr-2"></i>
+                  Inscrição de Participantes
+                </h3>
               </div>
               <div className="card-content">
                 <div className="row">
                   <div className="col-md-6 mb-3">
                     <div className="br-input">
-                      <label htmlFor="inscricaoParticipante_inicio">Data de Início</label>
+                      <label htmlFor="inscricaoParticipante_inicio">
+                        <i className="fas fa-calendar-check mr-1"></i>
+                        Data e Hora de Início
+                      </label>
                       <input
-                        type="date"
+                        type="datetime-local"
                         id="inscricaoParticipante_inicio"
                         {...register('inscricaoParticipante_inicio')}
                       />
@@ -174,9 +192,12 @@ const ConfigurarDatas = () => {
                   </div>
                   <div className="col-md-6 mb-3">
                     <div className="br-input">
-                      <label htmlFor="inscricaoParticipante_fim">Data de Fim</label>
+                      <label htmlFor="inscricaoParticipante_fim">
+                        <i className="fas fa-calendar-times mr-1"></i>
+                        Data e Hora de Fim
+                      </label>
                       <input
-                        type="date"
+                        type="datetime-local"
                         id="inscricaoParticipante_fim"
                         {...register('inscricaoParticipante_fim')}
                       />
@@ -193,15 +214,21 @@ const ConfigurarDatas = () => {
             
             <div className="br-card mb-3">
               <div className="card-header">
-                <h3 className="text-weight-semi-bold">Submissão de Trabalhos</h3>
+                <h3 className="text-weight-semi-bold">
+                  <i className="fas fa-file-alt mr-2"></i>
+                  Submissão de Trabalhos
+                </h3>
               </div>
               <div className="card-content">
                 <div className="row">
                   <div className="col-md-6 mb-3">
                     <div className="br-input">
-                      <label htmlFor="submissaoTrabalhos_inicio">Data de Início</label>
+                      <label htmlFor="submissaoTrabalhos_inicio">
+                        <i className="fas fa-calendar-check mr-1"></i>
+                        Data e Hora de Início
+                      </label>
                       <input
-                        type="date"
+                        type="datetime-local"
                         id="submissaoTrabalhos_inicio"
                         {...register('submissaoTrabalhos_inicio')}
                       />
@@ -214,9 +241,12 @@ const ConfigurarDatas = () => {
                   </div>
                   <div className="col-md-6 mb-3">
                     <div className="br-input">
-                      <label htmlFor="submissaoTrabalhos_fim">Data de Fim</label>
+                      <label htmlFor="submissaoTrabalhos_fim">
+                        <i className="fas fa-calendar-times mr-1"></i>
+                        Data e Hora de Fim
+                      </label>
                       <input
-                        type="date"
+                        type="datetime-local"
                         id="submissaoTrabalhos_fim"
                         {...register('submissaoTrabalhos_fim')}
                       />
@@ -233,15 +263,21 @@ const ConfigurarDatas = () => {
             
             <div className="br-card mb-3">
               <div className="card-header">
-                <h3 className="text-weight-semi-bold">Prazo de Avaliação</h3>
+                <h3 className="text-weight-semi-bold">
+                  <i className="fas fa-clipboard-check mr-2"></i>
+                  Prazo de Avaliação
+                </h3>
               </div>
               <div className="card-content">
                 <div className="row">
                   <div className="col-md-6 mb-3">
                     <div className="br-input">
-                      <label htmlFor="prazoAvaliacao_inicio">Data de Início</label>
+                      <label htmlFor="prazoAvaliacao_inicio">
+                        <i className="fas fa-calendar-check mr-1"></i>
+                        Data e Hora de Início
+                      </label>
                       <input
-                        type="date"
+                        type="datetime-local"
                         id="prazoAvaliacao_inicio"
                         {...register('prazoAvaliacao_inicio')}
                       />
@@ -254,9 +290,12 @@ const ConfigurarDatas = () => {
                   </div>
                   <div className="col-md-6 mb-3">
                     <div className="br-input">
-                      <label htmlFor="prazoAvaliacao_fim">Data de Fim</label>
+                      <label htmlFor="prazoAvaliacao_fim">
+                        <i className="fas fa-calendar-times mr-1"></i>
+                        Data e Hora de Fim
+                      </label>
                       <input
-                        type="date"
+                        type="datetime-local"
                         id="prazoAvaliacao_fim"
                         {...register('prazoAvaliacao_fim')}
                       />
@@ -273,15 +312,21 @@ const ConfigurarDatas = () => {
             
             <div className="br-card mb-3">
               <div className="card-header">
-                <h3 className="text-weight-semi-bold">Notas de Avaliação Externa</h3>
+                <h3 className="text-weight-semi-bold">
+                  <i className="fas fa-star mr-2"></i>
+                  Notas de Avaliação Externa
+                </h3>
               </div>
               <div className="card-content">
                 <div className="row">
                   <div className="col-md-6 mb-3">
                     <div className="br-input">
-                      <label htmlFor="notasAvaliacaoExterna_inicio">Data de Início</label>
+                      <label htmlFor="notasAvaliacaoExterna_inicio">
+                        <i className="fas fa-calendar-check mr-1"></i>
+                        Data e Hora de Início
+                      </label>
                       <input
-                        type="date"
+                        type="datetime-local"
                         id="notasAvaliacaoExterna_inicio"
                         {...register('notasAvaliacaoExterna_inicio')}
                       />
@@ -294,9 +339,12 @@ const ConfigurarDatas = () => {
                   </div>
                   <div className="col-md-6 mb-3">
                     <div className="br-input">
-                      <label htmlFor="notasAvaliacaoExterna_fim">Data de Fim</label>
+                      <label htmlFor="notasAvaliacaoExterna_fim">
+                        <i className="fas fa-calendar-times mr-1"></i>
+                        Data e Hora de Fim
+                      </label>
                       <input
-                        type="date"
+                        type="datetime-local"
                         id="notasAvaliacaoExterna_fim"
                         {...register('notasAvaliacaoExterna_fim')}
                       />

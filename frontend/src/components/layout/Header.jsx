@@ -4,12 +4,14 @@ import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../../store/slices/authSlice';
 import authService from '../../services/authService';
 import LoginModal from '../modals/LoginModal';
+import RegisterModal from '../modals/RegisterModal';
 
 const Header = () => {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const menuRef = useRef(null);
   
@@ -115,7 +117,20 @@ const Header = () => {
       
       <LoginModal 
         isOpen={showLoginModal} 
-        onClose={() => setShowLoginModal(false)} 
+        onClose={() => setShowLoginModal(false)}
+        onOpenRegister={() => {
+          setShowLoginModal(false);
+          setShowRegisterModal(true);
+        }}
+      />
+      
+      <RegisterModal
+        isOpen={showRegisterModal}
+        onClose={() => setShowRegisterModal(false)}
+        onOpenLogin={() => {
+          setShowRegisterModal(false);
+          setShowLoginModal(true);
+        }}
       />
     </header>
   );

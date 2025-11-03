@@ -12,7 +12,7 @@ const loginSchema = z.object({
   senha: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
 });
 
-const LoginModal = ({ isOpen, onClose }) => {
+const LoginModal = ({ isOpen, onClose, onOpenRegister }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [error, setError] = useState('');
@@ -172,23 +172,37 @@ const LoginModal = ({ isOpen, onClose }) => {
             >
               Cancelar
             </button>
-            <button
-              type="submit"
-              className="br-button primary"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <i className="fas fa-spinner fa-spin mr-2"></i>
-                  Entrando...
-                </>
-              ) : (
-                <>
-                  <i className="fas fa-sign-in-alt mr-2"></i>
-                  Entrar
-                </>
-              )}
-            </button>
+            <div className="d-flex gap-2">
+              <button
+                type="button"
+                className="br-button secondary"
+                onClick={() => {
+                  handleClose();
+                  if (onOpenRegister) onOpenRegister();
+                }}
+                disabled={loading}
+              >
+                <i className="fas fa-user-plus mr-2"></i>
+                Criar Conta
+              </button>
+              <button
+                type="submit"
+                className="br-button primary"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin mr-2"></i>
+                    Entrando...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-sign-in-alt mr-2"></i>
+                    Entrar
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </form>
       </div>

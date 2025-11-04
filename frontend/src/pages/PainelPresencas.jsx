@@ -7,9 +7,16 @@ const PainelPresencas = () => {
   const { subeventoId } = useParams();
   const [subevento, setSubevento] = useState(null);
   const [presencas, setPresencas] = useState([]);
+  const [participantes, setParticipantes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [showAdicionarModal, setShowAdicionarModal] = useState(false);
+  const [showConfirmarModal, setShowConfirmarModal] = useState(false);
+  const [cpfBusca, setCpfBusca] = useState('');
+  const [participanteSelecionado, setParticipanteSelecionado] = useState(null);
+  const [buscandoParticipante, setBuscandoParticipante] = useState(false);
   
   useEffect(() => {
     fetchData();
@@ -47,6 +54,46 @@ const PainelPresencas = () => {
     const { data } = await api.get(`/mesario/subeventos/${subeventoId}/presencas`);
     if (data.success) {
       setPresencas(data.data);
+    }
+  };
+
+  const buscarParticipante = async () => {
+    try {
+      setBuscandoParticipante(true);
+      setError('');
+      const { data } = await api.get(`/admin/participantes?cpf=${cpfBusca}`);
+      if (data.success && data.data.length > 0) {
+        setParticipanteSelecionado(data.data[0]);
+      } else {
+        setError('Participante não encontrado');
+        setParticipanteSelecionado(null);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Erro ao buscar participante');
+      setParticipanteSelecionado(null);
+    } finally {
+      setBuscandoParticipante(false);
+    }
+  };
+
+  const confirmarPresencaManual = async (participantId) => {
+    try {
+      setError('');
+      setSuccess('');
+      const { data } = await api.post(`/mesario/subeventos/${subeventoId}/presenca-manual`, {
+        participantId
+      });
+      if (data.success) {
+        setSuccess('Presença confirmada com sucesso!');
+        setShowAdicionarModal(false);
+        setShowConfirmarModal(false);
+        setCpfBusca('');
+        setParticipanteSelecionado(null);
+        fetchPresencas();
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Erro ao confirmar presença');
     }
   };
   
@@ -95,19 +142,30 @@ const PainelPresencas = () => {
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h1 className="text-up-03 text-weight-bold">Painel de Presenças</h1>
           
-          <div className="br-switch small">
-            <input
-              id="autoRefresh"
-              type="checkbox"
-              checked={autoRefresh}
-              onChange={(e) => setAutoRefresh(e.target.checked)}
-            />
-            <label htmlFor="autoRefresh">
-              <i className="fas fa-sync-alt mr-1"></i>
-              Atualização automática
-            </label>
+          <div className="d-flex align-items-center gap-2">
+            <div className="br-switch small">
+              <input
+                id="autoRefresh"
+                type="checkbox"
+                checked={autoRefresh}
+                onChange={(e) => setAutoRefresh(e.target.checked)}
+              />
+              <label htmlFor="autoRefresh">
+                <i className="fas fa-sync-alt mr-1"></i>
+                Atualização automática
+              </label>
+            </div>
           </div>
         </div>
+
+        {success && (
+          <div className="br-message success mb-3" role="alert">
+            <div className="icon">
+              <i className="fas fa-check-circle fa-lg" aria-hidden="true"></i>
+            </div>
+            <div className="content">{success}</div>
+          </div>
+        )}
         
         {error && (
           <div className="br-message danger mb-3" role="alert">
@@ -133,25 +191,52 @@ const PainelPresencas = () => {
           <>
             <div className="br-card mb-3">
               <div className="card-header">
-                <h3 className="text-weight-semi-bold">{subevento.nome}</h3>
+                <h3 className="text-weight-semi-bold">{subevento.titulo}</h3>
               </div>
               <div className="card-content">
                 <div className="row">
-                  <div className="col-md-8">
+                  <div className="col-md-6">
+                    {subevento.evento && (
+                      <p>
+                        <strong>Evento:</strong> {subevento.evento}
+                      </p>
+                    )}
+                    {subevento.palestrante && (
+                      <p>
+                        <strong>Palestrante:</strong> {subevento.palestrante}
+                      </p>
+                    )}
                     <p>
-                      <strong>Local:</strong> {subevento.local || 'N/A'}
+                      <strong>Data:</strong> {new Date(subevento.data).toLocaleDateString('pt-BR')} às {subevento.horarioInicio}
                     </p>
-                    <p>
-                      <strong>Data/Hora:</strong>{' '}
-                      {new Date(subevento.dataHora).toLocaleString('pt-BR')}
-                    </p>
+                    {subevento.local && (
+                      <p>
+                        <strong>Local:</strong> {subevento.local}
+                      </p>
+                    )}
                   </div>
-                  <div className="col-md-4 text-right">
-                    <div className="mb-2">
+                  <div className="col-md-6">
+                    <div className="text-right mb-3">
                       <span className="br-tag success large">
                         <i className="fas fa-check-circle mr-2"></i>
                         {presencas.length} Presenças
                       </span>
+                    </div>
+                    <div className="d-flex justify-content-end gap-2">
+                      <button
+                        className="br-button secondary small"
+                        onClick={() => setShowConfirmarModal(true)}
+                      >
+                        <i className="fas fa-user-check mr-2"></i>
+                        Confirmar Presença
+                      </button>
+                      <button
+                        className="br-button primary small"
+                        onClick={() => setShowAdicionarModal(true)}
+                      >
+                        <i className="fas fa-user-plus mr-2"></i>
+                        Adicionar Pessoa
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -206,6 +291,180 @@ const PainelPresencas = () => {
           </>
         )}
       </div>
+
+      {/* Modal para adicionar pessoa sem inscrição */}
+      {showAdicionarModal && (
+        <div className="br-modal active" style={{ display: 'block' }}>
+          <div className="br-modal-dialog">
+            <div className="br-modal-content">
+              <div className="br-modal-header">
+                <div className="br-modal-title">
+                  <i className="fas fa-user-plus mr-2"></i>
+                  Adicionar Pessoa Sem Inscrição
+                </div>
+              </div>
+              <div className="br-modal-body">
+                <p className="mb-3">
+                  Busque o participante pelo CPF para adicionar presença manualmente:
+                </p>
+                <div className="br-input mb-3">
+                  <label htmlFor="cpf-busca">CPF do Participante</label>
+                  <input
+                    id="cpf-busca"
+                    type="text"
+                    placeholder="Digite o CPF"
+                    value={cpfBusca}
+                    onChange={(e) => setCpfBusca(e.target.value)}
+                    maxLength={14}
+                  />
+                </div>
+                <button
+                  className="br-button secondary mb-3"
+                  onClick={buscarParticipante}
+                  disabled={!cpfBusca || buscandoParticipante}
+                >
+                  <i className="fas fa-search mr-2"></i>
+                  {buscandoParticipante ? 'Buscando...' : 'Buscar'}
+                </button>
+
+                {participanteSelecionado && (
+                  <div className="br-card mt-3">
+                    <div className="card-content">
+                      <h6 className="text-weight-semi-bold mb-2">Participante Encontrado</h6>
+                      <p className="mb-1"><strong>Nome:</strong> {participanteSelecionado.nome}</p>
+                      <p className="mb-1"><strong>CPF:</strong> {participanteSelecionado.cpf}</p>
+                      <p className="mb-1"><strong>Email:</strong> {participanteSelecionado.email}</p>
+                    </div>
+                  </div>
+                )}
+
+                {error && (
+                  <div className="br-message danger mt-3" role="alert">
+                    <div className="icon">
+                      <i className="fas fa-times-circle fa-lg" aria-hidden="true"></i>
+                    </div>
+                    <div className="content">{error}</div>
+                  </div>
+                )}
+              </div>
+              <div className="br-modal-footer">
+                <button
+                  className="br-button secondary"
+                  onClick={() => {
+                    setShowAdicionarModal(false);
+                    setCpfBusca('');
+                    setParticipanteSelecionado(null);
+                    setError('');
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  className="br-button primary"
+                  onClick={() => confirmarPresencaManual(participanteSelecionado._id)}
+                  disabled={!participanteSelecionado}
+                >
+                  <i className="fas fa-check mr-2"></i>
+                  Confirmar Presença
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="br-scrim" onClick={() => {
+            setShowAdicionarModal(false);
+            setCpfBusca('');
+            setParticipanteSelecionado(null);
+            setError('');
+          }}></div>
+        </div>
+      )}
+
+      {/* Modal para confirmar presença de quem já tem inscrição */}
+      {showConfirmarModal && (
+        <div className="br-modal active" style={{ display: 'block' }}>
+          <div className="br-modal-dialog">
+            <div className="br-modal-content">
+              <div className="br-modal-header">
+                <div className="br-modal-title">
+                  <i className="fas fa-user-check mr-2"></i>
+                  Confirmar Presença Manual
+                </div>
+              </div>
+              <div className="br-modal-body">
+                <p className="mb-3">
+                  Busque o participante inscrito para confirmar presença manualmente:
+                </p>
+                <div className="br-input mb-3">
+                  <label htmlFor="cpf-confirmar">CPF do Participante</label>
+                  <input
+                    id="cpf-confirmar"
+                    type="text"
+                    placeholder="Digite o CPF"
+                    value={cpfBusca}
+                    onChange={(e) => setCpfBusca(e.target.value)}
+                    maxLength={14}
+                  />
+                </div>
+                <button
+                  className="br-button secondary mb-3"
+                  onClick={buscarParticipante}
+                  disabled={!cpfBusca || buscandoParticipante}
+                >
+                  <i className="fas fa-search mr-2"></i>
+                  {buscandoParticipante ? 'Buscando...' : 'Buscar'}
+                </button>
+
+                {participanteSelecionado && (
+                  <div className="br-card mt-3">
+                    <div className="card-content">
+                      <h6 className="text-weight-semi-bold mb-2">Participante Encontrado</h6>
+                      <p className="mb-1"><strong>Nome:</strong> {participanteSelecionado.nome}</p>
+                      <p className="mb-1"><strong>CPF:</strong> {participanteSelecionado.cpf}</p>
+                      <p className="mb-1"><strong>Email:</strong> {participanteSelecionado.email}</p>
+                    </div>
+                  </div>
+                )}
+
+                {error && (
+                  <div className="br-message danger mt-3" role="alert">
+                    <div className="icon">
+                      <i className="fas fa-times-circle fa-lg" aria-hidden="true"></i>
+                    </div>
+                    <div className="content">{error}</div>
+                  </div>
+                )}
+              </div>
+              <div className="br-modal-footer">
+                <button
+                  className="br-button secondary"
+                  onClick={() => {
+                    setShowConfirmarModal(false);
+                    setCpfBusca('');
+                    setParticipanteSelecionado(null);
+                    setError('');
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  className="br-button primary"
+                  onClick={() => confirmarPresencaManual(participanteSelecionado._id)}
+                  disabled={!participanteSelecionado}
+                >
+                  <i className="fas fa-check mr-2"></i>
+                  Confirmar Presença
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="br-scrim" onClick={() => {
+            setShowConfirmarModal(false);
+            setCpfBusca('');
+            setParticipanteSelecionado(null);
+            setError('');
+          }}></div>
+        </div>
+      )}
     </MainLayout>
   );
 };

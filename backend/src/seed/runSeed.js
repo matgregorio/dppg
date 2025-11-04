@@ -40,7 +40,7 @@ const runSeed = async () => {
       { email: 'subadmin@gov.br', senha: 'SubAdmin!234', nome: 'Sub Administrador', cpf: gerarCPF(), roles: ['SUBADMIN'] },
       { email: 'avaliador1@gov.br', senha: 'Avaliador!234', nome: 'Avaliador Um', cpf: gerarCPF(), roles: ['AVALIADOR'] },
       { email: 'avaliador2@gov.br', senha: 'Avaliador!234', nome: 'Avaliador Dois', cpf: gerarCPF(), roles: ['AVALIADOR'] },
-      { email: 'mesario@gov.br', senha: 'Mesario!234', nome: 'Mesário', cpf: gerarCPF(), roles: ['MESARIO'] },
+      { email: 'mesario@gov.br', senha: 'Mesario!234', nome: 'Mesário', cpf: gerarCPF(), roles: ['USER', 'MESARIO'] },
       { email: 'participante1@gov.br', senha: 'Participante!234', nome: 'Participante Um', cpf: gerarCPF(), roles: ['USER'] },
       { email: 'participante2@gov.br', senha: 'Participante!234', nome: 'Participante Dois', cpf: gerarCPF(), roles: ['USER'] },
     ];
@@ -50,6 +50,14 @@ const runSeed = async () => {
       let user = await User.findOne({ email: u.email });
       if (!user) {
         user = await User.create(u);
+      } else {
+        // Atualiza as roles do usuário existente se necessário
+        const rolesChanged = JSON.stringify(user.roles.sort()) !== JSON.stringify(u.roles.sort());
+        if (rolesChanged) {
+          user.roles = u.roles;
+          await user.save();
+          console.log(`   ✅ Roles atualizadas para ${user.email}: ${u.roles.join(', ')}`);
+        }
       }
       usersCreated.push(user);
     }
@@ -58,7 +66,8 @@ const runSeed = async () => {
     // 2. Participants
     console.log('📝 Criando participantes...');
     const participants = [];
-    for (let i = 5; i <= 6; i++) {
+    // Incluindo mesário (índice 4) e participantes comuns (índices 5 e 6)
+    for (let i = 4; i <= 6; i++) {
       const user = usersCreated[i];
       let participant = await Participant.findOne({ user: user._id });
       if (!participant) {
@@ -67,7 +76,7 @@ const runSeed = async () => {
           cpf: user.cpf,
           nome: user.nome,
           email: user.email,
-          tipoParticipante: i === 5 ? 'DISCENTE' : 'DOCENTE',
+          tipoParticipante: i === 4 ? 'DOCENTE' : (i === 5 ? 'DISCENTE' : 'DOCENTE'),
         });
       }
       participants.push(participant);

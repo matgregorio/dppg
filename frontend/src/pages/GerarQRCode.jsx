@@ -7,21 +7,39 @@ const GerarQRCode = () => {
   const { subeventoId } = useParams();
   const [subevento, setSubevento] = useState(null);
   const [qrCode, setQrCode] = useState('');
-  const [token, setToken] = useState('');
+  const [expiresAt, setExpiresAt] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [generatingQR, setGeneratingQR] = useState(false);
   const [error, setError] = useState('');
-  const [countdown, setCountdown] = useState(300); // 5 minutos em segundos
+  const [timeRemaining, setTimeRemaining] = useState(0);
   
   useEffect(() => {
     fetchSubevento();
   }, [subeventoId]);
   
   useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-      return () => clearTimeout(timer);
+    if (expiresAt) {
+      const interval = setInterval(() => {
+        const now = new Date();
+        const expires = new Date(expiresAt);
+        const diff = Math.max(0, Math.floor((expires - now) / 1000));
+        setTimeRemaining(diff);
+        
+        console.log('Time check:', {
+          now: now.toISOString(),
+          expires: expires.toISOString(),
+          diff,
+          isExpired: diff === 0
+        });
+        
+        if (diff === 0) {
+          clearInterval(interval);
+        }
+      }, 1000);
+      
+      return () => clearInterval(interval);
     }
-  }, [countdown]);
+  }, [expiresAt]);
   
   const fetchSubevento = async () => {
     try {
@@ -38,25 +56,37 @@ const GerarQRCode = () => {
   };
   
   const handleGerarQRCode = async () => {
+    if (generatingQR) return; // Previne cliques duplos
+    
     try {
+      setGeneratingQR(true);
       setError('');
+      console.log('Gerando novo QR Code...');
+      
       const { data } = await api.post(`/mesario/subeventos/${subeventoId}/qrcode`);
       
       if (data.success) {
-        setQrCode(data.data.qrCode);
-        setToken(data.data.token);
-        setCountdown(300); // Reset para 5 minutos
+        console.log('QR Code gerado com sucesso:', data.data);
+        setQrCode(data.data.qrcode);
+        setExpiresAt(data.data.expiresAt);
       }
     } catch (err) {
+      console.error('Erro ao gerar QR Code:', err);
       setError(err.response?.data?.message || 'Erro ao gerar QR Code');
+    } finally {
+      setGeneratingQR(false);
     }
   };
   
-  const formatCountdown = (seconds) => {
+  const formatTimeRemaining = (seconds) => {
+    if (seconds === 0) return 'Expirado';
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
+  
+  const isExpired = expiresAt && timeRemaining === 0;
+  const hasQRCode = qrCode && expiresAt;
   
   return (
     <MainLayout>
@@ -106,30 +136,61 @@ const GerarQRCode = () => {
           <>
             <div className="br-card mb-3">
               <div className="card-header">
-                <h3 className="text-weight-semi-bold">{subevento.nome}</h3>
+                <h3 className="text-weight-semi-bold">{subevento.titulo}</h3>
               </div>
               <div className="card-content">
+                {subevento.evento && (
+                  <p>
+                    <strong>Evento:</strong> {subevento.evento}
+                  </p>
+                )}
+                {subevento.palestrante && (
+                  <p>
+                    <strong>Palestrante:</strong> {subevento.palestrante}
+                  </p>
+                )}
                 <p>
-                  <strong>Local:</strong> {subevento.local || 'N/A'}
+                  <strong>Data:</strong>{' '}
+                  {new Date(subevento.data).toLocaleDateString('pt-BR')}
                 </p>
                 <p>
-                  <strong>Data/Hora:</strong>{' '}
-                  {new Date(subevento.dataHora).toLocaleString('pt-BR')}
+                  <strong>Horário:</strong> {subevento.horarioInicio}
+                  {subevento.duracao && ` (Duração: ${subevento.duracao})`}
                 </p>
+                {subevento.local && (
+                  <p>
+                    <strong>Local:</strong> {subevento.local}
+                  </p>
+                )}
+                {subevento.tipo && (
+                  <p>
+                    <strong>Tipo:</strong> {subevento.tipo}
+                  </p>
+                )}
               </div>
             </div>
             
-            {!qrCode ? (
+            {!hasQRCode ? (
               <div className="text-center">
                 <button
                   onClick={handleGerarQRCode}
                   className="br-button primary large"
+                  disabled={generatingQR}
                 >
-                  <i className="fas fa-qrcode mr-2"></i>
-                  Gerar Novo QR Code
+                  {generatingQR ? (
+                    <>
+                      <span className="br-loading small mr-2" style={{ display: 'inline-block', verticalAlign: 'middle' }}></span>
+                      Gerando QR Code...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-qrcode mr-2"></i>
+                      Gerar Novo QR Code
+                    </>
+                  )}
                 </button>
                 <p className="text-down-01 mt-3">
-                  O QR Code gerado terá validade de 5 minutos
+                  O QR Code gerado terá validade de 30 minutos
                 </p>
               </div>
             ) : (
@@ -137,48 +198,100 @@ const GerarQRCode = () => {
                 <div className="card-content text-center">
                   <h4 className="mb-3">QR Code para Check-in</h4>
                   
-                  <div className="mb-3">
+                  <div className="mb-3" style={{ opacity: isExpired ? 0.3 : 1, position: 'relative' }}>
                     <img
                       src={qrCode}
                       alt="QR Code para check-in"
                       style={{ maxWidth: '100%', height: 'auto' }}
                     />
+                    {isExpired && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        fontSize: '2rem',
+                        fontWeight: 'bold',
+                        color: '#d32f2f',
+                        textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+                      }}>
+                        EXPIRADO
+                      </div>
+                    )}
                   </div>
                   
                   <div className="mb-3">
-                    <span className="br-tag warning large">
-                      <i className="fas fa-clock mr-2"></i>
-                      Expira em: {formatCountdown(countdown)}
+                    <span className={`br-tag large ${isExpired ? 'danger' : timeRemaining < 300 ? 'warning' : 'success'}`}>
+                      <i className={`fas ${isExpired ? 'fa-times-circle' : 'fa-clock'} mr-2`}></i>
+                      {isExpired ? 'QR Code Expirado' : `Expira em: ${formatTimeRemaining(timeRemaining)}`}
                     </span>
                   </div>
                   
-                  {countdown === 0 && (
+                  {isExpired && (
+                    <div className="br-message danger mb-3" role="alert">
+                      <div className="icon">
+                        <i className="fas fa-exclamation-circle fa-lg" aria-hidden="true"></i>
+                      </div>
+                      <div className="content">
+                        <strong>QR Code Expirado!</strong><br/>
+                        Por segurança, gere um novo QR Code para continuar o check-in.
+                      </div>
+                    </div>
+                  )}
+                  
+                  {!isExpired && timeRemaining < 300 && (
                     <div className="br-message warning mb-3" role="alert">
                       <div className="icon">
                         <i className="fas fa-exclamation-triangle fa-lg" aria-hidden="true"></i>
                       </div>
                       <div className="content">
-                        O QR Code expirou. Gere um novo para continuar o check-in.
+                        O QR Code expirará em breve. Prepare-se para gerar um novo.
                       </div>
                     </div>
                   )}
                   
                   <button
                     onClick={handleGerarQRCode}
-                    className="br-button primary"
+                    className={`br-button ${isExpired ? 'primary large' : 'secondary'}`}
+                    disabled={generatingQR}
                   >
-                    <i className="fas fa-sync-alt mr-2"></i>
-                    Gerar Novo QR Code
+                    {generatingQR ? (
+                      <>
+                        <span className="br-loading small mr-2" style={{ display: 'inline-block', verticalAlign: 'middle' }}></span>
+                        Gerando...
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-sync-alt mr-2"></i>
+                        {isExpired ? 'Gerar Novo QR Code' : 'Renovar QR Code'}
+                      </>
+                    )}
                   </button>
                   
                   <div className="mt-4 text-left">
-                    <p className="text-down-01">
+                    <div className="br-message info" role="alert">
+                      <div className="icon">
+                        <i className="fas fa-info-circle fa-lg" aria-hidden="true"></i>
+                      </div>
+                      <div className="content">
+                        <p className="text-weight-semi-bold mb-2">🔒 Segurança Aprimorada:</p>
+                        <ul className="mb-0" style={{ paddingLeft: '20px' }}>
+                          <li>Token único e criptografado</li>
+                          <li>Validade de 30 minutos (renovável)</li>
+                          <li>Armazenamento seguro no banco de dados</li>
+                          <li>Proteção contra reutilização indevida</li>
+                          <li>Log de auditoria de todos os check-ins</li>
+                        </ul>
+                      </div>
+                    </div>
+                    
+                    <p className="text-down-01 mt-3">
                       <strong>Instruções:</strong>
                     </p>
                     <ul className="text-down-01">
                       <li>Participantes devem escanear este QR Code com seus dispositivos</li>
-                      <li>O token é válido por 5 minutos por questões de segurança</li>
-                      <li>Gere um novo QR Code quando o atual expirar</li>
+                      <li>Cada participante pode fazer check-in apenas uma vez</li>
+                      <li>O token é validado em tempo real no servidor</li>
                       <li>Acompanhe as presenças no Painel de Presenças</li>
                     </ul>
                   </div>

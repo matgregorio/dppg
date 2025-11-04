@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const Footer = () => {
+const Footer = ({ className = '' }) => {
   return (
-    <footer className="br-footer" id="footer">
+    <footer className={`br-footer ${className}`} id="footer">
       <div className="container-lg">
         <div className="info">
           <div className="text-down-01 text-medium pb-3">Sistema de Simpósio</div>

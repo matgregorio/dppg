@@ -7,6 +7,7 @@ import NotificationContainer from './components/notifications/NotificationContai
 
 // Pages
 import Home from './pages/Home';
+import Login from './pages/Login';
 import AcessoNegado from './pages/AcessoNegado';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
@@ -49,6 +50,7 @@ import AvaliacoesExternas from './pages/AvaliacoesExternas';
 import MesarioSubeventos from './pages/MesarioSubeventos';
 import GerarQRCode from './pages/GerarQRCode';
 import PainelPresencas from './pages/PainelPresencas';
+import CheckinQRCode from './pages/CheckinQRCode';
 
 // Guards
 import RequireAuth from './components/guards/RequireAuth';
@@ -83,8 +85,10 @@ function App() {
       <Routes>
         {/* Rotas públicas */}
         <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/checkin" element={<CheckinQRCode />} />
         <Route path="/apresentacao" element={<Apresentacao />} />
       <Route path="/regulamento" element={<Regulamento />} />
       <Route path="/corpo-editorial" element={<CorpoEditorial />} />
@@ -100,7 +104,7 @@ function App() {
         path="/inscricoes"
         element={
           <RequireAuth>
-            <RequireRoles roles={['USER']}>
+            <RequireRoles roles={['USER', 'MESARIO']}>
               <MinhasInscricoes />
             </RequireRoles>
           </RequireAuth>
@@ -111,7 +115,7 @@ function App() {
         path="/trabalhos"
         element={
           <RequireAuth>
-            <RequireRoles roles={['USER']}>
+            <RequireRoles roles={['USER', 'MESARIO']}>
               <MeusTrabalhos />
             </RequireRoles>
           </RequireAuth>
@@ -122,7 +126,7 @@ function App() {
         path="/submeter-trabalho"
         element={
           <RequireAuth>
-            <RequireRoles roles={['USER']}>
+            <RequireRoles roles={['USER', 'MESARIO']}>
               <SubmeterTrabalho />
             </RequireRoles>
           </RequireAuth>

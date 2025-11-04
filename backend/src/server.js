@@ -12,6 +12,7 @@ const logger = require('./config/logger');
 const swaggerSpec = require('./config/swagger');
 const errorHandler = require('./middlewares/errorHandler');
 const { apiLimiter } = require('./middlewares/rateLimiting');
+const { verifyToken } = require('./utils/jwt');
 
 // Conectar ao banco de dados
 connectDB();
@@ -20,10 +21,37 @@ const app = express();
 
 // Middlewares de segurança
 app.use(helmet());
-app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || 'http://localhost:5173',
+
+// Configuração de CORS mais permissiva em desenvolvimento
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Permitir requisições sem origin (como mobile apps, Postman)
+    if (!origin) return callback(null, true);
+    
+    // Em desenvolvimento, permitir localhost e IPs da rede local
+    if (process.env.NODE_ENV === 'development') {
+      // Permitir localhost em qualquer porta e IPs locais (192.168.x.x, 10.x.x.x)
+      if (
+        origin.includes('localhost') || 
+        origin.includes('127.0.0.1') ||
+        /^https?:\/\/(192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}):\d+$/.test(origin)
+      ) {
+        return callback(null, true);
+      }
+    }
+    
+    // Verificar lista de origens permitidas
+    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
-}));
+};
+
+app.use(cors(corsOptions));
 
 // Middlewares gerais
 app.use(compression());
@@ -32,7 +60,23 @@ app.use(express.urlencoded({ extended: true, limit: `${process.env.MAX_UPLOAD_MB
 app.use(cookieParser());
 app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
 
-// Rate limiting
+// Middleware para extrair usuário do token ANTES do rate limiting
+// Isso permite que o rate limiter acesse req.user
+app.use('/api', (req, res, next) => {
+  const token = req.cookies.token;
+  if (token) {
+    try {
+      const decoded = verifyToken(token);
+      req.user = decoded;
+    } catch (err) {
+      // Token inválido, mas não bloqueia a requisição
+      // A autenticação será verificada novamente nas rotas protegidas
+    }
+  }
+  next();
+});
+
+// Rate limiting (após extração do usuário)
 app.use('/api', apiLimiter);
 
 // Servir arquivos estáticos
@@ -68,8 +112,9 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 4000;
 
 app.listen(PORT, () => {
-  logger.info(`Servidor rodando na porta ${PORT}`);
-  logger.info(`Documentação Swagger: http://localhost:${PORT}/api-docs`);
+  logger.info(`Servidor rodando na porta ${PORT} em todas as interfaces de rede`);
+  logger.info(`Acesso local: http://localhost:${PORT}/api-docs`);
+  logger.info(`Acesso via rede: http://192.168.0.103:${PORT}/api-docs`);
 });
 
 module.exports = app;

@@ -3,6 +3,7 @@ const slowDown = require('express-slow-down');
 
 /**
  * Rate limiter geral para toda a API
+ * Exclui mesários e admins do rate limiting
  */
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
@@ -13,6 +14,10 @@ const apiLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => {
+    // Não aplica rate limiting para mesários e admins
+    return req.user && (req.user.role === 'mesario' || req.user.role === 'admin');
+  },
 });
 
 /**

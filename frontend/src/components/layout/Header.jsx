@@ -5,9 +5,11 @@ import { logout } from '../../store/slices/authSlice';
 import authService from '../../services/authService';
 import LoginModal from '../modals/LoginModal';
 import RegisterModal from '../modals/RegisterModal';
+import { useMenu } from '../../contexts/MenuContext';
 
 const Header = () => {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const { isMenuOpen, toggleMenu } = useMenu();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -47,6 +49,17 @@ const Header = () => {
     <header className="br-header" id="header" data-sticky="true">
       <div className="container-lg">
         <div className="header-top">
+          {/* Botão hambúrguer DESKTOP no cabeçalho */}
+          <button
+            className="menu-toggle-desktop"
+            onClick={toggleMenu}
+            aria-label={isMenuOpen ? "Fechar menu" : "Abrir menu"}
+            type="button"
+            title={isMenuOpen ? "Fechar menu" : "Abrir menu"}
+          >
+            <i className={`fas fa-${isMenuOpen ? 'times' : 'bars'}`} style={{ fontSize: '1.5rem' }}></i>
+          </button>
+          
           <div className="header-logo">
             <Link to="/">
               <img src="/logo-govbr.png" alt="logo" onError={(e) => e.target.style.display = 'none'} />

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const acervoController = require('../controllers/acervoController');
+const optionalAuth = require('../middlewares/optionalAuth');
 
 // Placeholder controllers - serão implementados
 const publicController = {
@@ -81,9 +82,53 @@ const publicController = {
       res.status(500).json({ success: false, message: error.message });
     }
   },
+
+  getSubeventos: async (req, res) => {
+    try {
+      const Subevento = require('../models/Subevento');
+      const Simposio = require('../models/Simposio');
+      const simposioId = req.params.simposioId;
+      
+      const simposio = await Simposio.findById(simposioId);
+      if (!simposio) {
+        return res.status(404).json({ success: false, message: 'Simpósio não encontrado' });
+      }
+      
+      const subeventos = await Subevento.find({ simposio: simposioId }).sort({ data: 1, horarioInicio: 1 });
+      
+      // Se houver usuário autenticado, buscar presenças dele
+      if (req.user) {
+        const Presenca = require('../models/Presenca');
+        const Participant = require('../models/Participant');
+        
+        const participant = await Participant.findOne({ user: req.user.id });
+        if (participant) {
+          const presencas = await Presenca.find({ 
+            participant: participant._id,
+            subevento: { $in: subeventos.map(s => s._id) }
+          });
+          
+          const presencasMap = {};
+          presencas.forEach(p => {
+            presencasMap[p.subevento.toString()] = true;
+          });
+          
+          // Adiciona flag de presença em cada subevento
+          subeventos.forEach(s => {
+            s._doc.presenca = presencasMap[s._id.toString()] || false;
+          });
+        }
+      }
+      
+      res.json({ success: true, data: subeventos });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
 };
 
 router.get('/simposios', publicController.getSimposios);
+router.get('/simposios/:simposioId/subeventos', optionalAuth, publicController.getSubeventos);
 router.get('/paginas/:slug', publicController.getPagina);
 router.get('/programacao', publicController.getProgramacao);
 router.get('/certificados/validar/:hash', publicController.validarCertificado);

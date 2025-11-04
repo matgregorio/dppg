@@ -41,7 +41,14 @@ const Login = () => {
           dispatch(loginSuccess({ ...response.data, user: meResponse.data }));
         }
         
-        navigate('/');
+        // Verificar se há URL de retorno salva (do QR Code)
+        const returnUrl = sessionStorage.getItem('returnAfterLogin');
+        if (returnUrl) {
+          sessionStorage.removeItem('returnAfterLogin');
+          navigate(returnUrl);
+        } else {
+          navigate('/');
+        }
       } else {
         throw new Error(response.message || 'Erro ao fazer login');
       }

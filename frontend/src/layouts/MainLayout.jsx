@@ -3,9 +3,10 @@ import Header from '../components/layout/Header';
 import Menu from '../components/layout/Menu';
 import Footer from '../components/layout/Footer';
 import useGovBRInit from '../hooks/useGovBRInit';
+import { MenuProvider, useMenu } from '../contexts/MenuContext';
 
-const MainLayout = ({ children }) => {
-  useGovBRInit();
+const MainLayoutContent = ({ children }) => {
+  const { isMenuOpen } = useMenu();
   
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -22,15 +23,30 @@ const MainLayout = ({ children }) => {
       {/* Container para menu e conteúdo lado a lado */}
       <div className="layout-container">
         <Menu />
-        <main id="main-content" className="content-wrapper flex-fill" role="main" aria-label="Conteúdo principal">
+        <main 
+          id="main-content" 
+          className={`content-wrapper flex-fill ${!isMenuOpen ? 'menu-closed' : ''}`}
+          role="main" 
+          aria-label="Conteúdo principal"
+        >
           <div className="container-lg">
             {children}
           </div>
         </main>
       </div>
       
-      <Footer />
+      <Footer className={!isMenuOpen ? 'menu-closed' : ''} />
     </div>
+  );
+};
+
+const MainLayout = ({ children }) => {
+  useGovBRInit();
+  
+  return (
+    <MenuProvider>
+      <MainLayoutContent>{children}</MainLayoutContent>
+    </MenuProvider>
   );
 };
 

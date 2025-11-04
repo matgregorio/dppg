@@ -43,6 +43,12 @@ body {
   visibility: visible !important;
   opacity: 1 !important;
   transform: none !important;
+  transition: left 0.3s ease-in-out;
+}
+
+/* Menu fechado em desktop */
+#main-navigation.br-menu.menu-closed {
+  left: -280px !important;
 }
 
 #main-navigation .menu-container {
@@ -128,53 +134,152 @@ body {
   padding: 2rem 0;
   margin-left: 280px !important;
   width: calc(100% - 280px);
+  transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out;
 }
 
 .br-footer {
   margin-top: auto;
   margin-left: 280px !important;
   width: calc(100% - 280px);
+  transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out;
+}
+
+/* Quando o menu está fechado em desktop */
+.content-wrapper.menu-closed {
+  margin-left: 0 !important;
+  width: 100% !important;
+}
+
+.br-footer.menu-closed {
+  margin-left: 0 !important;
+  width: 100% !important;
 }
 
 /* Menu Mobile Responsivo */
 .menu-toggle-mobile {
-  display: none;
+  display: none; /* Escondido em desktop por padrão */
+  align-items: center !important;
+  justify-content: center !important;
   position: fixed;
-  top: 140px;
-  left: 20px;
-  z-index: 1001;
+  bottom: 20px; /* Parte inferior */
+  right: 20px; /* Direita */
+  z-index: 10001 !important;
   background: #1351b4 !important;
   color: #fff !important;
-  width: 48px;
-  height: 48px;
-  border: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 56px !important;
+  height: 56px !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease-in-out !important;
 }
 
-.menu-toggle-mobile:hover {
+/* Botão hambúrguer no cabeçalho para desktop */
+.menu-toggle-desktop {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+  color: #1351b4 !important;
+  width: 40px !important;
+  height: 40px !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s !important;
+  border-radius: 50%;
+}
+
+.menu-toggle-desktop:hover {
+  background: #f0f0f0 !important;
+}
+
+.menu-toggle-mobile:hover,
+.menu-toggle-mobile:active,
+.menu-toggle-mobile:focus {
   background: #0c3c8c !important;
+  outline: none !important;
 }
 
 .menu-mobile-overlay {
   display: none;
   position: fixed;
   top: 0;
-  left: 0;
-  width: 100vw;
+  left: 280px; /* Começa após o menu */
+  width: calc(100vw - 280px);
   height: 100vh;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 999;
+  z-index: 998;
+  cursor: pointer;
+  touch-action: auto;
+  pointer-events: auto;
+}
+
+/* Esconder cabeçalho do menu em desktop */
+.menu-panel-header {
+  display: none !important;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #ddd;
+  background: #fff;
+}
+
+.menu-close-button {
+  background: transparent !important;
+  border: none !important;
+  font-size: 1.5rem !important;
+  cursor: pointer !important;
+  color: #333 !important;
+  padding: 0.5rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  border-radius: 50% !important;
+  transition: background-color 0.2s !important;
+  z-index: 10000 !important;
+  position: relative !important;
+  -webkit-tap-highlight-color: transparent !important;
+  touch-action: manipulation !important;
+  pointer-events: auto !important;
+}
+
+.menu-close-button:hover,
+.menu-close-button:focus,
+.menu-close-button:active {
+  background: #f0f0f0 !important;
+  outline: none !important;
+}
+
+/* Desktop - esconder botão mobile */
+@media (min-width: 769px) {
+  .menu-toggle-mobile {
+    display: none !important;
+  }
+
+  .menu-toggle-desktop {
+    display: flex !important;
+  }
 }
 
 @media (max-width: 768px) {
+  /* Mostrar botão mobile e esconder desktop em telas pequenas */
   .menu-toggle-mobile {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex !important;
+  }
+
+  .menu-toggle-desktop {
+    display: none !important;
   }
 
   .menu-mobile-overlay {
-    display: block;
+    display: block !important;
+    left: 280px; /* Overlay começa após o menu */
+    width: calc(100vw - 280px);
   }
 
   #main-navigation.br-menu {
@@ -184,7 +289,7 @@ body {
     height: 100vh;
     width: 280px;
     background: #fff;
-    z-index: 1000;
+    z-index: 1001;
     transition: left 0.3s ease-in-out;
     box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
   }
@@ -345,3 +450,64 @@ body {
 
 /* Menu Mobile - Removido */
 
+/* QR Scanner Styles */
+.qr-scanner-container {
+  width: 100%;
+}
+
+.qr-scanner-content {
+  padding: 0;
+}
+
+.qr-scanner-header {
+  text-align: center;
+}
+
+/* Estilos para o leitor de QR Code */
+#qr-reader {
+  position: relative;
+}
+
+#qr-reader video {
+  width: 100% !important;
+  height: auto !important;
+  border-radius: 6px;
+}
+
+#qr-reader__dashboard,
+#qr-reader__dashboard_section {
+  display: none !important;
+}
+
+/* Animação de scanning */
+@keyframes scan-animation {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+.qr-scanner-scanning::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--primary);
+  animation: scan-animation 2s linear infinite;
+}
+
+/* Responsividade do QR Scanner */
+@media (max-width: 768px) {
+  .br-modal-dialog {
+    margin: 10px;
+    max-width: calc(100% - 20px) !important;
+  }
+  
+  #qr-reader {
+    max-width: 100%;
+  }
+}

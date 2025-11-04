@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api/v1',
+  baseURL: '/api/v1', // Usar caminho relativo para funcionar com proxy do Vite
   withCredentials: true,
 });
 
@@ -28,7 +28,7 @@ api.interceptors.response.use(
       
       try {
         const { data } = await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/auth/refresh`,
+          '/api/v1/auth/refresh',
           {},
           { withCredentials: true }
         );

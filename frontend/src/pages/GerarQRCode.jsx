@@ -12,9 +12,12 @@ const GerarQRCode = () => {
   const [generatingQR, setGeneratingQR] = useState(false);
   const [error, setError] = useState('');
   const [timeRemaining, setTimeRemaining] = useState(0);
+  const [presencas, setPresencas] = useState([]);
+  const [loadingPresencas, setLoadingPresencas] = useState(false);
   
   useEffect(() => {
     fetchSubevento();
+    fetchPresencas();
   }, [subeventoId]);
   
   useEffect(() => {
@@ -55,6 +58,20 @@ const GerarQRCode = () => {
     }
   };
   
+  const fetchPresencas = async () => {
+    try {
+      setLoadingPresencas(true);
+      const { data } = await api.get(`/mesario/subeventos/${subeventoId}/presencas`);
+      if (data.success) {
+        setPresencas(data.data);
+      }
+    } catch (err) {
+      console.error('Erro ao carregar presenças:', err);
+    } finally {
+      setLoadingPresencas(false);
+    }
+  };
+  
   const handleGerarQRCode = async () => {
     if (generatingQR) return; // Previne cliques duplos
     
@@ -69,6 +86,8 @@ const GerarQRCode = () => {
         console.log('QR Code gerado com sucesso:', data.data);
         setQrCode(data.data.qrcode);
         setExpiresAt(data.data.expiresAt);
+        // Recarregar presenças após gerar novo QR Code
+        fetchPresencas();
       }
     } catch (err) {
       console.error('Erro ao gerar QR Code:', err);
@@ -299,6 +318,100 @@ const GerarQRCode = () => {
               </div>
             )}
           </>
+        )}
+        
+        {/* Lista de Presenças */}
+        {!loading && subevento && (
+          <div className="br-card mt-4">
+            <div className="card-header">
+              <div className="d-flex justify-content-between align-items-center">
+                <h4 className="mb-0">
+                  <i className="fas fa-list-check mr-2"></i>
+                  Lista de Presenças
+                </h4>
+                <button
+                  onClick={fetchPresencas}
+                  className="br-button secondary circle small"
+                  title="Atualizar lista"
+                  disabled={loadingPresencas}
+                >
+                  <i className={`fas fa-sync-alt ${loadingPresencas ? 'fa-spin' : ''}`}></i>
+                </button>
+              </div>
+            </div>
+            <div className="card-content">
+              {loadingPresencas ? (
+                <div className="text-center py-3">
+                  <div className="br-loading" aria-label="Carregando"></div>
+                </div>
+              ) : presencas.length === 0 ? (
+                <div className="text-center py-4 text-gray-60">
+                  <i className="fas fa-users-slash fa-2x mb-2"></i>
+                  <p className="mb-0">Nenhuma presença confirmada ainda</p>
+                </div>
+              ) : (
+                <>
+                  <div className="mb-3">
+                    <span className="br-tag info">
+                      <i className="fas fa-users mr-1"></i>
+                      Total: {presencas.length} {presencas.length === 1 ? 'participante' : 'participantes'}
+                    </span>
+                  </div>
+                  
+                  <div className="table-responsive">
+                    <table className="br-table">
+                      <thead>
+                        <tr>
+                          <th scope="col">#</th>
+                          <th scope="col">Nome</th>
+                          <th scope="col">CPF</th>
+                          <th scope="col">E-mail</th>
+                          <th scope="col">Data/Hora</th>
+                          <th scope="col">Origem</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {presencas.map((presenca, index) => (
+                          <tr key={presenca._id}>
+                            <td>{index + 1}</td>
+                            <td>{presenca.participant?.nome || 'N/A'}</td>
+                            <td>{presenca.participant?.cpf || 'N/A'}</td>
+                            <td>{presenca.participant?.email || 'N/A'}</td>
+                            <td>
+                              {presenca.checkins?.[0]?.timestamp 
+                                ? new Date(presenca.checkins[0].timestamp).toLocaleString('pt-BR', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })
+                                : 'N/A'}
+                            </td>
+                            <td>
+                              <span className={`br-tag small ${presenca.checkins?.[0]?.origem === 'QR_CODE' ? 'success' : 'warning'}`}>
+                                {presenca.checkins?.[0]?.origem === 'QR_CODE' ? (
+                                  <>
+                                    <i className="fas fa-qrcode mr-1"></i>
+                                    QR Code
+                                  </>
+                                ) : (
+                                  <>
+                                    <i className="fas fa-hand-pointer mr-1"></i>
+                                    Manual
+                                  </>
+                                )}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
         )}
       </div>
     </MainLayout>

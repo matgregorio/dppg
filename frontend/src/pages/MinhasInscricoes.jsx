@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import api from '../services/api';
-import QRScanner from '../components/QRScanner';
 
 const MinhasInscricoes = () => {
   const [inscricoes, setInscricoes] = useState([]);
@@ -11,8 +10,6 @@ const MinhasInscricoes = () => {
   const [loadingSubeventos, setLoadingSubeventos] = useState(false);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [showQRModal, setShowQRModal] = useState(false);
-  const [qrToken, setQrToken] = useState('');
   const [inscrevendo, setInscrevendo] = useState(false);
   const [inscricaoExpandida, setInscricaoExpandida] = useState(null);
   const currentYear = new Date().getFullYear();
@@ -58,73 +55,6 @@ const MinhasInscricoes = () => {
       setInscricaoExpandida(inscricaoId);
       fetchSubeventos(simposioId);
     }
-  };
-
-  const handleLerQRCode = () => {
-    setShowQRModal(true);
-    setError('');
-  };
-
-  const handleQRScan = async (decodedText) => {
-    try {
-      setError('');
-      
-      // Verificar se é uma URL válida
-      let url;
-      try {
-        url = new URL(decodedText);
-      } catch (e) {
-        setError('QR Code inválido. Não é uma URL válida.');
-        return;
-      }
-      
-      const token = url.searchParams.get('token');
-      
-      if (!token) {
-        setError('QR Code inválido. Token não encontrado.');
-        return;
-      }
-
-      const { data } = await api.post(`/mesario/checkin?token=${token}`);
-      
-      if (data.success) {
-        setShowQRModal(false);
-        setQrToken('');
-        alert(`✅ Check-in realizado com sucesso!\n\nSubevento: ${data.data.subevento?.titulo || ''}`);
-        // Recarregar subeventos se houver uma inscrição expandida
-        if (inscricaoExpandida) {
-          const inscricao = inscricoes.find(i => i._id === inscricaoExpandida);
-          if (inscricao) {
-            fetchSubeventos(inscricao.simposio._id);
-          }
-        }
-      }
-    } catch (err) {
-      const status = err.response?.status;
-      const message = err.response?.data?.message || 'Erro ao realizar check-in';
-      
-      if (status === 410) {
-        setError('❌ QR Code expirado! Solicite ao mesário um novo QR Code.');
-      } else if (status === 409) {
-        setError('✓ Check-in já realizado anteriormente para este subevento.');
-        // Recarregar para atualizar status
-        if (inscricaoExpandida) {
-          const inscricao = inscricoes.find(i => i._id === inscricaoExpandida);
-          if (inscricao) {
-            fetchSubeventos(inscricao.simposio._id);
-          }
-        }
-      } else if (status === 404) {
-        setError('❌ QR Code inválido ou não encontrado.');
-      } else {
-        setError(`❌ ${message}`);
-      }
-    }
-  };
-
-  const handleQRError = (err) => {
-    console.error('Erro no scanner:', err);
-    setError('Erro ao acessar a câmera. Verifique as permissões.');
   };
   
   const handleNovaInscricao = async () => {
@@ -288,17 +218,14 @@ const MinhasInscricoes = () => {
                                     <div className="mt-2">
                                       {subevento.presenca ? (
                                         <span className="br-tag success">
-                                          <i className="fas fa-check mr-1"></i>
+                                          <i className="fas fa-check-circle mr-1"></i>
                                           Presença Confirmada
                                         </span>
                                       ) : (
-                                        <button
-                                          className="br-button primary small"
-                                          onClick={handleLerQRCode}
-                                        >
-                                          <i className="fas fa-qrcode mr-2"></i>
-                                          Ler QR Code de Presença
-                                        </button>
+                                        <span className="br-tag warning">
+                                          <i className="fas fa-clock mr-1"></i>
+                                          Aguardando Presença
+                                        </span>
                                       )}
                                     </div>
                                   </div>
@@ -355,47 +282,6 @@ const MinhasInscricoes = () => {
             </div>
           </div>
           <div className="br-scrim" onClick={() => !inscrevendo && setShowModal(false)}></div>
-        </div>
-      )}
-
-      {/* Modal para ler QR Code */}
-      {showQRModal && (
-        <div className="br-modal active" style={{ display: 'block' }}>
-          <div className="br-modal-dialog" style={{ maxWidth: '600px' }}>
-            <div className="br-modal-content">
-              <div className="br-modal-header">
-                <div className="br-modal-title">
-                  <i className="fas fa-qrcode mr-2"></i>
-                  Ler QR Code de Presença
-                </div>
-              </div>
-              <div className="br-modal-body">
-                {error && (
-                  <div className="br-message danger mb-3" role="alert">
-                    <div className="icon">
-                      <i className="fas fa-times-circle fa-lg" aria-hidden="true"></i>
-                    </div>
-                    <div className="content">{error}</div>
-                  </div>
-                )}
-                
-                <QRScanner 
-                  onScan={handleQRScan}
-                  onError={handleQRError}
-                  onClose={() => {
-                    setShowQRModal(false);
-                    setQrToken('');
-                    setError('');
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-          <div className="br-scrim" onClick={() => {
-            setShowQRModal(false);
-            setQrToken('');
-            setError('');
-          }}></div>
         </div>
       )}
     </MainLayout>

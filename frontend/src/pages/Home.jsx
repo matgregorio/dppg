@@ -15,15 +15,43 @@ const Home = () => {
   const [inscricaoAtual, setInscricaoAtual] = useState(null);
   const [loadingInscricao, setLoadingInscricao] = useState(true);
   const [inscrevendo, setInscrevendo] = useState(false);
+  const [simposio, setSimposio] = useState(null);
+  const [loadingSimposio, setLoadingSimposio] = useState(true);
   const { showSuccess, showError } = useNotification();
   
   useEffect(() => {
+    buscarSimposio();
     if (isAuthenticated) {
       verificarInscricao();
     } else {
       setLoadingInscricao(false);
     }
   }, [isAuthenticated]);
+  
+  useEffect(() => {
+    console.log('📊 Estado do simpósio:', simposio);
+    console.log('⏳ Loading simpósio:', loadingSimposio);
+  }, [simposio, loadingSimposio]);
+  
+  const buscarSimposio = async () => {
+    try {
+      setLoadingSimposio(true);
+      console.log('🔍 Buscando simpósio do ano:', currentYear);
+      const { data } = await api.get(`/public/simposios/${currentYear}`);
+      
+      console.log('📦 Resposta da API:', data);
+      
+      if (data.success) {
+        console.log('✅ Simpósio encontrado:', data.data);
+        setSimposio(data.data);
+      }
+    } catch (err) {
+      console.error('❌ Erro ao buscar simpósio:', err);
+      console.error('❌ Detalhes do erro:', err.response?.data);
+    } finally {
+      setLoadingSimposio(false);
+    }
+  };
   
   const verificarInscricao = async () => {
     try {
@@ -86,7 +114,7 @@ const Home = () => {
       
       <div className="my-4">
         <h1 className="text-up-03 text-weight-bold mb-3">
-          Simpósio Anual {currentYear}
+          {loadingSimposio ? `Simpósio Anual ${currentYear}` : simposio?.nome || `Simpósio Anual ${currentYear}`}
         </h1>
         <p className="text-up-01">
           Bem-vindo ao Sistema de Gerenciamento do Simpósio Anual
@@ -101,69 +129,88 @@ const Home = () => {
           color: 'white'
         }}>
           <div className="card-content p-4">
-            <div className="row align-items-center">
-              <div className="col-md-8">
-                <div className="d-flex align-items-center mb-3">
-                  <i className="fas fa-clipboard-check fa-3x mr-3"></i>
-                  <div>
-                    <h3 className="text-weight-bold mb-1" style={{ color: 'white' }}>
-                      Inscreva-se no Simpósio {currentYear}
-                    </h3>
-                    <p className="mb-0" style={{ color: 'rgba(255,255,255,0.9)' }}>
-                      {!isAuthenticated 
-                        ? 'Faça login e garanta sua participação no evento'
-                        : 'Faça sua inscrição agora e participe do evento'}
-                    </p>
+            {loadingSimposio ? (
+              <div className="text-center py-4">
+                <span className="spinner-border spinner-border-lg" role="status" style={{ color: 'white' }}></span>
+                <p className="mt-3 mb-0" style={{ color: 'white' }}>Carregando informações do simpósio...</p>
+              </div>
+            ) : (
+              <div className="row align-items-center">
+                <div className="col-md-8">
+                  <div className="d-flex align-items-center mb-3">
+                    <i className="fas fa-clipboard-check fa-3x mr-3"></i>
+                    <div>
+                      <h3 className="text-weight-bold mb-1" style={{ color: 'white' }}>
+                        Inscreva-se no {simposio?.nome || `Simpósio ${currentYear}`}
+                      </h3>
+                      <p className="mb-0" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                        {!isAuthenticated 
+                          ? 'Faça login e garanta sua participação no evento'
+                          : 'Faça sua inscrição agora e participe do evento'}
+                      </p>
+                      {simposio?.datas?.inscricaoParticipante?.fim && (
+                        <p className="mb-0 mt-2" style={{ color: '#FFCD07', fontWeight: 'bold' }}>
+                          <i className="fas fa-clock mr-1"></i>
+                          As inscrições vão até {new Date(simposio.datas.inscricaoParticipante.fim).toLocaleDateString('pt-BR', { 
+                            day: '2-digit', 
+                            month: '2-digit', 
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      )}
+                    </div>
                   </div>
+                  <ul className="pl-4 mb-0" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                    <li>Participe de palestras e apresentações</li>
+                    <li>Submeta seus trabalhos científicos</li>
+                    <li>Receba certificado de participação</li>
+                  </ul>
                 </div>
-                <ul className="pl-4 mb-0" style={{ color: 'rgba(255,255,255,0.9)' }}>
-                  <li>Participe de palestras e apresentações</li>
-                  <li>Submeta seus trabalhos científicos</li>
-                  <li>Receba certificado de participação</li>
-                </ul>
+                <div className="col-md-4 text-center">
+                  {!isAuthenticated ? (
+                    <button 
+                      onClick={() => setShowLoginModal(true)}
+                      className="br-button primary large"
+                      style={{ 
+                        background: 'white',
+                        color: '#1351B4',
+                        fontWeight: 'bold',
+                        padding: '12px 32px'
+                      }}
+                    >
+                      <i className="fas fa-sign-in-alt mr-2"></i>
+                      Fazer Login para Inscrever
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={handleInscrever}
+                      disabled={inscrevendo}
+                      className="br-button primary large"
+                      style={{ 
+                        background: 'white',
+                        color: '#1351B4',
+                        fontWeight: 'bold',
+                        padding: '12px 32px'
+                      }}
+                    >
+                      {inscrevendo ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm mr-2" role="status"></span>
+                          Inscrevendo...
+                        </>
+                      ) : (
+                        <>
+                          <i className="fas fa-user-plus mr-2"></i>
+                          Inscrever-me Agora
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="col-md-4 text-center">
-                {!isAuthenticated ? (
-                  <button 
-                    onClick={() => setShowLoginModal(true)}
-                    className="br-button primary large"
-                    style={{ 
-                      background: 'white',
-                      color: '#1351B4',
-                      fontWeight: 'bold',
-                      padding: '12px 32px'
-                    }}
-                  >
-                    <i className="fas fa-sign-in-alt mr-2"></i>
-                    Fazer Login para Inscrever
-                  </button>
-                ) : (
-                  <button 
-                    onClick={handleInscrever}
-                    disabled={inscrevendo}
-                    className="br-button primary large"
-                    style={{ 
-                      background: 'white',
-                      color: '#1351B4',
-                      fontWeight: 'bold',
-                      padding: '12px 32px'
-                    }}
-                  >
-                    {inscrevendo ? (
-                      <>
-                        <span className="spinner-border spinner-border-sm mr-2" role="status"></span>
-                        Inscrevendo...
-                      </>
-                    ) : (
-                      <>
-                        <i className="fas fa-user-plus mr-2"></i>
-                        Inscrever-me Agora
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-            </div>
+            )}
           </div>
         </div>
       )}
@@ -175,7 +222,7 @@ const Home = () => {
             <i className="fas fa-check-circle fa-lg"></i>
           </div>
           <div className="content">
-            <span className="message-title">Você já está inscrito no Simpósio {currentYear}!</span>
+            <span className="message-title">Você já está inscrito no {simposio?.nome || `Simpósio ${currentYear}`}!</span>
             <span className="message-body">
               Sua inscrição está ativa. Você pode submeter trabalhos e participar do evento.
             </span>
@@ -248,7 +295,7 @@ const Home = () => {
       <div className="br-divider my-4"></div>
       
       <div className="row">
-        <div className="col-12 col-md-8">
+        <div className="col-12">
           <h2 className="text-up-02 text-weight-semi-bold mb-3">Sobre o Simpósio</h2>
           <p className="text-base">
             O Simpósio Anual é um evento acadêmico que reúne pesquisadores, estudantes e 
@@ -259,28 +306,6 @@ const Home = () => {
             Através desta plataforma, você pode se inscrever no evento, submeter trabalhos, 
             consultar a programação, avaliar trabalhos (se for avaliador) e emitir certificados.
           </p>
-        </div>
-        
-        <div className="col-12 col-md-4">
-          <div className="br-card bg-primary-lighten-01">
-            <div className="card-content">
-              <h5 className="text-weight-semi-bold mb-2">Links Importantes</h5>
-              <ul className="br-list">
-                <li>
-                  <Link className="br-item" to="/apresentacao">Apresentação</Link>
-                </li>
-                <li>
-                  <Link className="br-item" to="/regulamento">Regulamento</Link>
-                </li>
-                <li>
-                  <Link className="br-item" to="/normas-publicacao">Normas de Publicação</Link>
-                </li>
-                <li>
-                  <Link className="br-item" to="/modelo-poster">Modelo de Pôster</Link>
-                </li>
-              </ul>
-            </div>
-          </div>
         </div>
       </div>
       

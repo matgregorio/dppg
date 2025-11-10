@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:network": "powershell -ExecutionPolicy Bypass -File ./scripts/start-network.ps1",
     "build": "vite build",
     "preview": "vite preview --port 5173",
     "lint": "eslint .",

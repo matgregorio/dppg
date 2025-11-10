@@ -84,11 +84,14 @@ const runSeed = async () => {
     console.log(`✅ ${participants.length} participantes criados\n`);
     
     // 3. Simpósio
-    console.log('📝 Criando simpósio...');
+    console.log('📝 Criando/atualizando simpósio...');
     let simposio = await Simposio.findOne({ ano: DEFAULT_ANO });
     if (!simposio) {
       simposio = await Simposio.create({
         ano: DEFAULT_ANO,
+        nome: `Simpósio de Pesquisa, Pós-Graduação e Inovação ${DEFAULT_ANO}`,
+        descricao: 'Evento anual dedicado à divulgação científica e tecnológica, promovendo o intercâmbio de conhecimentos entre pesquisadores, docentes e discentes.',
+        local: 'Campus Universitário - Auditório Central',
         status: 'INICIALIZADO',
         datasConfig: {
           inscricaoParticipante: {
@@ -109,8 +112,30 @@ const runSeed = async () => {
           },
         },
       });
+      console.log(`✅ Simpósio ${DEFAULT_ANO} criado`);
+    } else {
+      // Atualiza campos se não existirem
+      let updated = false;
+      if (!simposio.nome) {
+        simposio.nome = `Simpósio de Pesquisa, Pós-Graduação e Inovação ${DEFAULT_ANO}`;
+        updated = true;
+      }
+      if (!simposio.descricao) {
+        simposio.descricao = 'Evento anual dedicado à divulgação científica e tecnológica, promovendo o intercâmbio de conhecimentos entre pesquisadores, docentes e discentes.';
+        updated = true;
+      }
+      if (!simposio.local) {
+        simposio.local = 'Campus Universitário - Auditório Central';
+        updated = true;
+      }
+      if (updated) {
+        await simposio.save();
+        console.log(`✅ Simpósio ${DEFAULT_ANO} atualizado com nome, descrição e local`);
+      } else {
+        console.log(`✅ Simpósio ${DEFAULT_ANO} já existe e está atualizado`);
+      }
     }
-    console.log(`✅ Simpósio ${DEFAULT_ANO} criado/verificado\n`);
+    console.log(`   Nome: ${simposio.nome}\n`);
     
     // 4. GrandeArea
     console.log('📝 Criando grandes áreas...');

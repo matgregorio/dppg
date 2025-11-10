@@ -8,9 +8,16 @@ const mongoose = require('mongoose');
  *       type: object
  *       required:
  *         - ano
+ *         - nome
  *       properties:
  *         ano:
  *           type: number
+ *         nome:
+ *           type: string
+ *         descricao:
+ *           type: string
+ *         local:
+ *           type: string
  *         status:
  *           type: string
  *           enum: [INICIALIZADO, FINALIZADO]
@@ -22,6 +29,19 @@ const simposioSchema = new mongoose.Schema({
     type: Number,
     required: true,
     unique: true,
+  },
+  nome: {
+    type: String,
+    required: [true, 'O nome do simpósio é obrigatório'],
+    trim: true,
+  },
+  descricao: {
+    type: String,
+    trim: true,
+  },
+  local: {
+    type: String,
+    trim: true,
   },
   status: {
     type: String,

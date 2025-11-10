@@ -5,6 +5,7 @@
   "main": "src/server.js",
   "scripts": {
     "dev": "nodemon src/server.js",
+    "dev:network": "powershell -ExecutionPolicy Bypass -File ./scripts/start-network.ps1",
     "start": "node src/server.js",
     "seed": "node ./src/seed/runSeed.js",
     "seed:dev:reset": "cross-env ALLOW_DEV_RESET=true node ./src/seed/runSeed.js",

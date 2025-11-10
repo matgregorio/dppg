@@ -8,8 +8,31 @@ const publicController = {
   getSimposios: async (req, res) => {
     try {
       const Simposio = require('../models/Simposio');
-      const simposios = await Simposio.find({}).sort({ ano: -1 }).select('ano status datasConfig');
+      const simposios = await Simposio.find({}).sort({ ano: -1 }).select('ano nome descricao local status datasConfig');
       res.json({ success: true, data: simposios });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
+  
+  getSimposioPorAno: async (req, res) => {
+    try {
+      const Simposio = require('../models/Simposio');
+      const ano = parseInt(req.params.ano);
+      
+      const simposio = await Simposio.findOne({ ano }).select('ano nome descricao local status datasConfig datas');
+      
+      if (!simposio) {
+        return res.status(404).json({ success: false, message: 'Simpósio não encontrado' });
+      }
+      
+      // Mapear datasConfig para datas (mantendo compatibilidade)
+      const responseData = {
+        ...simposio.toObject(),
+        datas: simposio.datasConfig
+      };
+      
+      res.json({ success: true, data: responseData });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
     }
@@ -128,6 +151,7 @@ const publicController = {
 };
 
 router.get('/simposios', publicController.getSimposios);
+router.get('/simposios/:ano', publicController.getSimposioPorAno);
 router.get('/simposios/:simposioId/subeventos', optionalAuth, publicController.getSubeventos);
 router.get('/paginas/:slug', publicController.getPagina);
 router.get('/programacao', publicController.getProgramacao);

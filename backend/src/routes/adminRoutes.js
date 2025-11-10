@@ -30,17 +30,28 @@ const adminController = {
   inicializarSimposio: async (req, res) => {
     try {
       const Simposio = require('../models/Simposio');
-      const { ano, datasConfig } = req.body;
+      const { ano, nome, descricao, local, datasConfig } = req.body;
+      
+      if (!nome) {
+        return res.status(400).json({ success: false, message: 'O nome do simpósio é obrigatório' });
+      }
       
       const exists = await Simposio.findOne({ ano });
       if (exists) {
         return res.status(400).json({ success: false, message: 'Simpósio já existe para este ano' });
       }
       
-      const simposio = await Simposio.create({ ano, status: 'INICIALIZADO', datasConfig });
+      const simposio = await Simposio.create({ 
+        ano, 
+        nome, 
+        descricao, 
+        local, 
+        status: 'INICIALIZADO', 
+        datasConfig 
+      });
       
       const { logAudit } = require('../utils/auditLogger');
-      logAudit('SIMPOSIO_INICIALIZADO', req.user.id, { ano });
+      logAudit('SIMPOSIO_INICIALIZADO', req.user.id, { ano, nome });
       
       res.status(201).json({ success: true, data: simposio });
     } catch (error) {
@@ -184,6 +195,31 @@ const adminController = {
       
       const { logAudit } = require('../utils/auditLogger');
       logAudit('SIMPOSIO_DATAS_ATUALIZADAS', req.user.id, { ano: req.params.ano });
+      
+      res.json({ success: true, data: simposio });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
+  
+  atualizarSimposio: async (req, res) => {
+    try {
+      const Simposio = require('../models/Simposio');
+      const { nome, descricao, local } = req.body;
+      
+      const simposio = await Simposio.findOne({ ano: parseInt(req.params.ano) });
+      if (!simposio) {
+        return res.status(404).json({ success: false, message: 'Simpósio não encontrado' });
+      }
+      
+      if (nome) simposio.nome = nome;
+      if (descricao !== undefined) simposio.descricao = descricao;
+      if (local !== undefined) simposio.local = local;
+      
+      await simposio.save();
+      
+      const { logAudit } = require('../utils/auditLogger');
+      logAudit('SIMPOSIO_ATUALIZADO', req.user.id, { ano: req.params.ano, nome });
       
       res.json({ success: true, data: simposio });
     } catch (error) {
@@ -1425,6 +1461,7 @@ const adminController = {
 router.get('/simposios/:ano', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.getSimposio);
 router.post('/simposio/inicializar', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.inicializarSimposio);
 router.post('/simposio/finalizar', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.finalizarSimposio);
+router.put('/simposios/:ano', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.atualizarSimposio);
 router.put('/simposios/:ano/datas', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.atualizarDatasSimposio);
 
 // Trabalhos

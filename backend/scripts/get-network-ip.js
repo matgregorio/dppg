@@ -1,0 +1,19 @@
+const os = require('os');
+
+function getNetworkIP() {
+  const interfaces = os.networkInterfaces();
+  
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      // Pula endereços internos e não IPv4
+      if (iface.family === 'IPv4' && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+  
+  return 'localhost';
+}
+
+const networkIP = getNetworkIP();
+console.log(networkIP);

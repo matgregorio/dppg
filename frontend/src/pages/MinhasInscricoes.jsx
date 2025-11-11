@@ -36,8 +36,10 @@ const MinhasInscricoes = () => {
     try {
       setLoadingSubeventos(true);
       // Buscar subeventos do simpósio com informações de presença do usuário
-      const { data } = await api.get(`/public/simposios/${simposioId}/subeventos`);
+      // Adiciona timestamp para evitar cache
+      const { data } = await api.get(`/public/simposios/${simposioId}/subeventos?t=${Date.now()}`);
       if (data.success) {
+        console.log('[DEBUG] Subeventos recebidos:', data.data.map(s => ({ titulo: s.titulo, presenca: s.presenca })));
         setSubeventos(data.data);
       }
     } catch (err) {

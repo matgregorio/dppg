@@ -72,6 +72,22 @@ const subeventoSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   }],
+  inscritos: [{
+    participant: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Participant',
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ['CONFIRMADO', 'CANCELADO', 'LISTA_ESPERA'],
+      default: 'CONFIRMADO',
+    },
+    dataInscricao: {
+      type: Date,
+      default: Date.now,
+    }
+  }],
   deleted_at: {
     type: Date,
     default: null,
@@ -100,6 +116,56 @@ subeventoSchema.pre(/^find/, function(next) {
 subeventoSchema.methods.softDelete = function() {
   this.deleted_at = new Date();
   return this.save();
+};
+
+// Método para verificar se participante está inscrito
+subeventoSchema.methods.isParticipantInscrito = function(participantId) {
+  return this.inscritos.some(
+    inscrito => inscrito.participant.toString() === participantId.toString() && 
+                inscrito.status === 'CONFIRMADO'
+  );
+};
+
+// Método estático para verificar conflito de horários
+subeventoSchema.statics.verificarConflitoHorario = async function(participantId, data, horarioInicio, duracao, excludeSubeventoId = null) {
+  const [horaInicio, minutoInicio] = horarioInicio.split(':').map(Number);
+  const [horaDuracao, minutoDuracao] = duracao.split(':').map(Number);
+  
+  const inicioMinutos = horaInicio * 60 + minutoInicio;
+  const fimMinutos = inicioMinutos + (horaDuracao * 60 + minutoDuracao);
+  
+  // Busca subeventos na mesma data onde o participante está inscrito
+  const query = {
+    data: data,
+    deleted_at: null,
+    'inscritos.participant': participantId,
+    'inscritos.status': 'CONFIRMADO'
+  };
+  
+  if (excludeSubeventoId) {
+    query._id = { $ne: excludeSubeventoId };
+  }
+  
+  const subeventosNoMesmoDia = await this.find(query);
+  
+  // Verifica se há conflito
+  for (const subevento of subeventosNoMesmoDia) {
+    const [horaOutro, minutoOutro] = subevento.horarioInicio.split(':').map(Number);
+    const [horaDuracaoOutro, minutoDuracaoOutro] = subevento.duracao.split(':').map(Number);
+    
+    const inicioOutro = horaOutro * 60 + minutoOutro;
+    const fimOutro = inicioOutro + (horaDuracaoOutro * 60 + minutoDuracaoOutro);
+    
+    // Verifica sobreposição de horários
+    if ((inicioMinutos < fimOutro && fimMinutos > inicioOutro)) {
+      return {
+        conflito: true,
+        subevento: subevento
+      };
+    }
+  }
+  
+  return { conflito: false };
 };
 
 const Subevento = mongoose.model('Subevento', subeventoSchema);

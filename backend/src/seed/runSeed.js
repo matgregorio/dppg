@@ -43,6 +43,8 @@ const runSeed = async () => {
       { email: 'mesario@gov.br', senha: 'Mesario!234', nome: 'Mesário', cpf: gerarCPF(), roles: ['USER', 'MESARIO'] },
       { email: 'participante1@gov.br', senha: 'Participante!234', nome: 'Participante Um', cpf: gerarCPF(), roles: ['USER'] },
       { email: 'participante2@gov.br', senha: 'Participante!234', nome: 'Participante Dois', cpf: gerarCPF(), roles: ['USER'] },
+      { email: 'participante3@gov.br', senha: 'Participante!234', nome: 'Participante Três', cpf: gerarCPF(), roles: ['USER'] },
+      { email: 'participante4@gov.br', senha: 'Participante!234', nome: 'Participante Quatro', cpf: gerarCPF(), roles: ['USER'] },
     ];
     
     const usersCreated = [];
@@ -66,8 +68,8 @@ const runSeed = async () => {
     // 2. Participants
     console.log('📝 Criando participantes...');
     const participants = [];
-    // Incluindo mesário (índice 4) e participantes comuns (índices 5 e 6)
-    for (let i = 4; i <= 6; i++) {
+    // Incluindo mesário (índice 4) e participantes comuns (índices 5, 6, 7 e 8)
+    for (let i = 4; i <= 8; i++) {
       const user = usersCreated[i];
       let participant = await Participant.findOne({ user: user._id });
       if (!participant) {
@@ -76,7 +78,7 @@ const runSeed = async () => {
           cpf: user.cpf,
           nome: user.nome,
           email: user.email,
-          tipoParticipante: i === 4 ? 'DOCENTE' : (i === 5 ? 'DISCENTE' : 'DOCENTE'),
+          tipoParticipante: i === 4 ? 'DOCENTE' : (i % 2 === 0 ? 'DISCENTE' : 'DOCENTE'),
         });
       }
       participants.push(participant);
@@ -197,17 +199,49 @@ const runSeed = async () => {
       { titulo: 'Palestra Magna', data: dayjs().add(2, 'day').toDate(), horarioInicio: '10:00', duracao: '01:30', local: 'Auditório', vagas: 300 },
     ];
     
+    const subeventosCreated = [];
     for (const se of subeventosData) {
-      const existe = await Subevento.findOne({ titulo: se.titulo, simposio: simposio._id });
-      if (!existe) {
-        await Subevento.create({
+      let subevento = await Subevento.findOne({ titulo: se.titulo, simposio: simposio._id });
+      if (!subevento) {
+        subevento = await Subevento.create({
           ...se,
           simposio: simposio._id,
           responsaveisMesarios: [mesario._id],
         });
       }
+      subeventosCreated.push(subevento);
     }
     console.log(`✅ Subeventos criados\n`);
+    
+    // 8.1. Inscrever participantes no subevento "Abertura"
+    console.log('📝 Inscrevendo participantes no subevento Abertura...');
+    const subeventoAbertura = subeventosCreated[0]; // Abertura
+    
+    // Inscrever participante1 (mesário - índice 0) e participante2 (índice 1) no subevento Abertura
+    // participante3 (índice 2) NÃO será inscrito no Abertura
+    const participantesParaAbertura = [participants[0], participants[1], participants[2]]; // mesário, participante1, participante2
+    
+    for (const participant of participantesParaAbertura) {
+      const jaInscrito = subeventoAbertura.inscritos?.some(
+        inscrito => inscrito.participant.toString() === participant._id.toString()
+      );
+      
+      if (!jaInscrito) {
+        await Subevento.findByIdAndUpdate(
+          subeventoAbertura._id,
+          {
+            $push: {
+              inscritos: {
+                participant: participant._id,
+                status: 'CONFIRMADO',
+                dataInscricao: new Date(),
+              }
+            }
+          }
+        );
+      }
+    }
+    console.log(`✅ ${participantesParaAbertura.length} participantes inscritos no subevento Abertura\n`);
     
     // 9. Trabalhos
     console.log('📝 Criando trabalhos...');
@@ -328,7 +362,10 @@ const runSeed = async () => {
     console.log('   SubAdmin: subadmin@gov.br / SubAdmin!234');
     console.log('   Avaliador1: avaliador1@gov.br / Avaliador!234');
     console.log('   Mesário: mesario@gov.br / Mesario!234');
-    console.log('   Participante1: participante1@gov.br / Participante!234\n');
+    console.log('   Participante1: participante1@gov.br / Participante!234 (inscrito no Abertura)');
+    console.log('   Participante2: participante2@gov.br / Participante!234 (inscrito no Abertura)');
+    console.log('   Participante3: participante3@gov.br / Participante!234 (NÃO inscrito no Abertura)');
+    console.log('   Participante4: participante4@gov.br / Participante!234\n');
     
     process.exit(0);
   } catch (error) {

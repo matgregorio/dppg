@@ -11,9 +11,13 @@ const CheckinQRCode = () => {
   const [status, setStatus] = useState('loading');
   const [message, setMessage] = useState('');
   const [subeventoInfo, setSubeventoInfo] = useState(null);
+  const [processed, setProcessed] = useState(false); // Flag para evitar reprocessamento
   const token = searchParams.get('token');
 
   useEffect(() => {
+    // Previne execução múltipla
+    if (processed) return;
+    
     // Aguarda carregar informações de autenticação
     if (authLoading) return;
 
@@ -21,6 +25,7 @@ const CheckinQRCode = () => {
     if (!token) {
       setStatus('error');
       setMessage('Token não fornecido no QR Code');
+      setProcessed(true);
       return;
     }
 
@@ -29,39 +34,42 @@ const CheckinQRCode = () => {
       const returnUrl = `/checkin?token=${token}`;
       sessionStorage.setItem('returnAfterLogin', returnUrl);
       navigate('/login');
+      setProcessed(true);
       return;
     }
 
     // Se estiver logado, processa o checkin
-    processCheckin();
-  }, [user, authLoading, token, navigate]);
+    const doCheckin = async () => {
+      try {
+        setStatus('processing');
+        setMessage('Processando check-in...');
 
-  const processCheckin = async () => {
-    try {
-      setStatus('processing');
-      setMessage('Processando check-in...');
+        const { data } = await api.post(`/mesario/checkin?token=${token}`);
 
-      const { data } = await api.post(`/mesario/checkin?token=${token}`);
-
-      if (data.success) {
-        setStatus('success');
-        setMessage('Check-in realizado com sucesso!');
-        setSubeventoInfo(data.data.subevento);
+        if (data.success) {
+          setStatus('success');
+          setMessage('Check-in realizado com sucesso!');
+          setSubeventoInfo(data.data.subevento);
+        }
+      } catch (err) {
+        setStatus('error');
+        
+        if (err.response?.status === 409) {
+          setMessage('Você já fez check-in neste evento anteriormente.');
+        } else if (err.response?.status === 410) {
+          setMessage('QR Code expirado. Solicite um novo QR Code ao responsável.');
+        } else if (err.response?.status === 404) {
+          setMessage('QR Code inválido ou evento não encontrado.');
+        } else {
+          setMessage(err.response?.data?.message || 'Erro ao processar check-in');
+        }
+      } finally {
+        setProcessed(true);
       }
-    } catch (err) {
-      setStatus('error');
-      
-      if (err.response?.status === 409) {
-        setMessage('Você já fez check-in neste evento anteriormente.');
-      } else if (err.response?.status === 410) {
-        setMessage('QR Code expirado. Solicite um novo QR Code ao responsável.');
-      } else if (err.response?.status === 404) {
-        setMessage('QR Code inválido ou evento não encontrado.');
-      } else {
-        setMessage(err.response?.data?.message || 'Erro ao processar check-in');
-      }
-    }
-  };
+    };
+
+    doCheckin();
+  }, [user, authLoading, token, navigate, processed]);
 
   const handleGoToInscricoes = () => {
     navigate('/inscricoes');

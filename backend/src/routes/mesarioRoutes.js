@@ -150,6 +150,29 @@ const mesarioController = {
         return res.status(404).json({ success: false, message: 'Participante não encontrado' });
       }
       
+      // Verifica se o participante está inscrito no simpósio
+      const InscricaoSimposio = require('../models/InscricaoSimposio');
+      const inscricao = await InscricaoSimposio.findOne({
+        participant: participant._id,
+        simposio: subevento.simposio,
+        status: 'ATIVA'
+      });
+      
+      if (!inscricao) {
+        return res.status(403).json({ 
+          success: false, 
+          message: `Você não está inscrito no Simpósio. Faça sua inscrição antes de realizar o check-in em subeventos.`
+        });
+      }
+      
+      // Verifica se o participante está inscrito no subevento específico
+      if (!subevento.isParticipantInscrito(participant._id)) {
+        return res.status(403).json({ 
+          success: false, 
+          message: `Você não está inscrito no subevento "${subevento.titulo || subevento.evento}". Faça sua inscrição no subevento antes de realizar o check-in.`
+        });
+      }
+      
       // Verifica se já fez check-in
       let presenca = await Presenca.findOne({ 
         participant: participant._id, 

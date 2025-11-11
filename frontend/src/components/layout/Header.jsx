@@ -6,12 +6,14 @@ import authService from '../../services/authService';
 import LoginModal from '../modals/LoginModal';
 import RegisterModal from '../modals/RegisterModal';
 import { useMenu } from '../../contexts/MenuContext';
+import useNotification from '../../hooks/useNotification';
 
 const Header = () => {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
   const { isMenuOpen, toggleMenu } = useMenu();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { showNotification } = useNotification();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -21,10 +23,18 @@ const Header = () => {
     try {
       await authService.logout();
       dispatch(logout());
-      navigate('/');
       setShowUserMenu(false);
+      
+      // Mostra notificação de sucesso
+      showNotification('Logout realizado com sucesso! Até breve.', 'success');
+      
+      // Aguarda um momento para o usuário ver a notificação antes de redirecionar
+      setTimeout(() => {
+        navigate('/');
+      }, 1500);
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
+      showNotification('Erro ao fazer logout. Tente novamente.', 'error');
     }
   };
   

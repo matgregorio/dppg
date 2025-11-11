@@ -15,48 +15,68 @@ const GerarQRCode = () => {
   const [presencas, setPresencas] = useState([]);
   const [loadingPresencas, setLoadingPresencas] = useState(false);
   
+  // Carrega dados iniciais - apenas uma vez
   useEffect(() => {
-    fetchSubevento();
-    fetchPresencas();
+    let mounted = true;
+    
+    const loadInitialData = async () => {
+      if (!mounted) return;
+      
+      try {
+        setLoading(true);
+        // Carrega subevento primeiro
+        const { data } = await api.get(`/mesario/subeventos/${subeventoId}`);
+        if (data.success && mounted) {
+          setSubevento(data.data);
+          // Só carrega presenças se subevento foi carregado com sucesso
+          await fetchPresencas();
+        }
+      } catch (err) {
+        if (mounted) {
+          setError(err.response?.data?.message || 'Erro ao carregar subevento');
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+    
+    loadInitialData();
+    
+    return () => {
+      mounted = false;
+    };
   }, [subeventoId]);
   
+  // Atualiza timer do QR Code
   useEffect(() => {
-    if (expiresAt) {
-      const interval = setInterval(() => {
-        const now = new Date();
-        const expires = new Date(expiresAt);
-        const diff = Math.max(0, Math.floor((expires - now) / 1000));
-        setTimeRemaining(diff);
-        
-        console.log('Time check:', {
-          now: now.toISOString(),
-          expires: expires.toISOString(),
-          diff,
-          isExpired: diff === 0
-        });
-        
-        if (diff === 0) {
-          clearInterval(interval);
-        }
-      }, 1000);
+    if (!expiresAt) return;
+    
+    const interval = setInterval(() => {
+      const now = new Date();
+      const expires = new Date(expiresAt);
+      const diff = Math.max(0, Math.floor((expires - now) / 1000));
+      setTimeRemaining(diff);
       
-      return () => clearInterval(interval);
-    }
-  }, [expiresAt]);
-  
-  const fetchSubevento = async () => {
-    try {
-      setLoading(true);
-      const { data } = await api.get(`/mesario/subeventos/${subeventoId}`);
-      if (data.success) {
-        setSubevento(data.data);
+      if (diff === 0) {
+        clearInterval(interval);
       }
-    } catch (err) {
-      setError(err.response?.data?.message || 'Erro ao carregar subevento');
-    } finally {
-      setLoading(false);
-    }
-  };
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [expiresAt]);
+
+  // Polling de presenças - atualiza a cada 5 segundos quando há QR Code ativo
+  useEffect(() => {
+    if (!qrCode || !expiresAt || timeRemaining === 0) return;
+    
+    const pollingInterval = setInterval(() => {
+      fetchPresencas();
+    }, 5000); // Atualiza a cada 5 segundos
+    
+    return () => clearInterval(pollingInterval);
+  }, [qrCode, expiresAt, timeRemaining]);
   
   const fetchPresencas = async () => {
     try {

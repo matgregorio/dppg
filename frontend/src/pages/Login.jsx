@@ -144,8 +144,11 @@ const Login = () => {
           <div className="mt-4 p-3 bg-white br-card">
             <h6 className="text-weight-semi-bold mb-2">Contas de Teste:</h6>
             <small className="d-block">Admin: admin@gov.br / Admin!234</small>
-            <small className="d-block">Participante: participante1@gov.br / Participante!234</small>
+            <small className="d-block">Mesário: mesario@gov.br / Mesario!234</small>
             <small className="d-block">Avaliador: avaliador1@gov.br / Avaliador!234</small>
+            <small className="d-block">Participante1: participante1@gov.br / Participante!234 (inscrito no Abertura)</small>
+            <small className="d-block">Participante2: participante2@gov.br / Participante!234 (inscrito no Abertura)</small>
+            <small className="d-block">Participante3: participante3@gov.br / Participante!234 (NÃO inscrito no Abertura)</small>
           </div>
         </div>
       </div>

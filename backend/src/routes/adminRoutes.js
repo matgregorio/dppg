@@ -1017,6 +1017,212 @@ const adminController = {
       res.status(500).json({ success: false, message: error.message });
     }
   },
+
+  // Listar Inscritos de um Subevento
+  listarInscritos: async (req, res) => {
+    try {
+      const Subevento = require('../models/Subevento');
+      const Presenca = require('../models/Presenca');
+      
+      const subevento = await Subevento.findById(req.params.id);
+      if (!subevento) {
+        return res.status(404).json({ success: false, message: 'Subevento não encontrado' });
+      }
+      
+      // Buscar presenças para verificar quem já fez check-in
+      const presencas = await Presenca.find({ subevento: subevento._id });
+      const presencasMap = {};
+      presencas.forEach(p => {
+        presencasMap[p.participant.toString()] = p;
+      });
+      
+      // Adicionar informação de presença aos inscritos
+      const inscritosComPresenca = subevento.inscritos.map(inscrito => {
+        const inscritoObj = inscrito.toObject();
+        inscritoObj.presenca = !!presencasMap[inscrito.participant.toString()];
+        inscritoObj.presencaData = presencasMap[inscrito.participant.toString()]?.checkin;
+        return inscritoObj;
+      });
+      
+      // Popular os dados do participante
+      await Subevento.populate(inscritosComPresenca, {
+        path: 'participant',
+        populate: { path: 'user', select: 'email' }
+      });
+      
+      res.json({ success: true, data: inscritosComPresenca });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
+  // Adicionar Inscrito a um Subevento
+  adicionarInscrito: async (req, res) => {
+    try {
+      const Subevento = require('../models/Subevento');
+      const Participant = require('../models/Participant');
+      const InscricaoSimposio = require('../models/InscricaoSimposio');
+      const { participantId } = req.body;
+      
+      if (!participantId) {
+        return res.status(400).json({ success: false, message: 'ID do participante é obrigatório' });
+      }
+      
+      const subevento = await Subevento.findById(req.params.id);
+      if (!subevento) {
+        return res.status(404).json({ success: false, message: 'Subevento não encontrado' });
+      }
+      
+      const participant = await Participant.findById(participantId);
+      if (!participant) {
+        return res.status(404).json({ success: false, message: 'Participante não encontrado' });
+      }
+      
+      // Verificar se o participante está inscrito no simpósio
+      const inscricao = await InscricaoSimposio.findOne({
+        participant: participantId,
+        simposio: subevento.simposio,
+        status: 'ATIVA'
+      });
+      
+      if (!inscricao) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Participante não está inscrito no Simpósio' 
+        });
+      }
+      
+      // Verificar se já está inscrito
+      if (subevento.isParticipantInscrito(participantId)) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Participante já está inscrito neste subevento' 
+        });
+      }
+      
+      // Verificar vagas disponíveis
+      if (subevento.vagas && subevento.inscritos.length >= subevento.vagas) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Não há vagas disponíveis neste subevento' 
+        });
+      }
+      
+      // Verificar conflito de horário
+      const conflito = await Subevento.verificarConflitoHorario(
+        participantId,
+        subevento.data,
+        subevento.horarioInicio,
+        subevento.duracao,
+        subevento._id
+      );
+      
+      if (conflito.conflito) {
+        return res.status(400).json({ 
+          success: false, 
+          message: `Participante já está inscrito no subevento "${conflito.subevento.titulo}" no mesmo horário` 
+        });
+      }
+      
+      // Adicionar inscrito
+      subevento.inscritos.push({
+        participant: participantId,
+        status: 'CONFIRMADO',
+        dataInscricao: new Date()
+      });
+      
+      await subevento.save();
+      
+      const { logAudit } = require('../utils/auditLogger');
+      logAudit('INSCRITO_ADICIONADO', req.user.id, { subeventoId: subevento._id, participantId });
+      
+      res.json({ success: true, message: 'Participante inscrito com sucesso' });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
+  // Remover Inscrito de um Subevento
+  removerInscrito: async (req, res) => {
+    try {
+      const Subevento = require('../models/Subevento');
+      const { inscritoId } = req.params;
+      
+      const subevento = await Subevento.findById(req.params.id);
+      if (!subevento) {
+        return res.status(404).json({ success: false, message: 'Subevento não encontrado' });
+      }
+      
+      const inscritoIndex = subevento.inscritos.findIndex(i => i._id.toString() === inscritoId);
+      if (inscritoIndex === -1) {
+        return res.status(404).json({ success: false, message: 'Inscrito não encontrado' });
+      }
+      
+      subevento.inscritos.splice(inscritoIndex, 1);
+      await subevento.save();
+      
+      const { logAudit } = require('../utils/auditLogger');
+      logAudit('INSCRITO_REMOVIDO', req.user.id, { subeventoId: subevento._id, inscritoId });
+      
+      res.json({ success: true, message: 'Inscrito removido com sucesso' });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
+  // Confirmar Presença de um Inscrito
+  confirmarPresenca: async (req, res) => {
+    try {
+      const Subevento = require('../models/Subevento');
+      const Presenca = require('../models/Presenca');
+      const { inscritoId } = req.params;
+      
+      const subevento = await Subevento.findById(req.params.id);
+      if (!subevento) {
+        return res.status(404).json({ success: false, message: 'Subevento não encontrado' });
+      }
+      
+      const inscrito = subevento.inscritos.find(i => i._id.toString() === inscritoId);
+      if (!inscrito) {
+        return res.status(404).json({ success: false, message: 'Inscrito não encontrado' });
+      }
+      
+      // Verificar se já existe presença
+      const presencaExistente = await Presenca.findOne({
+        participant: inscrito.participant,
+        subevento: subevento._id
+      });
+      
+      if (presencaExistente) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Presença já foi confirmada para este participante' 
+        });
+      }
+      
+      // Criar registro de presença
+      const presenca = await Presenca.create({
+        participant: inscrito.participant,
+        subevento: subevento._id,
+        checkins: [{
+          data: new Date(),
+          origem: 'MANUAL',
+          confirmadoPor: req.user.userId
+        }]
+      });
+      
+      const { logAudit } = require('../utils/auditLogger');
+      logAudit('PRESENCA_CONFIRMADA', req.user.id, { 
+        subeventoId: subevento._id, 
+        participantId: inscrito.participant,
+        presencaId: presenca._id 
+      });
+      
+      res.json({ success: true, message: 'Presença confirmada com sucesso', data: presenca });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
   
   // ===== DASHBOARD ESTATÍSTICAS =====
   
@@ -1486,6 +1692,12 @@ router.get('/subeventos', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminContro
 router.post('/subeventos', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.criarSubevento);
 router.put('/subeventos/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.atualizarSubevento);
 router.delete('/subeventos/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.removerSubevento);
+
+// Gerenciamento de Inscritos em Subeventos
+router.get('/subeventos/:id/inscritos', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.listarInscritos);
+router.post('/subeventos/:id/inscritos', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.adicionarInscrito);
+router.delete('/subeventos/:id/inscritos/:inscritoId', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.removerInscrito);
+router.post('/subeventos/:id/inscritos/:inscritoId/presenca', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.confirmarPresenca);
 
 // Dashboard
 router.get('/dashboard/stats', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.getStats);

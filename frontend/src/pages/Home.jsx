@@ -149,12 +149,13 @@ const Home = () => {
                           : 'Faça sua inscrição agora e participe do evento'}
                       </p>
                       {simposio?.datas?.inscricaoParticipante?.fim && (
-                        <p className="mb-0 mt-2" style={{ color: '#FFCD07', fontWeight: 'bold' }}>
-                          <i className="fas fa-clock mr-1"></i>
-                          As inscrições vão até {new Date(simposio.datas.inscricaoParticipante.fim).toLocaleDateString('pt-BR', { 
+                        <p className="mb-0 mt-2" style={{ color: '#FFCD07', fontWeight: 'bold', fontSize: '1.1rem' }}>
+                          <i className="fas fa-exclamation-triangle mr-2"></i>
+                          As inscrições se encerram em {new Date(simposio.datas.inscricaoParticipante.fim).toLocaleDateString('pt-BR', { 
                             day: '2-digit', 
                             month: '2-digit', 
-                            year: 'numeric',
+                            year: 'numeric'
+                          })} às {new Date(simposio.datas.inscricaoParticipante.fim).toLocaleTimeString('pt-BR', { 
                             hour: '2-digit',
                             minute: '2-digit'
                           })}

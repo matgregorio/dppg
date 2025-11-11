@@ -10,6 +10,13 @@ const AdminSubeventos = () => {
   const [mesarios, setMesarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [subeventoExpandido, setSubeventoExpandido] = useState(null);
+  const [inscritos, setInscritos] = useState([]);
+  const [participantes, setParticipantes] = useState([]);
+  const [loadingInscritos, setLoadingInscritos] = useState(false);
+  const [showAddInscritoModal, setShowAddInscritoModal] = useState(false);
+  const [participanteSelecionado, setParticipanteSelecionado] = useState('');
+  const [filtroParticipante, setFiltroParticipante] = useState('');
   const [editando, setEditando] = useState(null);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -88,6 +95,95 @@ const AdminSubeventos = () => {
       }
     } catch (err) {
       console.error('Erro ao carregar mesários:', err);
+    }
+  };
+
+  const handleGerenciarInscritos = async (subevento) => {
+    // Se já está expandido, recolhe
+    if (subeventoExpandido === subevento._id) {
+      setSubeventoExpandido(null);
+      setInscritos([]);
+      return;
+    }
+    
+    // Expande o novo subevento
+    setSubeventoExpandido(subevento._id);
+    await fetchInscritos(subevento._id);
+  };
+
+  const fetchInscritos = async (subeventoId) => {
+    try {
+      setLoadingInscritos(true);
+      const { data } = await api.get(`/admin/subeventos/${subeventoId}/inscritos`);
+      if (data.success) {
+        setInscritos(data.data);
+      }
+    } catch (err) {
+      showError(err.response?.data?.message || 'Erro ao carregar inscritos');
+    } finally {
+      setLoadingInscritos(false);
+    }
+  };
+
+  const fetchParticipantes = async () => {
+    try {
+      const { data } = await api.get('/admin/participantes', {
+        params: { limit: 1000 },
+      });
+      if (data.success) {
+        setParticipantes(data.data);
+      }
+    } catch (err) {
+      showError('Erro ao carregar participantes');
+    }
+  };
+
+  const handleAdicionarInscrito = async () => {
+    if (!participanteSelecionado) {
+      showError('Selecione um participante');
+      return;
+    }
+
+    try {
+      const { data } = await api.post(`/admin/subeventos/${subeventoExpandido}/inscritos`, {
+        participantId: participanteSelecionado,
+      });
+      if (data.success) {
+        showSuccess('Participante inscrito com sucesso!');
+        setShowAddInscritoModal(false);
+        setParticipanteSelecionado('');
+        await fetchInscritos(subeventoExpandido);
+      }
+    } catch (err) {
+      showError(err.response?.data?.message || 'Erro ao inscrever participante');
+    }
+  };
+
+  const handleConfirmarPresenca = async (inscritoId) => {
+    if (!confirm('Deseja realmente confirmar a presença deste participante?')) return;
+    
+    try {
+      const { data } = await api.post(`/admin/subeventos/${subeventoExpandido}/inscritos/${inscritoId}/presenca`);
+      if (data.success) {
+        showSuccess('Presença confirmada com sucesso!');
+        await fetchInscritos(subeventoExpandido);
+      }
+    } catch (err) {
+      showError(err.response?.data?.message || 'Erro ao confirmar presença');
+    }
+  };
+
+  const handleRemoverInscrito = async (inscritoId) => {
+    if (!confirm('Deseja realmente remover este inscrito?')) return;
+
+    try {
+      const { data } = await api.delete(`/admin/subeventos/${subeventoExpandido}/inscritos/${inscritoId}`);
+      if (data.success) {
+        showSuccess('Inscrito removido com sucesso!');
+        await fetchInscritos(subeventoExpandido);
+      }
+    } catch (err) {
+      showError(err.response?.data?.message || 'Erro ao remover inscrito');
     }
   };
 
@@ -300,37 +396,164 @@ const AdminSubeventos = () => {
                 </thead>
                 <tbody>
                   {subeventos.map((subevento) => (
-                    <tr key={subevento._id}>
-                      <td>{subevento.titulo}</td>
-                      <td>
-                        {subevento.tipo && (
-                          <span className="br-tag small">{subevento.tipo}</span>
-                        )}
-                      </td>
-                      <td>{formatData(subevento.data)}</td>
-                      <td>{subevento.horarioInicio}</td>
-                      <td>{subevento.duracao}</td>
-                      <td>{subevento.local || '-'}</td>
-                      <td>{subevento.palestrante || '-'}</td>
-                      <td>
-                        <div className="d-flex gap-2">
-                          <button
-                            onClick={() => handleEditar(subevento)}
-                            className="br-button secondary small"
-                            title="Editar"
-                          >
-                            <i className="fas fa-edit"></i>
-                          </button>
-                          <button
-                            onClick={() => handleRemover(subevento._id)}
-                            className="br-button danger small"
-                            title="Remover"
-                          >
-                            <i className="fas fa-trash"></i>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                    <React.Fragment key={subevento._id}>
+                      <tr>
+                        <td>{subevento.titulo}</td>
+                        <td>
+                          {subevento.tipo && (
+                            <span className="br-tag small">{subevento.tipo}</span>
+                          )}
+                        </td>
+                        <td>{formatData(subevento.data)}</td>
+                        <td>{subevento.horarioInicio}</td>
+                        <td>{subevento.duracao}</td>
+                        <td>{subevento.local || '-'}</td>
+                        <td>{subevento.palestrante || '-'}</td>
+                        <td>
+                          <div className="d-flex gap-2">
+                            <button
+                              onClick={() => handleGerenciarInscritos(subevento)}
+                              className={`br-button ${subeventoExpandido === subevento._id ? 'primary' : 'secondary'} small`}
+                              title={subeventoExpandido === subevento._id ? 'Recolher Inscritos' : 'Gerenciar Inscritos'}
+                            >
+                              <i className={`fas fa-${subeventoExpandido === subevento._id ? 'chevron-up' : 'users'}`}></i>
+                            </button>
+                            <button
+                              onClick={() => handleEditar(subevento)}
+                              className="br-button secondary small"
+                              title="Editar"
+                            >
+                              <i className="fas fa-edit"></i>
+                            </button>
+                            <button
+                              onClick={() => handleRemover(subevento._id)}
+                              className="br-button danger small"
+                              title="Remover"
+                            >
+                              <i className="fas fa-trash"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                      
+                      {/* Linha expandida com inscritos */}
+                      {subeventoExpandido === subevento._id && (
+                        <tr>
+                          <td colSpan="8" style={{ padding: 0, backgroundColor: '#f8f9fa' }}>
+                            <div style={{ padding: '1.5rem' }}>
+                              <div className="d-flex justify-content-between align-items-center mb-3">
+                                <h5 className="mb-0">
+                                  <i className="fas fa-users mr-2"></i>
+                                  Inscritos em {subevento.titulo}
+                                </h5>
+                                <button
+                                  onClick={() => {
+                                    setShowAddInscritoModal(true);
+                                    fetchParticipantes();
+                                  }}
+                                  className="br-button primary small"
+                                >
+                                  <i className="fas fa-user-plus mr-2"></i>
+                                  Adicionar Participante
+                                </button>
+                              </div>
+
+                              <div className="mb-3">
+                                <p className="mb-1">
+                                  <strong>Vagas:</strong> {subevento.vagas || 'Ilimitado'} | 
+                                  <strong className="ml-2">Inscritos:</strong> {inscritos.length}
+                                </p>
+                              </div>
+
+                              {loadingInscritos ? (
+                                <div className="text-center py-4">
+                                  <div className="spinner-border text-primary" role="status">
+                                    <span className="sr-only">Carregando...</span>
+                                  </div>
+                                </div>
+                              ) : inscritos.length === 0 ? (
+                                <div className="br-message info">
+                                  <div className="icon">
+                                    <i className="fas fa-info-circle"></i>
+                                  </div>
+                                  <div className="content">
+                                    Nenhum inscrito encontrado neste subevento.
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="table-responsive">
+                                  <table className="br-table">
+                                    <thead>
+                                      <tr>
+                                        <th>Nome</th>
+                                        <th>Email</th>
+                                        <th>CPF</th>
+                                        <th>Status</th>
+                                        <th>Data Inscrição</th>
+                                        <th>Presença</th>
+                                        <th>Ações</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {inscritos.map((inscrito) => (
+                                        <tr key={inscrito._id}>
+                                          <td>{inscrito.participant?.nome || '-'}</td>
+                                          <td>{inscrito.participant?.user?.email || '-'}</td>
+                                          <td>{inscrito.participant?.cpf || '-'}</td>
+                                          <td>
+                                            <span className={`br-tag ${
+                                              inscrito.status === 'CONFIRMADO' ? 'success' :
+                                              inscrito.status === 'CANCELADO' ? 'danger' :
+                                              'warning'
+                                            }`}>
+                                              {inscrito.status}
+                                            </span>
+                                          </td>
+                                          <td>{new Date(inscrito.dataInscricao).toLocaleDateString('pt-BR')}</td>
+                                          <td>
+                                            {inscrito.presenca ? (
+                                              <span className="br-tag success">
+                                                <i className="fas fa-check mr-1"></i>
+                                                Confirmada
+                                              </span>
+                                            ) : (
+                                              <span className="br-tag warning">
+                                                <i className="fas fa-clock mr-1"></i>
+                                                Pendente
+                                              </span>
+                                            )}
+                                          </td>
+                                          <td>
+                                            <div className="d-flex gap-2">
+                                              {!inscrito.presenca && (
+                                                <button
+                                                  onClick={() => handleConfirmarPresenca(inscrito._id)}
+                                                  className="br-button primary small"
+                                                  title="Confirmar Presença"
+                                                >
+                                                  <i className="fas fa-check"></i>
+                                                </button>
+                                              )}
+                                              <button
+                                                onClick={() => handleRemoverInscrito(inscrito._id)}
+                                                className="br-button danger small"
+                                                title="Remover Inscrito"
+                                              >
+                                                <i className="fas fa-times"></i>
+                                              </button>
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   ))}
                 </tbody>
               </table>
@@ -574,6 +797,121 @@ const AdminSubeventos = () => {
               </div>
             </form>
           </div>
+        </>
+      )}
+
+      {/* Modal de Adicionar Inscrito */}
+      {showAddInscritoModal && (
+        <>
+          <div className="br-modal active" style={{ display: 'block' }}>
+            <div className="br-modal-dialog">
+              <div className="br-modal-content">
+                <div className="br-modal-header">
+                  <div className="br-modal-title">Adicionar Participante</div>
+                  <button
+                    className="br-button circle small"
+                    onClick={() => {
+                      setShowAddInscritoModal(false);
+                      setParticipanteSelecionado('');
+                      setFiltroParticipante('');
+                    }}
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+                <div className="br-modal-body">
+                  <div className="br-input">
+                    <label htmlFor="filtroParticipante">Buscar Participante</label>
+                    <input
+                      id="filtroParticipante"
+                      type="text"
+                      placeholder="Digite o nome, email ou CPF..."
+                      value={filtroParticipante}
+                      onChange={(e) => setFiltroParticipante(e.target.value)}
+                      autoFocus
+                    />
+                  </div>
+                  
+                  <div className="mt-3" style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #ddd', borderRadius: '4px' }}>
+                    {participantes
+                      .filter(p => !inscritos.some(i => i.participant?._id === p._id))
+                      .filter(p => {
+                        if (!filtroParticipante) return true;
+                        const busca = filtroParticipante.toLowerCase();
+                        return (
+                          p.nome.toLowerCase().includes(busca) ||
+                          p.user?.email.toLowerCase().includes(busca) ||
+                          p.cpf.includes(busca)
+                        );
+                      })
+                      .map(p => (
+                        <div
+                          key={p._id}
+                          onClick={() => setParticipanteSelecionado(p._id)}
+                          style={{
+                            padding: '12px',
+                            cursor: 'pointer',
+                            backgroundColor: participanteSelecionado === p._id ? '#1351b4' : 'transparent',
+                            color: participanteSelecionado === p._id ? '#fff' : '#333',
+                            borderBottom: '1px solid #eee',
+                          }}
+                          onMouseEnter={(e) => {
+                            if (participanteSelecionado !== p._id) {
+                              e.target.style.backgroundColor = '#f8f9fa';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (participanteSelecionado !== p._id) {
+                              e.target.style.backgroundColor = 'transparent';
+                            }
+                          }}
+                        >
+                          <div style={{ fontWeight: 'bold' }}>{p.nome}</div>
+                          <div style={{ fontSize: '0.875rem', opacity: 0.8 }}>
+                            {p.user?.email} • CPF: {p.cpf}
+                          </div>
+                        </div>
+                      ))}
+                    {participantes
+                      .filter(p => !inscritos.some(i => i.participant?._id === p._id))
+                      .filter(p => {
+                        if (!filtroParticipante) return true;
+                        const busca = filtroParticipante.toLowerCase();
+                        return (
+                          p.nome.toLowerCase().includes(busca) ||
+                          p.user?.email.toLowerCase().includes(busca) ||
+                          p.cpf.includes(busca)
+                        );
+                      }).length === 0 && (
+                        <div style={{ padding: '12px', textAlign: 'center', color: '#666' }}>
+                          {filtroParticipante ? 'Nenhum participante encontrado' : 'Nenhum participante disponível'}
+                        </div>
+                      )}
+                  </div>
+                </div>
+                <div className="br-modal-footer">
+                  <button
+                    className="br-button secondary"
+                    onClick={() => {
+                      setShowAddInscritoModal(false);
+                      setParticipanteSelecionado('');
+                      setFiltroParticipante('');
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    className="br-button primary"
+                    onClick={handleAdicionarInscrito}
+                    disabled={!participanteSelecionado}
+                  >
+                    Adicionar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="br-scrim active" onClick={() => setShowAddInscritoModal(false)}></div>
         </>
       )}
     </MainLayout>

@@ -40,6 +40,10 @@ const presencaSchema = new mongoose.Schema({
       enum: ['QRCODE', 'MANUAL'],
       default: 'QRCODE',
     },
+    confirmadoPor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
   }],
   deleted_at: {
     type: Date,

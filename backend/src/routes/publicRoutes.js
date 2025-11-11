@@ -124,23 +124,31 @@ const publicController = {
         const Presenca = require('../models/Presenca');
         const Participant = require('../models/Participant');
         
-        const participant = await Participant.findOne({ user: req.user.id });
+        const participant = await Participant.findOne({ user: req.user.userId });
         if (participant) {
           const presencas = await Presenca.find({ 
             participant: participant._id,
             subevento: { $in: subeventos.map(s => s._id) }
           });
           
+          console.log(`[DEBUG] Usuário ${req.user.userId} - Participant: ${participant._id} - Presenças encontradas: ${presencas.length}`);
+          
           const presencasMap = {};
           presencas.forEach(p => {
             presencasMap[p.subevento.toString()] = true;
+            console.log(`[DEBUG] Presença confirmada no subevento: ${p.subevento}`);
           });
           
           // Adiciona flag de presença em cada subevento
           subeventos.forEach(s => {
             s._doc.presenca = presencasMap[s._id.toString()] || false;
+            console.log(`[DEBUG] Subevento ${s.titulo} - presenca: ${s._doc.presenca}`);
           });
+        } else {
+          console.log(`[DEBUG] Participante não encontrado para usuário ${req.user.userId}`);
         }
+      } else {
+        console.log(`[DEBUG] Requisição sem autenticação`);
       }
       
       res.json({ success: true, data: subeventos });

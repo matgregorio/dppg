@@ -28,22 +28,22 @@ const Programacao = () => {
     }
   };
 
-  const formatDateTime = (dateString) => {
+  const formatDateTime = (dateString, timeString) => {
     if (!dateString) return 'A definir';
     const date = new Date(dateString);
-    return date.toLocaleString('pt-BR', {
+    const formattedDate = date.toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: 'long',
       year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
     });
+    return timeString ? `${formattedDate} às ${timeString}` : formattedDate;
   };
 
   const groupByDate = (eventos) => {
     const groups = {};
     eventos.forEach(evento => {
-      const date = new Date(evento.dataHora).toLocaleDateString('pt-BR', {
+      if (!evento.data) return; // Pula eventos sem data
+      const date = new Date(evento.data).toLocaleDateString('pt-BR', {
         day: '2-digit',
         month: 'long',
         year: 'numeric',
@@ -119,10 +119,10 @@ const Programacao = () => {
                       {date}
                     </h2>
                     
-                    <div className="row">
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
                       {eventos.map((evento) => (
-                        <div key={evento._id} className="col-md-6 col-lg-4 mb-3">
-                          <div className="br-card h-100">
+                        <div key={evento._id}>
+                          <div className="br-card" style={{ height: '100%' }}>
                             <div className="card-header">
                               <div className="d-flex align-items-start justify-content-between">
                                 <h5 className="text-weight-semi-bold mb-0">
@@ -144,11 +144,8 @@ const Programacao = () => {
                               <div className="mb-2">
                                 <i className="fas fa-clock mr-2 text-primary"></i>
                                 <strong>Horário:</strong>{' '}
-                                {new Date(evento.dataHora).toLocaleTimeString('pt-BR', {
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })}
-                                {evento.duracao && ` (${evento.duracao})`}
+                                {evento.horarioInicio || 'A definir'}
+                                {evento.duracao && ` - Duração: ${evento.duracao}`}
                               </div>
                               
                               {evento.local && (

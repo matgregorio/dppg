@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { setUser } from './store/slices/authSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { setUser, setInitializing, clearAuth } from './store/slices/authSlice';
 import authService from './services/authService';
 import NotificationContainer from './components/notifications/NotificationContainer';
 
@@ -58,6 +58,7 @@ import RequireRoles from './components/guards/RequireRoles';
 
 function App() {
   const dispatch = useDispatch();
+  const { initializing } = useSelector((state) => state.auth);
   
   useEffect(() => {
     // Carrega dados do usuário ao iniciar
@@ -68,16 +69,35 @@ function App() {
           const response = await authService.me();
           if (response.success) {
             dispatch(setUser(response.data));
+          } else {
+            // Token inválido
+            dispatch(clearAuth());
           }
         } catch (error) {
           console.error('Erro ao carregar usuário:', error);
-          localStorage.removeItem('accessToken');
+          // Limpa autenticação se houver erro
+          dispatch(clearAuth());
         }
+      } else {
+        // Sem token, finaliza inicialização
+        dispatch(setInitializing(false));
       }
     };
     
     loadUser();
   }, [dispatch]);
+  
+  // Mostra loading durante inicialização
+  if (initializing) {
+    return (
+      <div className="d-flex align-items-center justify-content-center min-vh-100">
+        <div className="text-center">
+          <div className="br-loading" aria-label="Carregando"></div>
+          <p className="mt-3 text-up-01">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <>

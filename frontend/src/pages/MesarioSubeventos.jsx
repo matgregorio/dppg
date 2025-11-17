@@ -27,16 +27,16 @@ const MesarioSubeventos = () => {
     fetchSubeventos();
   }, [currentYear]);
   
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleString('pt-BR', {
+  const formatDate = (subevento) => {
+    if (!subevento.data) return 'N/A';
+    const date = new Date(subevento.data);
+    const dateStr = date.toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
     });
+    const timeStr = subevento.horarioInicio || '';
+    return `${dateStr}${timeStr ? ` às ${timeStr}` : ''}`;
   };
   
   return (
@@ -88,13 +88,13 @@ const MesarioSubeventos = () => {
               <div key={subevento._id} className="col-md-6 col-lg-4 mb-3">
                 <div className="br-card">
                   <div className="card-header">
-                    <h5 className="text-weight-semi-bold">{subevento.nome}</h5>
+                    <h5 className="text-weight-semi-bold">{subevento.titulo || subevento.evento}</h5>
                   </div>
                   <div className="card-content">
                     <div className="mb-2">
                       <strong>Data/Hora:</strong>
                       <br />
-                      {formatDate(subevento.dataHora)}
+                      {formatDate(subevento)}
                     </div>
                     
                     {subevento.local && (

@@ -233,14 +233,14 @@ const Home = () => {
       
       <div className="row">
         <div className="col-12 col-md-4 mb-3">
-          <div className="br-card">
+          <div className="br-card h-100">
             <div className="card-header">
               <i className="fas fa-calendar-alt fa-2x text-primary-default"></i>
             </div>
             <div className="card-content">
               <h5 className="text-weight-semi-bold mb-2">Programação</h5>
               <p className="text-down-01">
-                Confira a programação completa do simpósio {currentYear}
+                Confira a programação do simpósio {currentYear}
               </p>
               <Link to="/programacao" className="br-button secondary small">
                 Ver programação
@@ -250,14 +250,14 @@ const Home = () => {
         </div>
         
         <div className="col-12 col-md-4 mb-3">
-          <div className="br-card">
+          <div className="br-card h-100">
             <div className="card-header">
               <i className="fas fa-file-alt fa-2x text-primary-default"></i>
             </div>
             <div className="card-content">
               <h5 className="text-weight-semi-bold mb-2">Submissão</h5>
               <p className="text-down-01">
-                Submeta seu trabalho e participe do simpósio
+                Submeta seu trabalho para o simpósio {currentYear}
               </p>
               {isAuthenticated ? (
                 <Link to="/submeter-trabalho" className="br-button secondary small">
@@ -276,14 +276,14 @@ const Home = () => {
         </div>
         
         <div className="col-12 col-md-4 mb-3">
-          <div className="br-card">
+          <div className="br-card h-100">
             <div className="card-header">
               <i className="fas fa-certificate fa-2x text-primary-default"></i>
             </div>
             <div className="card-content">
               <h5 className="text-weight-semi-bold mb-2">Certificados</h5>
               <p className="text-down-01">
-                Valide ou baixe certificados de participação
+                Valide ou baixe seu certificado de participação
               </p>
               <Link to="/validar-certificado" className="br-button secondary small">
                 Validar certificado

@@ -110,11 +110,26 @@ app.use('*', (req, res) => {
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 4000;
+const HOST = '0.0.0.0'; // Escuta em todas as interfaces de rede
 
-app.listen(PORT, () => {
+app.listen(PORT, HOST, () => {
+  const os = require('os');
+  const interfaces = os.networkInterfaces();
+  let localIP = 'localhost';
+  
+  // Detecta o IP local
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        localIP = iface.address;
+        break;
+      }
+    }
+  }
+  
   logger.info(`Servidor rodando na porta ${PORT} em todas as interfaces de rede`);
   logger.info(`Acesso local: http://localhost:${PORT}/api-docs`);
-  logger.info(`Acesso via rede: http://192.168.0.103:${PORT}/api-docs`);
+  logger.info(`Acesso via rede: http://${localIP}:${PORT}/api-docs`);
 });
 
 module.exports = app;

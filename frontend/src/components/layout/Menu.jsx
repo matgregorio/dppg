@@ -22,6 +22,12 @@ const Menu = () => {
     toggleMenu();
   };
   
+  const handleLinkClick = () => {
+    closeMenu();
+    // Volta ao topo da página
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  
   return (
     <>
       {/* Botão hambúrguer MOBILE - canto inferior direito */}
@@ -56,36 +62,113 @@ const Menu = () => {
         <div className="menu-panel">
           <nav className="menu-body">
             <div className="menu-folder">
-              <Link className={`menu-item ${isActive('/')}`} to="/" onClick={closeMenu}>
+              <Link className={`menu-item ${isActive('/')}`} to="/" onClick={handleLinkClick}>
                 <span className="content">Início</span>
               </Link>
-              <Link className={`menu-item ${isActive('/apresentacao')}`} to="/apresentacao" onClick={closeMenu}>
+              <Link className={`menu-item ${isActive('/apresentacao')}`} to="/apresentacao" onClick={handleLinkClick}>
                 <span className="content">Apresentação</span>
               </Link>
-              <Link className={`menu-item ${isActive('/programacao')}`} to="/programacao" onClick={closeMenu}>
+              <Link className={`menu-item ${isActive('/programacao')}`} to="/programacao" onClick={handleLinkClick}>
                 <span className="content">Programação</span>
               </Link>
-              <Link className={`menu-item ${isActive('/regulamento')}`} to="/regulamento" onClick={closeMenu}>
+              <Link className={`menu-item ${isActive('/regulamento')}`} to="/regulamento" onClick={handleLinkClick}>
                 <span className="content">Regulamento</span>
               </Link>
-              <Link className={`menu-item ${isActive('/corpo-editorial')}`} to="/corpo-editorial" onClick={closeMenu}>
+              <Link className={`menu-item ${isActive('/corpo-editorial')}`} to="/corpo-editorial" onClick={handleLinkClick}>
                 <span className="content">Corpo Editorial</span>
               </Link>
-              <Link className={`menu-item ${isActive('/expediente')}`} to="/expediente" onClick={closeMenu}>
+              <Link className={`menu-item ${isActive('/expediente')}`} to="/expediente" onClick={handleLinkClick}>
                 <span className="content">Expediente</span>
               </Link>
-              <Link className={`menu-item ${isActive('/normas-publicacao')}`} to="/normas-publicacao" onClick={closeMenu}>
+              <Link className={`menu-item ${isActive('/normas-publicacao')}`} to="/normas-publicacao" onClick={handleLinkClick}>
                 <span className="content">Normas para Publicação</span>
               </Link>
-              <Link className={`menu-item ${isActive('/modelo-poster')}`} to="/modelo-poster" onClick={closeMenu}>
+              <Link className={`menu-item ${isActive('/modelo-poster')}`} to="/modelo-poster" onClick={handleLinkClick}>
                 <span className="content">Modelo de Pôster</span>
               </Link>
-              <Link className={`menu-item ${isActive('/validar-certificado')}`} to="/validar-certificado" onClick={closeMenu}>
+              <Link className={`menu-item ${isActive('/validar-certificado')}`} to="/validar-certificado" onClick={handleLinkClick}>
                 <span className="content">Validar Certificado</span>
               </Link>
-              <Link className={`menu-item ${isActive('/acervo')}`} to="/acervo" onClick={closeMenu}>
+              <Link className={`menu-item ${isActive('/acervo')}`} to="/acervo" onClick={handleLinkClick}>
                 <span className="content">Acervo</span>
               </Link>
+              
+              {isAuthenticated && hasRole(['USER', 'MESARIO']) && (
+                <>
+                  <div className="br-divider my-3"></div>
+                  <div className="menu-title">Participante</div>
+                  <Link className={`menu-item ${isActive('/inscricoes')}`} to="/inscricoes" onClick={handleLinkClick}>
+                    <span className="content">Minhas Inscrições</span>
+                  </Link>
+                  <Link className={`menu-item ${isActive('/trabalhos')}`} to="/trabalhos" onClick={handleLinkClick}>
+                    <span className="content">Meus Trabalhos</span>
+                  </Link>
+                  <Link className={`menu-item ${isActive('/certificados')}`} to="/certificados" onClick={handleLinkClick}>
+                    <span className="content">Meus Certificados</span>
+                  </Link>
+                </>
+              )}
+              
+              {isAuthenticated && hasRole(['MESARIO']) && (
+                <>
+                  <div className="br-divider my-3"></div>
+                  <div className="menu-title">Mesário</div>
+                  <Link className={`menu-item ${isActive('/mesario/subeventos')}`} to="/mesario/subeventos" onClick={handleLinkClick}>
+                    <span className="content">Meus Subeventos</span>
+                  </Link>
+                </>
+              )}
+              
+              {isAuthenticated && hasRole(['AVALIADOR']) && (
+                <>
+                  <div className="br-divider my-3"></div>
+                  <div className="menu-title">Avaliador</div>
+                  <Link className={`menu-item ${isActive('/avaliador/trabalhos')}`} to="/avaliador/trabalhos" onClick={handleLinkClick}>
+                    <span className="content">Trabalhos para Avaliar</span>
+                  </Link>
+                </>
+              )}
+              
+              {isAuthenticated && hasRole(['ADMIN', 'SUBADMIN']) && (
+                <>
+                  <div className="br-divider my-3"></div>
+                  <div className="menu-title">Administração</div>
+                  <Link className={`menu-item ${isActive('/admin/dashboard')}`} to="/admin/dashboard" onClick={handleLinkClick}>
+                    <span className="content">Dashboard</span>
+                  </Link>
+                  <Link 
+                    className={`menu-item ${isActive(`/admin/simposios/${new Date().getFullYear()}`)}`} 
+                    to={`/admin/simposios/${new Date().getFullYear()}`}
+                    onClick={handleLinkClick}
+                  >
+                    <span className="content">Gerenciar Simpósio</span>
+                  </Link>
+                  <Link className={`menu-item ${isActive('/admin/trabalhos')}`} to="/admin/trabalhos" onClick={handleLinkClick}>
+                    <span className="content">Trabalhos</span>
+                  </Link>
+                  <Link className={`menu-item ${isActive('/admin/areas')}`} to="/admin/areas" onClick={handleLinkClick}>
+                    <span className="content">Áreas de Conhecimento</span>
+                  </Link>
+                  <Link className={`menu-item ${isActive('/admin/participantes')}`} to="/admin/participantes" onClick={handleLinkClick}>
+                    <span className="content">Participantes</span>
+                  </Link>
+                  <Link className={`menu-item ${isActive('/admin/avaliadores')}`} to="/admin/avaliadores" onClick={handleLinkClick}>
+                    <span className="content">Avaliadores</span>
+                  </Link>
+                  <Link className={`menu-item ${isActive('/admin/subeventos')}`} to="/admin/subeventos" onClick={handleLinkClick}>
+                    <span className="content">Subeventos</span>
+                  </Link>
+                  <Link className={`menu-item ${isActive('/admin/avaliacoes-externas')}`} to="/admin/avaliacoes-externas" onClick={handleLinkClick}>
+                    <span className="content">Avaliações Externas</span>
+                  </Link>
+                  <Link className={`menu-item ${isActive('/admin/acervo')}`} to="/admin/acervo" onClick={handleLinkClick}>
+                    <span className="content">Acervo</span>
+                  </Link>
+                  <Link className={`menu-item ${isActive('/admin/paginas')}`} to="/admin/paginas" onClick={handleLinkClick}>
+                    <span className="content">Páginas Estáticas</span>
+                  </Link>
+                </>
+              )}
               
               <div className="br-divider my-3"></div>
               <div className="menu-title">Links Importantes</div>
@@ -133,83 +216,6 @@ const Menu = () => {
                   Plataforma Lattes
                 </span>
               </a>
-              
-              {isAuthenticated && hasRole(['USER', 'MESARIO']) && (
-                <>
-                  <div className="br-divider my-3"></div>
-                  <div className="menu-title">Participante</div>
-                  <Link className={`menu-item ${isActive('/inscricoes')}`} to="/inscricoes" onClick={closeMenu}>
-                    <span className="content">Minhas Inscrições</span>
-                  </Link>
-                  <Link className={`menu-item ${isActive('/trabalhos')}`} to="/trabalhos" onClick={closeMenu}>
-                    <span className="content">Meus Trabalhos</span>
-                  </Link>
-                  <Link className={`menu-item ${isActive('/certificados')}`} to="/certificados" onClick={closeMenu}>
-                    <span className="content">Meus Certificados</span>
-                  </Link>
-                </>
-              )}
-              
-              {isAuthenticated && hasRole(['MESARIO']) && (
-                <>
-                  <div className="br-divider my-3"></div>
-                  <div className="menu-title">Mesário</div>
-                  <Link className={`menu-item ${isActive('/mesario/subeventos')}`} to="/mesario/subeventos" onClick={closeMenu}>
-                    <span className="content">Meus Subeventos</span>
-                  </Link>
-                </>
-              )}
-              
-              {isAuthenticated && hasRole(['AVALIADOR']) && (
-                <>
-                  <div className="br-divider my-3"></div>
-                  <div className="menu-title">Avaliador</div>
-                  <Link className={`menu-item ${isActive('/avaliador/trabalhos')}`} to="/avaliador/trabalhos" onClick={closeMenu}>
-                    <span className="content">Trabalhos para Avaliar</span>
-                  </Link>
-                </>
-              )}
-              
-              {isAuthenticated && hasRole(['ADMIN', 'SUBADMIN']) && (
-                <>
-                  <div className="br-divider my-3"></div>
-                  <div className="menu-title">Administração</div>
-                  <Link className={`menu-item ${isActive('/admin/dashboard')}`} to="/admin/dashboard" onClick={closeMenu}>
-                    <span className="content">Dashboard</span>
-                  </Link>
-                  <Link 
-                    className={`menu-item ${isActive(`/admin/simposios/${new Date().getFullYear()}`)}`} 
-                    to={`/admin/simposios/${new Date().getFullYear()}`}
-                    onClick={closeMenu}
-                  >
-                    <span className="content">Gerenciar Simpósio</span>
-                  </Link>
-                  <Link className={`menu-item ${isActive('/admin/trabalhos')}`} to="/admin/trabalhos" onClick={closeMenu}>
-                    <span className="content">Trabalhos</span>
-                  </Link>
-                  <Link className={`menu-item ${isActive('/admin/areas')}`} to="/admin/areas" onClick={closeMenu}>
-                    <span className="content">Áreas de Conhecimento</span>
-                  </Link>
-                  <Link className={`menu-item ${isActive('/admin/participantes')}`} to="/admin/participantes" onClick={closeMenu}>
-                    <span className="content">Participantes</span>
-                  </Link>
-                  <Link className={`menu-item ${isActive('/admin/avaliadores')}`} to="/admin/avaliadores" onClick={closeMenu}>
-                    <span className="content">Avaliadores</span>
-                  </Link>
-                  <Link className={`menu-item ${isActive('/admin/subeventos')}`} to="/admin/subeventos" onClick={closeMenu}>
-                    <span className="content">Subeventos</span>
-                  </Link>
-                  <Link className={`menu-item ${isActive('/admin/avaliacoes-externas')}`} to="/admin/avaliacoes-externas" onClick={closeMenu}>
-                    <span className="content">Avaliações Externas</span>
-                  </Link>
-                  <Link className={`menu-item ${isActive('/admin/acervo')}`} to="/admin/acervo" onClick={closeMenu}>
-                    <span className="content">Acervo</span>
-                  </Link>
-                  <Link className={`menu-item ${isActive('/admin/paginas')}`} to="/admin/paginas" onClick={closeMenu}>
-                    <span className="content">Páginas Estáticas</span>
-                  </Link>
-                </>
-              )}
             </div>
           </nav>
         </div>

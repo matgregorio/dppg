@@ -6,6 +6,7 @@ const initialState = {
   isAuthenticated: !!localStorage.getItem('accessToken'),
   loading: false,
   error: null,
+  initializing: true, // Estado de inicialização do app
 };
 
 const authSlice = createSlice({
@@ -35,9 +36,20 @@ const authSlice = createSlice({
     },
     setUser: (state, action) => {
       state.user = action.payload;
+      state.initializing = false;
+    },
+    setInitializing: (state, action) => {
+      state.initializing = action.payload;
+    },
+    clearAuth: (state) => {
+      state.user = null;
+      state.token = null;
+      state.isAuthenticated = false;
+      state.initializing = false;
+      localStorage.removeItem('accessToken');
     },
   },
 });
 
-export const { loginStart, loginSuccess, loginFailure, logout, setUser } = authSlice.actions;
+export const { loginStart, loginSuccess, loginFailure, logout, setUser, setInitializing, clearAuth } = authSlice.actions;
 export default authSlice.reducer;

@@ -3,6 +3,21 @@ const router = express.Router();
 const auth = require('../middlewares/auth');
 const requireRoles = require('../middlewares/requireRoles');
 const crypto = require('crypto');
+const os = require('os');
+
+// Função para obter o IP local da máquina
+const getLocalIP = () => {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      // Pula endereços internos (loopback) e não IPv4
+      if (iface.family === 'IPv4' && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+  return 'localhost'; // fallback
+};
 
 const mesarioController = {
   getSubeventos: async (req, res) => {
@@ -88,7 +103,21 @@ const mesarioController = {
       });
       
       // Gera URL do checkin apontando para o frontend
-      const checkinUrl = `${process.env.FRONTEND_URL}/checkin?token=${tokenRaw}`;
+      // Usa FRONTEND_URL se configurado, senão detecta o IP local
+      let frontendUrl = process.env.FRONTEND_URL;
+      
+      if (!frontendUrl) {
+        // Detecta o IP local da máquina automaticamente
+        const localIP = getLocalIP();
+        const protocol = 'http'; // Em desenvolvimento
+        const port = '5173'; // Porta padrão do Vite
+        
+        frontendUrl = `${protocol}://${localIP}:${port}`;
+        
+        console.log('Frontend URL detectada automaticamente:', frontendUrl);
+      }
+      
+      const checkinUrl = `${frontendUrl}/checkin?token=${tokenRaw}`;
       
       const QRCode = require('qrcode');
       const qrcode = await QRCode.toDataURL(checkinUrl);
@@ -229,7 +258,15 @@ const mesarioController = {
   getPresencas: async (req, res) => {
     try {
       const Presenca = require('../models/Presenca');
-      const presencas = await Presenca.find({ subevento: req.params.id }).populate('participant');
+      const Participant = require('../models/Participant');
+      
+      const presencas = await Presenca.find({ subevento: req.params.id })
+        .populate({
+          path: 'participant',
+          select: 'nome cpf email'
+        })
+        .sort({ 'checkins.0.data': -1 }); // Ordena pelos mais recentes
+      
       res.json({ success: true, data: presencas });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });

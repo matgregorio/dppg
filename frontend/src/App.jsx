@@ -45,6 +45,8 @@ import DashboardAdmin from './pages/DashboardAdmin';
 import AdminAcervo from './pages/AdminAcervo';
 import AdminPaginas from './pages/AdminPaginas';
 import AvaliacoesExternas from './pages/AvaliacoesExternas';
+import FuncoesAdministrativas from './pages/FuncoesAdministrativas';
+import AdminCertificados from './pages/AdminCertificados';
 
 // Mesario Pages
 import MesarioSubeventos from './pages/MesarioSubeventos';
@@ -302,6 +304,28 @@ function App() {
           <RequireAuth>
             <RequireRoles roles={['ADMIN', 'SUBADMIN']}>
               <AvaliacoesExternas />
+            </RequireRoles>
+          </RequireAuth>
+        }
+      />
+      
+      <Route
+        path="/admin/funcoes"
+        element={
+          <RequireAuth>
+            <RequireRoles roles={['ADMIN']}>
+              <FuncoesAdministrativas />
+            </RequireRoles>
+          </RequireAuth>
+        }
+      />
+      
+      <Route
+        path="/admin/certificados"
+        element={
+          <RequireAuth>
+            <RequireRoles roles={['ADMIN', 'SUBADMIN']}>
+              <AdminCertificados />
             </RequireRoles>
           </RequireAuth>
         }

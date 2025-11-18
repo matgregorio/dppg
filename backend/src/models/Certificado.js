@@ -39,6 +39,7 @@ const certificadoSchema = new mongoose.Schema({
       'AVALIADOR',
       'PALESTRANTE',
       'ORGANIZACAO',
+      'ORIENTADOR'
     ],
     required: true,
   },
@@ -60,6 +61,28 @@ const certificadoSchema = new mongoose.Schema({
     ref: 'Simposio',
     required: true,
   },
+  conteudo: {
+    type: String,
+    default: ''
+  },
+  assinatura1: {
+    imagem: String,
+    nome: String,
+    cargo: String
+  },
+  assinatura2: {
+    imagem: String,
+    nome: String,
+    cargo: String
+  },
+  edicao: {
+    type: String,
+    default: ''
+  },
+  horasCarga: {
+    type: Number,
+    default: 0
+  },
   pdfPath: {
     type: String,
   },
@@ -68,6 +91,12 @@ const certificadoSchema = new mongoose.Schema({
     unique: true,
     required: true,
   },
+  qrcode: String,
+  enviadoEmail: {
+    type: Boolean,
+    default: false
+  },
+  dataEnvio: Date,
   gerado_em: {
     type: Date,
     default: Date.now,

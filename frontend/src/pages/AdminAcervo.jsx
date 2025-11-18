@@ -7,6 +7,7 @@ import useNotification from '../hooks/useNotification';
 const AdminAcervo = () => {
   const { showSuccess, showError } = useNotification();
   const [acervos, setAcervos] = useState([]);
+  const [simposios, setSimposios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -15,7 +16,7 @@ const AdminAcervo = () => {
   
   const [formData, setFormData] = useState({
     titulo: '',
-    anoEvento: new Date().getFullYear(),
+    anoEvento: '',
     autores: '',
     palavras_chave: '',
     arquivo: null
@@ -23,6 +24,7 @@ const AdminAcervo = () => {
 
   useEffect(() => {
     carregarAcervos();
+    carregarSimposios();
   }, [filters, pagination.currentPage]);
 
   const carregarAcervos = async () => {
@@ -47,6 +49,18 @@ const AdminAcervo = () => {
       showError('Erro ao carregar acervos');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const carregarSimposios = async () => {
+    try {
+      const response = await api.get('/admin/simposios', { 
+        params: { limit: 100 } // Buscar todos os simpósios
+      });
+      setSimposios(response.data.simposios || []);
+    } catch (error) {
+      console.error('Erro ao carregar simpósios:', error);
+      showError('Erro ao carregar simpósios');
     }
   };
 
@@ -121,7 +135,7 @@ const AdminAcervo = () => {
   const resetForm = () => {
     setFormData({
       titulo: '',
-      anoEvento: new Date().getFullYear(),
+      anoEvento: '',
       autores: '',
       palavras_chave: '',
       arquivo: null
@@ -327,15 +341,21 @@ const AdminAcervo = () => {
                   </div>
                   
                   <div className="col-md-6 mb-3">
-                    <div className="br-input">
-                      <label htmlFor="anoEvento">Ano do Evento *</label>
-                      <input
+                    <div className="br-select">
+                      <label htmlFor="anoEvento">Ano do Evento (Simpósio) *</label>
+                      <select
                         id="anoEvento"
-                        type="number"
                         value={formData.anoEvento}
                         onChange={(e) => setFormData({ ...formData, anoEvento: e.target.value })}
                         required
-                      />
+                      >
+                        <option value="">Selecione o ano...</option>
+                        {simposios.map((simposio) => (
+                          <option key={simposio._id} value={simposio.ano}>
+                            {simposio.ano} - {simposio.titulo}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                   

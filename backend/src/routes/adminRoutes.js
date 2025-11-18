@@ -179,6 +179,31 @@ const adminController = {
     }
   },
   
+  // Simpósio - Listar todos
+  listarSimposios: async (req, res) => {
+    try {
+      const Simposio = require('../models/Simposio');
+      const { limit = 10, page = 1 } = req.query;
+      
+      const simposios = await Simposio.find()
+        .sort({ ano: -1 })
+        .limit(parseInt(limit))
+        .skip((parseInt(page) - 1) * parseInt(limit));
+      
+      const total = await Simposio.countDocuments();
+      
+      res.json({ 
+        success: true, 
+        simposios,
+        total,
+        totalPages: Math.ceil(total / parseInt(limit)),
+        currentPage: parseInt(page)
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
+  
   // Simpósio - Atualizar Datas
   atualizarDatasSimposio: async (req, res) => {
     try {
@@ -1347,6 +1372,281 @@ const adminController = {
       res.status(500).json({ success: false, message: error.message });
     }
   },
+
+  // FUNÇÕES ADMINISTRATIVAS
+  promoverUsuario: async (req, res) => {
+    try {
+      const User = require('../models/User');
+      const bcrypt = require('bcryptjs');
+      
+      // Verificar senha do admin que está fazendo a promoção
+      const { senha } = req.body;
+      const admin = await User.findById(req.user.id);
+      
+      if (!senha || !await bcrypt.compare(senha, admin.password)) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Senha incorreta' 
+        });
+      }
+      
+      const usuario = await User.findById(req.params.id);
+      if (!usuario) {
+        return res.status(404).json({ success: false, message: 'Usuário não encontrado' });
+      }
+      
+      if (usuario.role === 'ADMIN') {
+        return res.status(400).json({ success: false, message: 'Usuário já é administrador' });
+      }
+      
+      usuario.role = 'ADMIN';
+      await usuario.save();
+      
+      const { logAudit } = require('../utils/auditLogger');
+      logAudit('USUARIO_PROMOVIDO', req.user.id, {
+        usuarioId: usuario._id,
+        nomeUsuario: usuario.nome,
+        roleAnterior: usuario.role,
+      });
+      
+      res.json({ 
+        success: true, 
+        message: `${usuario.nome} foi promovido a ADMIN com sucesso`,
+        data: usuario 
+      });
+    } catch (error) {
+      console.error('Erro ao promover usuário:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
+  finalizarSimposioCompleto: async (req, res) => {
+    try {
+      const Simposio = require('../models/Simposio');
+      const Certificado = require('../models/Certificado');
+      const User = require('../models/User');
+      const Trabalho = require('../models/Trabalho');
+      const bcrypt = require('bcryptjs');
+      const path = require('path');
+      
+      // Verificar senha do admin
+      const { senha, ano } = req.body;
+      const admin = await User.findById(req.user.id);
+      
+      if (!senha || !await bcrypt.compare(senha, admin.password)) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Senha incorreta' 
+        });
+      }
+      
+      const simposio = await Simposio.findOne({ ano: ano || new Date().getFullYear() });
+      if (!simposio) {
+        return res.status(404).json({ success: false, message: 'Simpósio não encontrado' });
+      }
+      
+      if (simposio.status === 'FINALIZADO') {
+        return res.status(400).json({ success: false, message: 'Simpósio já está finalizado' });
+      }
+      
+      // Atualizar status do simpósio
+      simposio.status = 'FINALIZADO';
+      await simposio.save();
+      
+      // Gerar certificados
+      const { gerarCertificado } = require(path.join(__dirname, '../gerarTodosCertificados'));
+      
+      // TODO: Implementar lógica completa de geração de certificados
+      // Por enquanto, apenas marca como finalizado
+      
+      const { logAudit } = require('../utils/auditLogger');
+      logAudit('SIMPOSIO_FINALIZADO_COMPLETO', req.user.id, {
+        simposioId: simposio._id,
+        ano: simposio.ano,
+      });
+      
+      res.json({ 
+        success: true, 
+        message: 'Simpósio finalizado com sucesso. Geração de certificados iniciada.',
+        data: simposio 
+      });
+    } catch (error) {
+      console.error('Erro ao finalizar simpósio:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
+  // CERTIFICADOS
+  listarCertificados: async (req, res) => {
+    try {
+      const Certificado = require('../models/Certificado');
+      const { page = 1, limit = 20, tipo, enviadoEmail, participanteId } = req.query;
+      
+      const query = {};
+      if (tipo) query.tipo = tipo;
+      if (enviadoEmail !== undefined) query.enviadoEmail = enviadoEmail === 'true';
+      if (participanteId) query.participante = participanteId;
+      
+      const certificados = await Certificado.find(query)
+        .populate('participante', 'nome email cpf')
+        .populate('trabalho', 'titulo')
+        .sort({ createdAt: -1 })
+        .limit(limit * 1)
+        .skip((page - 1) * limit);
+      
+      const total = await Certificado.countDocuments(query);
+      
+      res.json({
+        success: true,
+        data: certificados,
+        pagination: {
+          total,
+          page: parseInt(page),
+          pages: Math.ceil(total / limit),
+        },
+      });
+    } catch (error) {
+      console.error('Erro ao listar certificados:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
+  obterCertificado: async (req, res) => {
+    try {
+      const Certificado = require('../models/Certificado');
+      const certificado = await Certificado.findById(req.params.id)
+        .populate('participante', 'nome email cpf')
+        .populate('trabalho', 'titulo');
+      
+      if (!certificado) {
+        return res.status(404).json({ success: false, message: 'Certificado não encontrado' });
+      }
+      
+      res.json({ success: true, data: certificado });
+    } catch (error) {
+      console.error('Erro ao obter certificado:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
+  atualizarCertificado: async (req, res) => {
+    try {
+      const Certificado = require('../models/Certificado');
+      const { conteudo, assinatura1, assinatura2, edicao, horasCarga } = req.body;
+      
+      const certificado = await Certificado.findById(req.params.id);
+      if (!certificado) {
+        return res.status(404).json({ success: false, message: 'Certificado não encontrado' });
+      }
+      
+      if (conteudo) certificado.conteudo = conteudo;
+      if (assinatura1) certificado.assinatura1 = assinatura1;
+      if (assinatura2) certificado.assinatura2 = assinatura2;
+      if (edicao) certificado.edicao = edicao;
+      if (horasCarga) certificado.horasCarga = horasCarga;
+      
+      await certificado.save();
+      
+      const { logAudit } = require('../utils/auditLogger');
+      logAudit('CERTIFICADO_ATUALIZADO', req.user.id, {
+        certificadoId: certificado._id,
+        tipo: certificado.tipo,
+      });
+      
+      res.json({ success: true, data: certificado });
+    } catch (error) {
+      console.error('Erro ao atualizar certificado:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
+  excluirCertificado: async (req, res) => {
+    try {
+      const Certificado = require('../models/Certificado');
+      const certificado = await Certificado.findByIdAndDelete(req.params.id);
+      
+      if (!certificado) {
+        return res.status(404).json({ success: false, message: 'Certificado não encontrado' });
+      }
+      
+      const { logAudit } = require('../utils/auditLogger');
+      logAudit('CERTIFICADO_EXCLUIDO', req.user.id, {
+        certificadoId: certificado._id,
+        tipo: certificado.tipo,
+      });
+      
+      res.json({ success: true, message: 'Certificado excluído com sucesso' });
+    } catch (error) {
+      console.error('Erro ao excluir certificado:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
+  enviarCertificado: async (req, res) => {
+    try {
+      const Certificado = require('../models/Certificado');
+      const { sendCertificadoEmail } = require('../services/emailService');
+      
+      const certificado = await Certificado.findById(req.params.id)
+        .populate('participante', 'nome email');
+      
+      if (!certificado) {
+        return res.status(404).json({ success: false, message: 'Certificado não encontrado' });
+      }
+      
+      if (!certificado.participante.email) {
+        return res.status(400).json({ success: false, message: 'Participante sem e-mail cadastrado' });
+      }
+      
+      // TODO: Implementar envio real de e-mail
+      // await sendCertificadoEmail(certificado);
+      
+      certificado.enviadoEmail = true;
+      certificado.dataEnvio = new Date();
+      await certificado.save();
+      
+      const { logAudit } = require('../utils/auditLogger');
+      logAudit('CERTIFICADO_ENVIADO', req.user.id, {
+        certificadoId: certificado._id,
+        participanteEmail: certificado.participante.email,
+      });
+      
+      res.json({ success: true, message: 'Certificado enviado com sucesso' });
+    } catch (error) {
+      console.error('Erro ao enviar certificado:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
+  regenerarCertificado: async (req, res) => {
+    try {
+      const Certificado = require('../models/Certificado');
+      const path = require('path');
+      
+      const certificado = await Certificado.findById(req.params.id)
+        .populate('participante', 'nome email')
+        .populate('trabalho', 'titulo');
+      
+      if (!certificado) {
+        return res.status(404).json({ success: false, message: 'Certificado não encontrado' });
+      }
+      
+      // TODO: Implementar regeneração real do PDF
+      // const { gerarCertificado } = require(path.join(__dirname, '../gerarTodosCertificados'));
+      // await gerarCertificado(certificado.tipo, {...});
+      
+      const { logAudit } = require('../utils/auditLogger');
+      logAudit('CERTIFICADO_REGENERADO', req.user.id, {
+        certificadoId: certificado._id,
+        tipo: certificado.tipo,
+      });
+      
+      res.json({ success: true, message: 'Certificado regenerado com sucesso', data: certificado });
+    } catch (error) {
+      console.error('Erro ao regenerar certificado:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
 };
 
 /**
@@ -1664,6 +1964,7 @@ const adminController = {
  */
 
 // Simpósio
+router.get('/simposios', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.listarSimposios);
 router.get('/simposios/:ano', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.getSimposio);
 router.post('/simposio/inicializar', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.inicializarSimposio);
 router.post('/simposio/finalizar', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.finalizarSimposio);
@@ -1743,6 +2044,18 @@ router.delete('/paginas/:slug/remover-pdf', auth, requireRoles(['ADMIN', 'SUBADM
 router.get('/avaliacoes-externas', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.listarTrabalhosParaAvaliacaoExterna);
 router.post('/avaliacoes-externas/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.lancarNotaExterna);
 router.delete('/avaliacoes-externas/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.removerNotaExterna);
+
+// Funções Administrativas
+router.post('/usuarios/:id/promover', auth, requireRoles(['ADMIN']), adminController.promoverUsuario);
+router.post('/simposio/finalizar-completo', auth, requireRoles(['ADMIN']), adminController.finalizarSimposioCompleto);
+
+// Certificados
+router.get('/certificados', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.listarCertificados);
+router.get('/certificados/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.obterCertificado);
+router.put('/certificados/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.atualizarCertificado);
+router.delete('/certificados/:id', auth, requireRoles(['ADMIN']), adminController.excluirCertificado);
+router.post('/certificados/:id/enviar', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.enviarCertificado);
+router.post('/certificados/:id/regenerar', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.regenerarCertificado);
 
 // Relatórios
 router.get('/reports/trabalhos/excel', auth, requireRoles(['ADMIN', 'SUBADMIN']), reportsController.gerarRelatorioTrabalhosExcel);

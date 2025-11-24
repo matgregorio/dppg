@@ -4,48 +4,53 @@ const mongoose = require('mongoose');
  * @swagger
  * components:
  *   schemas:
- *     Participant:
+ *     Docente:
  *       type: object
  *       required:
- *         - cpf
  *         - nome
+ *         - cpf
  *         - email
  *       properties:
  *         _id:
  *           type: string
  *         user:
  *           type: string
- *           description: Referência ao User (opcional)
- *         cpf:
- *           type: string
+ *           description: Referência ao User (se tiver conta no sistema)
  *         nome:
  *           type: string
- *         telefone:
+ *         cpf:
  *           type: string
  *         email:
  *           type: string
- *         tipoParticipante:
+ *         telefone:
  *           type: string
- *           enum: [DOCENTE, DISCENTE, AVALIADOR]
+ *         instituicao:
+ *           type: string
+ *           description: Referência à Instituição
+ *         grandeArea:
+ *           type: string
+ *           description: Referência à Grande Área
+ *         subarea:
+ *           type: string
+ *           description: Referência à Subárea
+ *         visitante:
+ *           type: boolean
+ *           description: Indica se é docente visitante
  */
-const participantSchema = new mongoose.Schema({
+const docenteSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-  },
-  cpf: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
   },
   nome: {
     type: String,
     required: true,
     trim: true,
   },
-  telefone: {
+  cpf: {
     type: String,
+    required: true,
+    unique: true,
     trim: true,
   },
   email: {
@@ -54,24 +59,24 @@ const participantSchema = new mongoose.Schema({
     lowercase: true,
     trim: true,
   },
-  tipoParticipante: {
+  telefone: {
     type: String,
-    enum: ['ALUNO', 'DOCENTE', 'EX_ALUNO', 'AVALIADOR'],
-    required: true,
+    trim: true,
   },
   instituicao: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Instituicao',
     required: true,
   },
-  // Campos específicos para DOCENTE
   grandeArea: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'GrandeArea',
+    required: true,
   },
   subarea: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Subarea',
+    required: true,
   },
   visitante: {
     type: Boolean,
@@ -86,12 +91,14 @@ const participantSchema = new mongoose.Schema({
 });
 
 // Índices
-participantSchema.index({ cpf: 1, deleted_at: 1 });
-participantSchema.index({ email: 1, deleted_at: 1 });
-participantSchema.index({ user: 1 });
+docenteSchema.index({ cpf: 1, deleted_at: 1 });
+docenteSchema.index({ email: 1, deleted_at: 1 });
+docenteSchema.index({ user: 1 });
+docenteSchema.index({ instituicao: 1 });
+docenteSchema.index({ subarea: 1 });
 
 // Escopo padrão: não incluir deletados
-participantSchema.pre(/^find/, function(next) {
+docenteSchema.pre(/^find/, function(next) {
   if (!this.getQuery().deleted_at) {
     this.where({ deleted_at: null });
   }
@@ -99,11 +106,11 @@ participantSchema.pre(/^find/, function(next) {
 });
 
 // Método para soft delete
-participantSchema.methods.softDelete = function() {
+docenteSchema.methods.softDelete = function() {
   this.deleted_at = new Date();
   return this.save();
 };
 
-const Participant = mongoose.model('Participant', participantSchema);
+const Docente = mongoose.model('Docente', docenteSchema);
 
-module.exports = Participant;
+module.exports = Docente;

@@ -13,7 +13,7 @@ const options = {
     },
     servers: [
       {
-        url: `${process.env.PUBLIC_BASE_URL || 'http://localhost:4000'}/api/v1`,
+        url: `${process.env.PUBLIC_BASE_URL}/api/v1`,
         description: 'Servidor de Desenvolvimento',
       },
     ],

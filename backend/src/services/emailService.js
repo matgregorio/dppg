@@ -122,7 +122,7 @@ const enviarAtribuicaoAvaliacao = async (avaliador, trabalho) => {
       <p>Por favor, acesse o sistema para realizar a avaliação o quanto antes.</p>
       
       <div style="text-align: center; margin: 30px 0;">
-        <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/avaliador/trabalhos" 
+        <a href="${process.env.FRONTEND_URL}/avaliador/trabalhos" 
            style="background: #155BCB; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
           Acessar Sistema
         </a>
@@ -190,7 +190,7 @@ const enviarResultadoAvaliacao = async (user, trabalho, status) => {
       <p>Acesse o sistema para ver os detalhes da avaliação.</p>
       
       <div style="text-align: center; margin: 30px 0;">
-        <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/trabalhos" 
+        <a href="${process.env.FRONTEND_URL}/trabalhos" 
            style="background: #155BCB; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
           Ver Detalhes
         </a>
@@ -215,7 +215,7 @@ const enviarResultadoAvaliacao = async (user, trabalho, status) => {
  * Template: Recuperação de senha
  */
 const enviarRecuperacaoSenha = async (user, resetToken) => {
-  const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
+  const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
   
   const subject = 'Recuperação de Senha';
   const html = `
@@ -261,10 +261,126 @@ const enviarRecuperacaoSenha = async (user, resetToken) => {
   });
 };
 
+/**
+ * Template: Notificação para orientador avaliar trabalho
+ */
+const enviarNotificacaoOrientador = async (emailOrientador, nomeOrientador, nomeAluno, tituloTrabalho, trabalhoId) => {
+  const subject = 'Novo Trabalho Aguardando sua Avaliação';
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #155BCB;">Novo Trabalho para Avaliação</h2>
+      
+      <p>Olá, <strong>${nomeOrientador}</strong>!</p>
+      
+      <p>Um aluno submeteu um trabalho indicando você como orientador.</p>
+      
+      <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+        <h3 style="margin-top: 0;">Dados do Trabalho:</h3>
+        <p><strong>Aluno:</strong> ${nomeAluno}</p>
+        <p><strong>Título:</strong> ${tituloTrabalho}</p>
+        <p><strong>Status:</strong> Aguardando sua avaliação</p>
+      </div>
+      
+      <p><strong>Importante:</strong> O trabalho só será encaminhado para a comissão avaliadora após sua aprovação.</p>
+      
+      <p>Por favor, acesse o sistema para avaliar o trabalho e aprovar ou reprovar com comentários.</p>
+      
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${process.env.FRONTEND_URL}/orientador/trabalhos/${trabalhoId}" 
+           style="background: #155BCB; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+          Avaliar Trabalho
+        </a>
+      </div>
+      
+      <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+      
+      <p style="font-size: 12px; color: #666;">
+        Esta é uma mensagem automática. Por favor, não responda este email.
+      </p>
+    </div>
+  `;
+  
+  return await sendEmail({
+    to: emailOrientador,
+    subject,
+    html,
+  });
+};
+
+/**
+ * Template: Notificação de parecer do orientador para o aluno
+ */
+const enviarParecerOrientador = async (emailAluno, nomeAluno, tituloTrabalho, aprovado, comentarios) => {
+  const statusTexto = aprovado ? 'APROVADO' : 'REPROVADO';
+  const statusCor = aprovado ? '#28a745' : '#dc3545';
+  
+  const subject = `Parecer do Orientador - ${tituloTrabalho}`;
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #155BCB;">Parecer do Orientador</h2>
+      
+      <p>Olá, <strong>${nomeAluno}</strong>!</p>
+      
+      <p>Seu orientador avaliou o trabalho submetido.</p>
+      
+      <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+        <h3 style="margin-top: 0;">Dados do Trabalho:</h3>
+        <p><strong>Título:</strong> ${tituloTrabalho}</p>
+        <p>
+          <strong>Parecer:</strong> 
+          <span style="color: ${statusCor}; font-weight: bold;">
+            ${statusTexto}
+          </span>
+        </p>
+      </div>
+      
+      ${comentarios ? `
+        <div style="background: #f8f9fa; border-left: 4px solid #155BCB; padding: 15px; margin: 20px 0;">
+          <h4 style="margin-top: 0;">Comentários do Orientador:</h4>
+          <p style="margin: 0; white-space: pre-wrap;">${comentarios}</p>
+        </div>
+      ` : ''}
+      
+      ${aprovado ? `
+        <div style="background: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0;">
+          <p style="margin: 0;"><strong>Parabéns!</strong> Seu trabalho foi aprovado pelo orientador e será encaminhado para avaliação da comissão.</p>
+        </div>
+      ` : `
+        <div style="background: #f8d7da; border-left: 4px solid #dc3545; padding: 15px; margin: 20px 0;">
+          <p style="margin: 0;"><strong>Atenção:</strong> Seu trabalho foi reprovado pelo orientador. Por favor, faça as correções necessárias e submeta novamente.</p>
+        </div>
+      `}
+      
+      <p>Acesse o sistema para ver os detalhes${!aprovado ? ' e fazer as correções necessárias' : ''}.</p>
+      
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${process.env.FRONTEND_URL}/trabalhos" 
+           style="background: #155BCB; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+          Ver Trabalho
+        </a>
+      </div>
+      
+      <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+      
+      <p style="font-size: 12px; color: #666;">
+        Esta é uma mensagem automática. Por favor, não responda este email.
+      </p>
+    </div>
+  `;
+  
+  return await sendEmail({
+    to: emailAluno,
+    subject,
+    html,
+  });
+};
+
 module.exports = {
   sendEmail,
   enviarConfirmacaoSubmissao,
   enviarAtribuicaoAvaliacao,
   enviarResultadoAvaliacao,
   enviarRecuperacaoSenha,
+  enviarNotificacaoOrientador,
+  enviarParecerOrientador,
 };

@@ -41,7 +41,36 @@ const trabalhoSchema = new mongoose.Schema({
     cpf: { type: String },
     email: { type: String },
   }],
+  orientador: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Docente',
+    required: true,
+  },
+  outrosAutores: [{
+    nome: { type: String, required: true },
+    cpf: { type: String },
+    email: { type: String },
+  }],
+  tipoProjeto: {
+    type: String,
+    enum: ['PESQUISA', 'ENSINO', 'EXTENSAO'],
+    required: true,
+  },
+  apoios: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Apoio',
+  }],
+  resumo: {
+    type: String,
+    required: true,
+    trim: true,
+  },
   palavras_chave: [String],
+  concordanciaNormas: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
   arquivo: {
     type: String, // path do arquivo
   },
@@ -56,11 +85,17 @@ const trabalhoSchema = new mongoose.Schema({
   subarea: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Subarea',
+    required: true,
   },
   status: {
     type: String,
-    enum: ['SUBMETIDO', 'EM_AVALIACAO', 'ACEITO', 'REJEITADO', 'PUBLICADO'],
-    default: 'SUBMETIDO',
+    enum: ['SUBMETIDO', 'AGUARDANDO_ORIENTADOR', 'APROVADO_ORIENTADOR', 'REPROVADO_ORIENTADOR', 'EM_AVALIACAO', 'ACEITO', 'REJEITADO', 'PUBLICADO'],
+    default: 'AGUARDANDO_ORIENTADOR',
+  },
+  parecerOrientador: {
+    aprovado: { type: Boolean },
+    comentarios: { type: String },
+    data: { type: Date },
   },
   tipoApresentacao: {
     type: String,

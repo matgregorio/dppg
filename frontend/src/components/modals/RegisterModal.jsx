@@ -19,12 +19,25 @@ const registerSchema = z.object({
     .regex(/[0-9]/, 'Senha deve conter pelo menos um número')
     .regex(/[!@#$%^&*]/, 'Senha deve conter pelo menos um caractere especial (!@#$%^&*)'),
   confirmarSenha: z.string(),
-  tipoParticipante: z.enum(['DISCENTE', 'DOCENTE', 'EXTERNO'], {
+  tipoParticipante: z.enum(['ALUNO', 'DOCENTE', 'EX_ALUNO'], {
     required_error: 'Selecione o tipo de participante'
   }),
+  instituicao: z.string().min(1, 'Instituição é obrigatória'),
+  grandeArea: z.string().optional(),
+  subarea: z.string().optional(),
+  visitante: z.boolean().optional(),
 }).refine((data) => data.senha === data.confirmarSenha, {
   message: 'As senhas não coincidem',
   path: ['confirmarSenha'],
+}).refine((data) => {
+  // Para DOCENTE, grande área e subárea são obrigatórias
+  if (data.tipoParticipante === 'DOCENTE') {
+    return data.grandeArea && data.subarea;
+  }
+  return true;
+}, {
+  message: 'Grande área e subárea são obrigatórias para docentes',
+  path: ['grandeArea'],
 });
 
 const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
@@ -33,6 +46,10 @@ const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { showSuccess } = useNotification();
+  const [instituicoes, setInstituicoes] = useState([]);
+  const [grandesAreas, setGrandesAreas] = useState([]);
+  const [subareas, setSubareas] = useState([]);
+  const [subareasFiltradas, setSubareasFiltradas] = useState([]);
   
   const {
     register,
@@ -43,9 +60,57 @@ const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
   } = useForm({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      tipoParticipante: 'DISCENTE'
+      tipoParticipante: 'ALUNO',
+      visitante: false
     }
   });
+  
+  const tipoParticipante = watch('tipoParticipante');
+  const grandeAreaSelecionada = watch('grandeArea');
+  
+  // Carregar dados necessários
+  React.useEffect(() => {
+    if (isOpen) {
+      carregarDados();
+    }
+  }, [isOpen]);
+  
+  // Filtrar subáreas quando grande área mudar
+  React.useEffect(() => {
+    if (grandeAreaSelecionada) {
+      const filtradas = subareas.filter(s => s.grandeArea?._id === grandeAreaSelecionada);
+      setSubareasFiltradas(filtradas);
+    } else {
+      setSubareasFiltradas([]);
+    }
+  }, [grandeAreaSelecionada, subareas]);
+  
+  const carregarDados = async () => {
+    try {
+      // Carregar instituições
+      const instResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api/v1'}/public/instituicoes`);
+      if (instResponse.ok) {
+        const instData = await instResponse.json();
+        setInstituicoes(instData.data || []);
+      }
+      
+      // Carregar grandes áreas
+      const gaResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api/v1'}/public/grande-areas`);
+      if (gaResponse.ok) {
+        const gaData = await gaResponse.json();
+        setGrandesAreas(gaData.data || []);
+      }
+      
+      // Carregar subáreas
+      const subResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api/v1'}/public/subareas`);
+      if (subResponse.ok) {
+        const subData = await subResponse.json();
+        setSubareas(subData.data || []);
+      }
+    } catch (err) {
+      console.error('Erro ao carregar dados:', err);
+    }
+  };
   
   const formatCPF = (value) => {
     const numbers = value.replace(/\D/g, '');
@@ -86,8 +151,16 @@ const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
         cpf: cpfLimpo,
         telefone: telefoneLimpo,
         senha: data.senha,
-        tipoParticipante: data.tipoParticipante
+        tipoParticipante: data.tipoParticipante,
+        instituicao: data.instituicao
       };
+      
+      // Adiciona campos específicos para DOCENTE
+      if (data.tipoParticipante === 'DOCENTE') {
+        registerData.grandeArea = data.grandeArea;
+        registerData.subarea = data.subarea;
+        registerData.visitante = data.visitante || false;
+      }
       
       const registerResponse = await authService.register(registerData);
       
@@ -273,9 +346,9 @@ const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
                     disabled={loading}
                     {...register('tipoParticipante')}
                   >
-                    <option value="DISCENTE">Discente (Estudante)</option>
+                    <option value="ALUNO">Aluno</option>
                     <option value="DOCENTE">Docente (Professor)</option>
-                    <option value="EXTERNO">Externo</option>
+                    <option value="EX_ALUNO">Ex-Aluno</option>
                   </select>
                   {errors.tipoParticipante && (
                     <span className="feedback danger" role="alert">
@@ -285,6 +358,102 @@ const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
                   )}
                 </div>
               </div>
+              
+              <div className="col-md-12 mb-3">
+                <div className={`br-select ${errors.instituicao ? 'danger' : ''}`}>
+                  <label htmlFor="instituicao">
+                    Instituição <span className="text-danger">*</span>
+                  </label>
+                  <select
+                    id="instituicao"
+                    disabled={loading}
+                    {...register('instituicao')}
+                  >
+                    <option value="">Selecione uma instituição</option>
+                    {instituicoes.map(inst => (
+                      <option key={inst._id} value={inst._id}>
+                        {inst.sigla ? `${inst.sigla} - ${inst.nome}` : inst.nome}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.instituicao && (
+                    <span className="feedback danger" role="alert">
+                      <i className="fas fa-times-circle"></i>
+                      {errors.instituicao.message}
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              {tipoParticipante === 'DOCENTE' && (
+                <>
+                  <div className="col-md-6 mb-3">
+                    <div className={`br-select ${errors.grandeArea ? 'danger' : ''}`}>
+                      <label htmlFor="grandeArea">
+                        Grande Área <span className="text-danger">*</span>
+                      </label>
+                      <select
+                        id="grandeArea"
+                        disabled={loading}
+                        {...register('grandeArea')}
+                      >
+                        <option value="">Selecione uma grande área</option>
+                        {grandesAreas.map(ga => (
+                          <option key={ga._id} value={ga._id}>
+                            {ga.nome}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.grandeArea && (
+                        <span className="feedback danger" role="alert">
+                          <i className="fas fa-times-circle"></i>
+                          {errors.grandeArea.message}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="col-md-6 mb-3">
+                    <div className={`br-select ${errors.subarea ? 'danger' : ''}`}>
+                      <label htmlFor="subarea">
+                        Subárea <span className="text-danger">*</span>
+                      </label>
+                      <select
+                        id="subarea"
+                        disabled={loading || !grandeAreaSelecionada}
+                        {...register('subarea')}
+                      >
+                        <option value="">Selecione uma subárea</option>
+                        {subareasFiltradas.map(sub => (
+                          <option key={sub._id} value={sub._id}>
+                            {sub.nome}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.subarea && (
+                        <span className="feedback danger" role="alert">
+                          <i className="fas fa-times-circle"></i>
+                          {errors.subarea.message}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="col-md-12 mb-3">
+                    <div className="br-checkbox">
+                      <input
+                        id="visitante"
+                        type="checkbox"
+                        disabled={loading}
+                        {...register('visitante')}
+                      />
+                      <label htmlFor="visitante">
+                        Sou docente visitante
+                      </label>
+                    </div>
+                  </div>
+                </>
+              )}
               
               <div className="col-md-6 mb-3">
                 <div className={`br-input ${errors.senha ? 'danger' : ''}`}>

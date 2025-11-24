@@ -26,6 +26,7 @@ import Acervo from './pages/Acervo';
 // Participant Pages
 import MeusTrabalhos from './pages/MeusTrabalhos';
 import SubmeterTrabalho from './pages/SubmeterTrabalho';
+import SubmeterTrabalhoNovo from './pages/SubmeterTrabalhoNovo';
 import MinhasInscricoes from './pages/MinhasInscricoes';
 import MeusCertificados from './pages/MeusCertificados';
 
@@ -38,6 +39,9 @@ import AdminSimposio from './pages/AdminSimposio';
 import ConfigurarDatas from './pages/ConfigurarDatas';
 import AdminTrabalhos from './pages/AdminTrabalhos';
 import AdminAreas from './pages/AdminAreas';
+import AdminInstituicoes from './pages/AdminInstituicoes';
+import AdminDocentes from './pages/AdminDocentes';
+import AdminApoios from './pages/AdminApoios';
 import AdminParticipantes from './pages/AdminParticipantes';
 import AdminAvaliadores from './pages/AdminAvaliadores';
 import AdminSubeventos from './pages/AdminSubeventos';
@@ -156,6 +160,17 @@ function App() {
       />
       
       <Route
+        path="/submeter-trabalho-novo"
+        element={
+          <RequireAuth>
+            <RequireRoles roles={['USER', 'MESARIO']}>
+              <SubmeterTrabalhoNovo />
+            </RequireRoles>
+          </RequireAuth>
+        }
+      />
+      
+      <Route
         path="/certificados"
         element={
           <RequireAuth>
@@ -238,6 +253,39 @@ function App() {
           <RequireAuth>
             <RequireRoles roles={['ADMIN', 'SUBADMIN']}>
               <AdminAreas />
+            </RequireRoles>
+          </RequireAuth>
+        }
+      />
+      
+      <Route
+        path="/admin/instituicoes"
+        element={
+          <RequireAuth>
+            <RequireRoles roles={['ADMIN', 'SUBADMIN']}>
+              <AdminInstituicoes />
+            </RequireRoles>
+          </RequireAuth>
+        }
+      />
+      
+      <Route
+        path="/admin/docentes"
+        element={
+          <RequireAuth>
+            <RequireRoles roles={['ADMIN', 'SUBADMIN']}>
+              <AdminDocentes />
+            </RequireRoles>
+          </RequireAuth>
+        }
+      />
+      
+      <Route
+        path="/admin/apoios"
+        element={
+          <RequireAuth>
+            <RequireRoles roles={['ADMIN', 'SUBADMIN']}>
+              <AdminApoios />
             </RequireRoles>
           </RequireAuth>
         }

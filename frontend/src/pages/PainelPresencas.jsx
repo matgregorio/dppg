@@ -6,7 +6,7 @@ import api from '../services/api';
 const PainelPresencas = () => {
   const { subeventoId } = useParams();
   const [subevento, setSubevento] = useState(null);
-  const [presencas, setPresencas] = useState([]);
+  const [inscritos, setInscritos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -19,7 +19,7 @@ const PainelPresencas = () => {
     if (!autoRefresh) return;
     
     const interval = setInterval(() => {
-      fetchPresencas();
+      fetchInscritos();
     }, 5000); // Atualiza a cada 5 segundos
     
     return () => clearInterval(interval);
@@ -28,7 +28,7 @@ const PainelPresencas = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      await Promise.all([fetchSubevento(), fetchPresencas()]);
+      await Promise.all([fetchSubevento(), fetchInscritos()]);
     } catch (err) {
       setError('Erro ao carregar dados');
     } finally {
@@ -43,10 +43,10 @@ const PainelPresencas = () => {
     }
   };
   
-  const fetchPresencas = async () => {
-    const { data } = await api.get(`/mesario/subeventos/${subeventoId}/presencas`);
+  const fetchInscritos = async () => {
+    const { data } = await api.get(`/mesario/subeventos/${subeventoId}/inscritos-presencas`);
     if (data.success) {
-      setPresencas(data.data);
+      setInscritos(data.data);
     }
   };
   
@@ -161,9 +161,13 @@ const PainelPresencas = () => {
                   </div>
                   <div className="col-md-6">
                     <div className="text-right mb-3">
+                      <span className="br-tag info large mr-2">
+                        <i className="fas fa-users mr-2"></i>
+                        {inscritos.length} Inscritos
+                      </span>
                       <span className="br-tag success large">
                         <i className="fas fa-check-circle mr-2"></i>
-                        {presencas.length} Presenças
+                        {inscritos.filter(i => i.presenca).length} Presenças
                       </span>
                     </div>
                   </div>
@@ -171,13 +175,13 @@ const PainelPresencas = () => {
               </div>
             </div>
             
-            {presencas.length === 0 ? (
+            {inscritos.length === 0 ? (
               <div className="br-card">
                 <div className="card-content text-center py-5">
-                  <i className="fas fa-user-clock fa-3x text-gray-40 mb-3"></i>
-                  <p className="text-up-01 text-weight-medium">Nenhuma presença registrada</p>
+                  <i className="fas fa-user-times fa-3x text-gray-40 mb-3"></i>
+                  <p className="text-up-01 text-weight-medium">Nenhum participante inscrito</p>
                   <p className="text-down-01">
-                    Aguardando check-in dos participantes
+                    Não há participantes inscritos neste subevento
                   </p>
                 </div>
               </div>
@@ -188,26 +192,45 @@ const PainelPresencas = () => {
                     <tr>
                       <th scope="col">Participante</th>
                       <th scope="col">CPF</th>
-                      <th scope="col">Horário</th>
+                      <th scope="col">Status</th>
+                      <th scope="col">Horário Check-in</th>
                       <th scope="col">Origem</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {presencas.map((presenca) => {
-                      // Pega o último checkin
-                      const ultimoCheckin = presenca.checkins?.[presenca.checkins.length - 1];
-                      const origem = getOrigemBadge(ultimoCheckin?.origem || 'DESCONHECIDO');
+                    {inscritos.map((inscrito) => {
+                      const ultimoCheckin = inscrito.presenca?.ultimoCheckin;
+                      const origem = ultimoCheckin ? getOrigemBadge(ultimoCheckin.origem) : null;
                       
                       return (
-                        <tr key={presenca._id}>
-                          <td>{presenca.participant?.nome || 'N/A'}</td>
-                          <td>{presenca.participant?.cpf || 'N/A'}</td>
-                          <td>{formatDateTime(ultimoCheckin?.data)}</td>
+                        <tr key={inscrito.participant._id}>
+                          <td>{inscrito.participant?.nome || 'N/A'}</td>
+                          <td>{inscrito.participant?.cpf || 'N/A'}</td>
                           <td>
-                            <span className={`br-tag ${origem.class}`}>
-                              <i className={`fas ${origem.icon} mr-1`}></i>
-                              {origem.text}
-                            </span>
+                            {inscrito.presenca ? (
+                              <span className="br-tag success">
+                                <i className="fas fa-check mr-1"></i>
+                                Presente
+                              </span>
+                            ) : (
+                              <span className="br-tag warning">
+                                <i className="fas fa-clock mr-1"></i>
+                                Aguardando
+                              </span>
+                            )}
+                          </td>
+                          <td>
+                            {inscrito.presenca ? formatDateTime(ultimoCheckin?.data) : '-'}
+                          </td>
+                          <td>
+                            {origem ? (
+                              <span className={`br-tag ${origem.class}`}>
+                                <i className={`fas ${origem.icon} mr-1`}></i>
+                                {origem.text}
+                              </span>
+                            ) : (
+                              '-'
+                            )}
                           </td>
                         </tr>
                       );

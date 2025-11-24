@@ -103,6 +103,9 @@ const Menu = () => {
                   <Link className={`menu-item ${isActive('/trabalhos')}`} to="/trabalhos" onClick={handleLinkClick}>
                     <span className="content">Meus Trabalhos</span>
                   </Link>
+                  <Link className={`menu-item ${isActive('/submeter-trabalho-novo')}`} to="/submeter-trabalho-novo" onClick={handleLinkClick}>
+                    <span className="content">Submeter Trabalho</span>
+                  </Link>
                   <Link className={`menu-item ${isActive('/certificados')}`} to="/certificados" onClick={handleLinkClick}>
                     <span className="content">Meus Certificados</span>
                   </Link>
@@ -148,6 +151,15 @@ const Menu = () => {
                   </Link>
                   <Link className={`menu-item ${isActive('/admin/areas')}`} to="/admin/areas" onClick={handleLinkClick}>
                     <span className="content">Áreas de Conhecimento</span>
+                  </Link>
+                  <Link className={`menu-item ${isActive('/admin/instituicoes')}`} to="/admin/instituicoes" onClick={handleLinkClick}>
+                    <span className="content">Instituições</span>
+                  </Link>
+                  <Link className={`menu-item ${isActive('/admin/docentes')}`} to="/admin/docentes" onClick={handleLinkClick}>
+                    <span className="content">Docentes</span>
+                  </Link>
+                  <Link className={`menu-item ${isActive('/admin/apoios')}`} to="/admin/apoios" onClick={handleLinkClick}>
+                    <span className="content">Apoios</span>
                   </Link>
                   <Link className={`menu-item ${isActive('/admin/participantes')}`} to="/admin/participantes" onClick={handleLinkClick}>
                     <span className="content">Participantes</span>

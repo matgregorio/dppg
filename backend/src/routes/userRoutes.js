@@ -174,10 +174,29 @@ const userController = {
     try {
       const InscricaoSimposio = require('../models/InscricaoSimposio');
       const Participant = require('../models/Participant');
+      const User = require('../models/User');
       
-      const participant = await Participant.findOne({ user: req.user.id });
+      let participant = await Participant.findOne({ user: req.user.id });
+      
+      // Se não existir participant, cria automaticamente baseado nos dados do usuário
       if (!participant) {
-        return res.status(400).json({ success: false, message: 'Participante não encontrado' });
+        const user = await User.findById(req.user.id);
+        if (!user) {
+          return res.status(400).json({ success: false, message: 'Usuário não encontrado' });
+        }
+        
+        // Cria o registro de participante
+        participant = await Participant.create({
+          user: user._id,
+          cpf: user.cpf,
+          nome: user.nome,
+          email: user.email,
+          telefone: user.telefone || '',
+          tipoParticipante: 'DOCENTE', // Valor padrão, pode ser alterado depois
+        });
+        
+        const { logAudit } = require('../utils/auditLogger');
+        logAudit('PARTICIPANT_AUTO_CREATED', req.user.id, { participantId: participant._id });
       }
       
       // Verifica se já existe inscrição
@@ -223,13 +242,185 @@ const userController = {
       res.status(500).json({ success: false, message: error.message });
     }
   },
+
+  inscreverSubevento: async (req, res) => {
+    try {
+      const Subevento = require('../models/Subevento');
+      const Participant = require('../models/Participant');
+      const InscricaoSimposio = require('../models/InscricaoSimposio');
+      const User = require('../models/User');
+      const subeventoId = req.params.id;
+      
+      const subevento = await Subevento.findById(subeventoId);
+      if (!subevento) {
+        return res.status(404).json({ success: false, message: 'Subevento não encontrado' });
+      }
+      
+      // Busca ou cria participante
+      let participant = await Participant.findOne({ user: req.user.id });
+      if (!participant) {
+        const user = await User.findById(req.user.id);
+        if (!user) {
+          return res.status(404).json({ success: false, message: 'Usuário não encontrado' });
+        }
+        
+        participant = await Participant.create({
+          user: user._id,
+          cpf: user.cpf,
+          nome: user.nome,
+          email: user.email,
+          telefone: user.telefone || '',
+          tipoParticipante: 'DOCENTE'
+        });
+        
+        const { logAudit } = require('../utils/auditLogger');
+        logAudit('PARTICIPANT_AUTO_CREATED', req.user.id, { 
+          participantId: participant._id,
+          reason: 'INSCRICAO_SUBEVENTO'
+        });
+      }
+      
+      // Verifica se o usuário é mesário responsável por este subevento
+      const isMesarioResponsavel = subevento.responsaveisMesarios.some(
+        mesarioId => mesarioId.toString() === req.user.id
+      );
+      
+      if (isMesarioResponsavel) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Você é mesário responsável por este subevento e não pode se inscrever como participante.'
+        });
+      }
+      
+      // Verifica se está inscrito no simpósio
+      const inscricao = await InscricaoSimposio.findOne({
+        participant: participant._id,
+        simposio: subevento.simposio,
+        status: 'ATIVA'
+      });
+      
+      if (!inscricao) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Você precisa estar inscrito no Simpósio para se inscrever em subeventos.'
+        });
+      }
+      
+      // Verifica se já está inscrito
+      if (subevento.isParticipantInscrito(participant._id)) {
+        return res.status(409).json({ 
+          success: false, 
+          message: 'Você já está inscrito neste subevento.' 
+        });
+      }
+      
+      // Verifica se há vagas disponíveis
+      if (subevento.vagas) {
+        const inscritosConfirmados = subevento.inscritos.filter(i => i.status === 'CONFIRMADO').length;
+        if (inscritosConfirmados >= subevento.vagas) {
+          return res.status(400).json({ 
+            success: false, 
+            message: 'Este subevento não possui mais vagas disponíveis.' 
+          });
+        }
+      }
+      
+      // Verifica conflito de horários
+      const conflito = await Subevento.verificarConflitoHorario(
+        participant._id,
+        subevento.data,
+        subevento.horarioInicio,
+        subevento.duracao
+      );
+      
+      if (conflito.conflito) {
+        return res.status(409).json({
+          success: false,
+          message: `Você já está inscrito em outro subevento neste horário: ${conflito.subevento.titulo}`,
+          conflito: conflito.subevento
+        });
+      }
+      
+      // Adiciona inscrição
+      subevento.inscritos.push({
+        participant: participant._id,
+        status: 'CONFIRMADO',
+        dataInscricao: new Date()
+      });
+      
+      await subevento.save();
+      
+      const { logAudit } = require('../utils/auditLogger');
+      logAudit('INSCRICAO_SUBEVENTO', req.user.id, { 
+        subeventoId: subevento._id, 
+        participantId: participant._id 
+      });
+      
+      res.json({ 
+        success: true, 
+        message: 'Inscrição realizada com sucesso!',
+        data: subevento
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
+  cancelarInscricaoSubevento: async (req, res) => {
+    try {
+      const Subevento = require('../models/Subevento');
+      const Participant = require('../models/Participant');
+      const subeventoId = req.params.id;
+      
+      const subevento = await Subevento.findById(subeventoId);
+      if (!subevento) {
+        return res.status(404).json({ success: false, message: 'Subevento não encontrado' });
+      }
+      
+      const participant = await Participant.findOne({ user: req.user.id });
+      if (!participant) {
+        return res.status(404).json({ success: false, message: 'Participante não encontrado' });
+      }
+      
+      // Verifica se está inscrito
+      const inscritoIndex = subevento.inscritos.findIndex(
+        i => i.participant.toString() === participant._id.toString() && i.status === 'CONFIRMADO'
+      );
+      
+      if (inscritoIndex === -1) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Você não está inscrito neste subevento.' 
+        });
+      }
+      
+      // Remove a inscrição
+      subevento.inscritos.splice(inscritoIndex, 1);
+      await subevento.save();
+      
+      const { logAudit } = require('../utils/auditLogger');
+      logAudit('CANCELAMENTO_INSCRICAO_SUBEVENTO', req.user.id, { 
+        subeventoId: subevento._id, 
+        participantId: participant._id 
+      });
+      
+      res.json({ 
+        success: true, 
+        message: 'Inscrição cancelada com sucesso!' 
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
 };
 
-router.get('/certificados', auth, requireRoles(['USER', 'AVALIADOR', 'SUBADMIN', 'ADMIN']), userController.getCertificados);
-router.get('/trabalhos', auth, requireRoles(['USER']), userController.getTrabalhos);
-router.get('/trabalhos/:id', auth, requireRoles(['USER']), userController.getTrabalho);
-router.post('/trabalhos', auth, requireRoles(['USER']), enforceWindow('submissaoTrabalhos'), upload.single('arquivo'), userController.submeterTrabalho);
-router.post('/inscricoes/simposio', auth, requireRoles(['USER']), enforceWindow('inscricaoParticipante'), userController.inscreverSimposio);
-router.get('/inscricoes', auth, requireRoles(['USER']), userController.getInscricoes);
+router.get('/certificados', auth, requireRoles(['USER', 'MESARIO', 'AVALIADOR', 'SUBADMIN', 'ADMIN']), userController.getCertificados);
+router.get('/trabalhos', auth, requireRoles(['USER', 'MESARIO']), userController.getTrabalhos);
+router.get('/trabalhos/:id', auth, requireRoles(['USER', 'MESARIO']), userController.getTrabalho);
+router.post('/trabalhos', auth, requireRoles(['USER', 'MESARIO']), enforceWindow('submissaoTrabalhos'), upload.single('arquivo'), userController.submeterTrabalho);
+router.post('/inscricoes/simposio', auth, requireRoles(['USER', 'MESARIO']), enforceWindow('inscricaoParticipante'), userController.inscreverSimposio);
+router.get('/inscricoes', auth, requireRoles(['USER', 'MESARIO']), userController.getInscricoes);
+router.post('/inscricoes/subevento/:id', auth, requireRoles(['USER', 'MESARIO']), userController.inscreverSubevento);
+router.delete('/inscricoes/subevento/:id', auth, requireRoles(['USER', 'MESARIO']), userController.cancelarInscricaoSubevento);
 
 module.exports = router;

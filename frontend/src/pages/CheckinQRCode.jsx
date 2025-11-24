@@ -12,6 +12,7 @@ const CheckinQRCode = () => {
   const [message, setMessage] = useState('');
   const [subeventoInfo, setSubeventoInfo] = useState(null);
   const [processed, setProcessed] = useState(false); // Flag para evitar reprocessamento
+  const [inscrevendo, setInscrevendo] = useState(false);
   const token = searchParams.get('token');
 
   useEffect(() => {
@@ -52,15 +53,28 @@ const CheckinQRCode = () => {
           setSubeventoInfo(data.data.subevento);
         }
       } catch (err) {
-        setStatus('error');
-        
-        if (err.response?.status === 409) {
+        if (err.response?.status === 403 && err.response?.data?.code === 'NOT_ENROLLED') {
+          // Participante não está inscrito - mostrar opção de inscrição
+          const subeventoData = err.response.data.data.subevento;
+          setStatus('not_enrolled');
+          setSubeventoInfo(subeventoData);
+          
+          if (subeventoData.temVagas) {
+            setMessage(`Você não está inscrito no subevento "${subeventoData.titulo || subeventoData.evento}".`);
+          } else {
+            setMessage(`Este subevento não possui mais vagas disponíveis.`);
+          }
+        } else if (err.response?.status === 409) {
+          setStatus('error');
           setMessage('Você já fez check-in neste evento anteriormente.');
         } else if (err.response?.status === 410) {
+          setStatus('error');
           setMessage('QR Code expirado. Solicite um novo QR Code ao responsável.');
         } else if (err.response?.status === 404) {
+          setStatus('error');
           setMessage('QR Code inválido ou evento não encontrado.');
         } else {
+          setStatus('error');
           setMessage(err.response?.data?.message || 'Erro ao processar check-in');
         }
       } finally {
@@ -70,6 +84,24 @@ const CheckinQRCode = () => {
 
     doCheckin();
   }, [user, authLoading, token, navigate, processed]);
+
+  const handleInscrever = async () => {
+    try {
+      setInscrevendo(true);
+      const { data } = await api.post(`/mesario/subeventos/${subeventoInfo._id}/inscrever`);
+      
+      if (data.success) {
+        // Após inscrever, refaz o check-in
+        setProcessed(false);
+        setStatus('loading');
+      }
+    } catch (err) {
+      setStatus('error');
+      setMessage(err.response?.data?.message || 'Erro ao realizar inscrição');
+    } finally {
+      setInscrevendo(false);
+    }
+  };
 
   const handleGoToInscricoes = () => {
     navigate('/inscricoes');
@@ -132,6 +164,82 @@ const CheckinQRCode = () => {
                       <i className="fas fa-list mr-2"></i>
                       Ver Minhas Inscrições
                     </button>
+                  </>
+                )}
+
+                {status === 'not_enrolled' && (
+                  <>
+                    <i className="fas fa-info-circle fa-5x text-warning mb-3"></i>
+                    <h3 className="text-up-02 text-weight-semi-bold mb-3 text-warning">
+                      Inscrição Necessária
+                    </h3>
+                    <p className="text-up-01 mb-2">{message}</p>
+                    
+                    {subeventoInfo && (
+                      <div className="br-card mb-3">
+                        <div className="card-content">
+                          <h4 className="text-weight-semi-bold mb-2">
+                            {subeventoInfo.titulo}
+                          </h4>
+                          {subeventoInfo.evento && (
+                            <p className="text-down-01 mb-1">
+                              <strong>Evento:</strong> {subeventoInfo.evento}
+                            </p>
+                          )}
+                          {subeventoInfo.vagas && (
+                            <p className="text-down-01 mb-1">
+                              <strong>Vagas disponíveis:</strong> {subeventoInfo.vagasDisponiveis} de {subeventoInfo.vagas}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {subeventoInfo?.temVagas ? (
+                      <button
+                        onClick={handleInscrever}
+                        className="br-button primary large mb-3"
+                        disabled={inscrevendo}
+                      >
+                        {inscrevendo ? (
+                          <>
+                            <span className="br-loading small mr-2"></span>
+                            Inscrevendo...
+                          </>
+                        ) : (
+                          <>
+                            <i className="fas fa-user-plus mr-2"></i>
+                            Inscreva-se Agora
+                          </>
+                        )}
+                      </button>
+                    ) : (
+                      <div className="br-message danger mb-3" role="alert">
+                        <div className="icon">
+                          <i className="fas fa-times-circle fa-lg" aria-hidden="true"></i>
+                        </div>
+                        <div className="content">
+                          Não há mais vagas disponíveis para este subevento.
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="d-flex justify-content-center gap-3">
+                      <button
+                        onClick={handleGoToInscricoes}
+                        className="br-button secondary"
+                      >
+                        <i className="fas fa-list mr-2"></i>
+                        Ver Inscrições
+                      </button>
+                      <button
+                        onClick={() => navigate('/')}
+                        className="br-button secondary"
+                      >
+                        <i className="fas fa-home mr-2"></i>
+                        Início
+                      </button>
+                    </div>
                   </>
                 )}
 

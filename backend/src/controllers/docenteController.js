@@ -1,0 +1,208 @@
+const Docente = require('../models/Docente');
+const User = require('../models/User');
+const { logAudit } = require('../utils/auditLogger');
+
+/**
+ * Listar todos os docentes
+ */
+exports.listarDocentes = async (req, res) => {
+  try {
+    const docentes = await Docente.find()
+      .populate('instituicao', 'nome sigla')
+      .populate('grandeArea', 'nome')
+      .populate('subarea', 'nome')
+      .populate('user', 'nome email')
+      .sort({ nome: 1 });
+
+    res.json({
+      success: true,
+      data: docentes,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao listar docentes',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Buscar docente por ID
+ */
+exports.buscarDocente = async (req, res) => {
+  try {
+    const docente = await Docente.findById(req.params.id)
+      .populate('instituicao')
+      .populate('grandeArea')
+      .populate('subarea')
+      .populate('user', 'nome email');
+
+    if (!docente) {
+      return res.status(404).json({
+        success: false,
+        message: 'Docente não encontrado',
+      });
+    }
+
+    res.json({
+      success: true,
+      data: docente,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao buscar docente',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Criar novo docente
+ */
+exports.criarDocente = async (req, res) => {
+  try {
+    const { nome, cpf, email, telefone, instituicao, grandeArea, subarea, visitante, userId } = req.body;
+
+    // Verifica se já existe docente com este CPF
+    const docenteExistente = await Docente.findOne({ cpf });
+    if (docenteExistente) {
+      return res.status(400).json({
+        success: false,
+        message: 'Já existe um docente cadastrado com este CPF',
+      });
+    }
+
+    // Se informado userId, verifica se o user existe
+    if (userId) {
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'Usuário não encontrado',
+        });
+      }
+    }
+
+    const docente = await Docente.create({
+      nome,
+      cpf,
+      email,
+      telefone,
+      instituicao,
+      grandeArea,
+      subarea,
+      visitante: visitante || false,
+      user: userId || null,
+    });
+
+    const docentePopulado = await Docente.findById(docente._id)
+      .populate('instituicao', 'nome sigla')
+      .populate('grandeArea', 'nome')
+      .populate('subarea', 'nome');
+
+    logAudit('DOCENTE_CREATED', req.user?.id || 'SYSTEM', {
+      docenteId: docente._id,
+      nome,
+      cpf,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Docente cadastrado com sucesso',
+      data: docentePopulado,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao criar docente',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Atualizar docente
+ */
+exports.atualizarDocente = async (req, res) => {
+  try {
+    const { nome, email, telefone, instituicao, grandeArea, subarea, visitante } = req.body;
+
+    const docente = await Docente.findById(req.params.id);
+    
+    if (!docente) {
+      return res.status(404).json({
+        success: false,
+        message: 'Docente não encontrado',
+      });
+    }
+
+    // Atualiza os campos
+    if (nome) docente.nome = nome;
+    if (email) docente.email = email;
+    if (telefone) docente.telefone = telefone;
+    if (instituicao) docente.instituicao = instituicao;
+    if (grandeArea) docente.grandeArea = grandeArea;
+    if (subarea) docente.subarea = subarea;
+    if (visitante !== undefined) docente.visitante = visitante;
+
+    await docente.save();
+
+    const docenteAtualizado = await Docente.findById(docente._id)
+      .populate('instituicao', 'nome sigla')
+      .populate('grandeArea', 'nome')
+      .populate('subarea', 'nome');
+
+    logAudit('DOCENTE_UPDATED', req.user?.id || 'SYSTEM', {
+      docenteId: docente._id,
+      changes: req.body,
+    });
+
+    res.json({
+      success: true,
+      message: 'Docente atualizado com sucesso',
+      data: docenteAtualizado,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao atualizar docente',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Excluir docente (soft delete)
+ */
+exports.excluirDocente = async (req, res) => {
+  try {
+    const docente = await Docente.findById(req.params.id);
+
+    if (!docente) {
+      return res.status(404).json({
+        success: false,
+        message: 'Docente não encontrado',
+      });
+    }
+
+    await docente.softDelete();
+
+    logAudit('DOCENTE_DELETED', req.user?.id || 'SYSTEM', {
+      docenteId: docente._id,
+      nome: docente.nome,
+    });
+
+    res.json({
+      success: true,
+      message: 'Docente excluído com sucesso',
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao excluir docente',
+      error: error.message,
+    });
+  }
+};

@@ -58,6 +58,52 @@ const MinhasInscricoes = () => {
       fetchSubeventos(simposioId);
     }
   };
+
+  const handleInscreverSubevento = async (subeventoId) => {
+    try {
+      setInscrevendo(true);
+      setError('');
+      
+      const { data } = await api.post(`/user/inscricoes/subevento/${subeventoId}`);
+      
+      if (data.success) {
+        // Recarrega os subeventos para atualizar o status
+        const inscricaoAtiva = inscricoes.find(i => i._id === inscricaoExpandida);
+        if (inscricaoAtiva) {
+          await fetchSubeventos(inscricaoAtiva.simposio._id);
+        }
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Erro ao realizar inscrição no subevento');
+    } finally {
+      setInscrevendo(false);
+    }
+  };
+
+  const handleCancelarInscricao = async (subeventoId) => {
+    if (!confirm('Deseja realmente cancelar sua inscrição neste subevento?')) {
+      return;
+    }
+
+    try {
+      setInscrevendo(true);
+      setError('');
+      
+      const { data } = await api.delete(`/user/inscricoes/subevento/${subeventoId}`);
+      
+      if (data.success) {
+        // Recarrega os subeventos para atualizar o status
+        const inscricaoAtiva = inscricoes.find(i => i._id === inscricaoExpandida);
+        if (inscricaoAtiva) {
+          await fetchSubeventos(inscricaoAtiva.simposio._id);
+        }
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Erro ao cancelar inscrição no subevento');
+    } finally {
+      setInscrevendo(false);
+    }
+  };
   
   const handleNovaInscricao = async () => {
     try {
@@ -192,7 +238,7 @@ const MinhasInscricoes = () => {
                           <div className="list-group">
                             {subeventos.map((subevento) => (
                               <div key={subevento._id} className="list-group-item p-3">
-                                <div className="d-flex justify-content-between align-items-start">
+                                <div className="d-flex justify-content-between align-items-start gap-3">
                                   <div className="flex-fill">
                                     <h6 className="text-weight-semi-bold mb-2">{subevento.titulo}</h6>
                                     {subevento.evento && (
@@ -217,19 +263,85 @@ const MinhasInscricoes = () => {
                                         {subevento.local}
                                       </p>
                                     )}
-                                    <div className="mt-2">
-                                      {subevento.presenca ? (
-                                        <span className="br-tag success">
-                                          <i className="fas fa-check-circle mr-1"></i>
-                                          Presença Confirmada
+                                    
+                                    {/* Vagas */}
+                                    {subevento.vagasTotal !== null && (
+                                      <p className="mb-1">
+                                        <i className="fas fa-users mr-2 text-primary-default"></i>
+                                        <strong>Vagas:</strong>{' '}
+                                        <span className={subevento.vagasRestantes > 0 ? 'text-success' : 'text-danger'}>
+                                          {subevento.vagasRestantes} disponíveis
                                         </span>
-                                      ) : (
+                                        {' '}de {subevento.vagasTotal}
+                                      </p>
+                                    )}
+                                    
+                                    <div className="mt-2 d-flex gap-2 flex-wrap align-items-center">
+                                      {/* Status de Mesário Responsável */}
+                                      {subevento.isMesarioResponsavel && (
                                         <span className="br-tag warning">
-                                          <i className="fas fa-clock mr-1"></i>
-                                          Aguardando Presença
+                                          <i className="fas fa-user-tie mr-1"></i>
+                                          Mesário Responsável
                                         </span>
                                       )}
+                                      
+                                      {/* Status de Inscrição */}
+                                      {!subevento.isMesarioResponsavel && (
+                                        <>
+                                          {subevento.inscrito ? (
+                                            <>
+                                              <span className="br-tag info">
+                                                <i className="fas fa-check-circle mr-1"></i>
+                                                Inscrito
+                                              </span>
+                                              {subevento.presenca && (
+                                                <span className="br-tag success">
+                                                  <i className="fas fa-clipboard-check mr-1"></i>
+                                                  Presença Confirmada
+                                                </span>
+                                              )}
+                                            </>
+                                          ) : (
+                                            <span className="br-tag">
+                                              <i className="fas fa-info-circle mr-1"></i>
+                                              Não inscrito
+                                            </span>
+                                          )}
+                                        </>
+                                      )}
                                     </div>
+                                  </div>
+                                  
+                                  {/* Botões de Ação */}
+                                  <div className="d-flex flex-column gap-2" style={{ minWidth: '140px' }}>
+                                    {subevento.isMesarioResponsavel ? (
+                                      <button
+                                        className="br-button secondary small"
+                                        disabled
+                                        title="Mesários responsáveis não podem se inscrever como participantes"
+                                      >
+                                        <i className="fas fa-ban mr-1"></i>
+                                        Mesário
+                                      </button>
+                                    ) : subevento.inscrito ? (
+                                      <button
+                                        className="br-button secondary small"
+                                        onClick={() => handleCancelarInscricao(subevento._id)}
+                                        disabled={inscrevendo}
+                                      >
+                                        <i className="fas fa-times mr-1"></i>
+                                        Cancelar
+                                      </button>
+                                    ) : (
+                                      <button
+                                        className="br-button primary small"
+                                        onClick={() => handleInscreverSubevento(subevento._id)}
+                                        disabled={inscrevendo || (subevento.vagasTotal !== null && subevento.vagasRestantes <= 0)}
+                                      >
+                                        <i className="fas fa-plus mr-1"></i>
+                                        {subevento.vagasTotal !== null && subevento.vagasRestantes <= 0 ? 'Sem vagas' : 'Inscrever'}
+                                      </button>
+                                    )}
                                   </div>
                                 </div>
                               </div>

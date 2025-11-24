@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import os from 'os';
 
@@ -12,25 +12,44 @@ const getLocalIP = () => {
       }
     }
   }
-  return 'localhost';
+  return '0.0.0.0';
 };
 
-const localIP = getLocalIP();
-
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    port: 5173,
-    host: '0.0.0.0', // Escuta em todas as interfaces de rede
-    strictPort: true, // Falha se a porta estiver em uso
-    proxy: {
-      '/api': {
-        target: `http://${localIP}:4000`,
-        changeOrigin: true,
-        secure: false,
+export default defineConfig(({ mode }) => {
+  // Carregar variáveis de ambiente
+  const env = loadEnv(mode, process.cwd(), '');
+  
+  // Detectar IP automaticamente
+  const detectedIP = getLocalIP();
+  
+  // Usar VITE_API_BASE_URL do .env se definido, senão usar IP detectado
+  const apiBaseUrl = env.VITE_API_BASE_URL || `http://${detectedIP}:4000/api/v1`;
+  
+  console.log('='.repeat(50));
+  console.log('CONFIGURAÇÃO DO VITE');
+  console.log('='.repeat(50));
+  console.log(`IP Detectado: ${detectedIP}`);
+  console.log(`API Base URL: ${apiBaseUrl}`);
+  console.log(`VITE_API_BASE_URL (.env): ${env.VITE_API_BASE_URL || '(não definido - usando detecção automática)'}`);
+  console.log('='.repeat(50));
+  
+  // Definir variável de ambiente para o Vite
+  process.env.VITE_API_BASE_URL = apiBaseUrl;
+  
+  return {
+    plugins: [react()],
+    server: {
+      port: 5173,
+      host: '0.0.0.0', // Escuta em todas as interfaces de rede
+      strictPort: true, // Falha se a porta estiver em uso
+      proxy: {
+        '/api': {
+          target: `http://${detectedIP}:4000`,
+          changeOrigin: true,
+          secure: false,
+        },
       },
     },
-  },
   build: {
     // Code splitting para chunks menores
     rollupOptions: {
@@ -77,4 +96,5 @@ export default defineConfig({
     // Aumenta limite mas com chunks otimizados não deve alertar
     chunkSizeWarningLimit: 600
   }
+  };
 });

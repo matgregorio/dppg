@@ -53,7 +53,8 @@ const AdminAreas = () => {
       if (aaRes.data.success) setAreasAtuacao(aaRes.data.data);
       if (saRes.data.success) setSubareas(saRes.data.data);
     } catch (err) {
-      setError('Erro ao carregar dados');
+      console.error('Erro ao carregar dados:', err);
+      setError('Erro ao carregar dados: ' + (err.response?.data?.message || err.message));
     } finally {
       setLoading(false);
     }

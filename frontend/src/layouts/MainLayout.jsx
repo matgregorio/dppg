@@ -9,7 +9,7 @@ const MainLayoutContent = ({ children }) => {
   const { isMenuOpen } = useMenu();
   
   return (
-    <div className="d-flex flex-column min-vh-100">
+    <div className="layout-root">
       {/* Skip Links para acessibilidade */}
       <a href="#main-content" className="skip-link">
         Pular para o conteúdo principal
@@ -25,7 +25,7 @@ const MainLayoutContent = ({ children }) => {
         <Menu />
         <main 
           id="main-content" 
-          className={`content-wrapper flex-fill ${!isMenuOpen ? 'menu-closed' : ''}`}
+          className={`content-wrapper ${!isMenuOpen ? 'menu-closed' : ''}`}
           role="main" 
           aria-label="Conteúdo principal"
         >

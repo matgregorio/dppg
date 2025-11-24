@@ -68,6 +68,7 @@ const runSeed = async () => {
     // 2. Participants
     console.log('📝 Criando participantes...');
     const participants = [];
+    // REGRA DE NEGÓCIO: Todo MESARIO é um participante, mas nem todo participante é mesário
     // Incluindo mesário (índice 4) e participantes comuns (índices 5, 6, 7 e 8)
     for (let i = 4; i <= 8; i++) {
       const user = usersCreated[i];
@@ -354,6 +355,11 @@ const runSeed = async () => {
     console.log(`   Subeventos: ${await Subevento.countDocuments()}`);
     console.log(`   Trabalhos: ${await Trabalho.countDocuments()}`);
     console.log(`   Certificados: ${await Certificado.countDocuments()}`);
+    
+    // Garantir que todos os mesários tenham Participant
+    const garantirParticipantsMesarios = require('../utils/garantirParticipantsMesarios');
+    await garantirParticipantsMesarios();
+    
     console.log('\n✅ Seed concluído com sucesso!\n');
     
     // Contas de teste

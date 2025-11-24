@@ -2,7 +2,7 @@ const { defineConfig } = require('cypress');
 
 module.exports = defineConfig({
   e2e: {
-    baseUrl: 'http://localhost:5173',
+    baseUrl: 'http://192.168.2.214:5173',
     supportFile: 'cypress/support/e2e.js',
     specPattern: 'cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
     video: false,
@@ -13,7 +13,7 @@ module.exports = defineConfig({
     requestTimeout: 10000,
     responseTimeout: 10000,
     env: {
-      apiUrl: 'http://localhost:4000/api/v1',
+      apiUrl: 'http://192.168.2.214:4000/api/v1',
     },
   },
 });

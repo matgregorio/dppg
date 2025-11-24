@@ -12,7 +12,7 @@ function getNetworkIP() {
     }
   }
   
-  return 'localhost';
+  return '0.0.0.0';
 }
 
 const networkIP = getNetworkIP();

@@ -106,6 +106,40 @@ userSchema.pre('save', async function(next) {
   next();
 });
 
+// Hook: Garantir que todo MESARIO tenha um Participant
+userSchema.post('save', async function(doc) {
+  try {
+    // Verifica se tem a role MESARIO
+    if (doc.roles && doc.roles.includes('MESARIO')) {
+      const Participant = require('./Participant');
+      
+      // Verifica se já existe Participant para este User
+      const participantExists = await Participant.findOne({ user: doc._id });
+      
+      if (!participantExists) {
+        // Cria automaticamente o Participant
+        await Participant.create({
+          user: doc._id,
+          cpf: doc.cpf,
+          nome: doc.nome,
+          email: doc.email,
+          telefone: doc.telefone || '',
+          tipoParticipante: 'DOCENTE'
+        });
+        
+        const { logAudit } = require('../utils/auditLogger');
+        logAudit('PARTICIPANT_AUTO_CREATED', doc._id, { 
+          userId: doc._id,
+          reason: 'MESARIO_ROLE_ASSIGNED'
+        });
+      }
+    }
+  } catch (error) {
+    // Log do erro mas não bloqueia a operação
+    console.error('Erro ao criar Participant para MESARIO:', error);
+  }
+});
+
 // Método para comparar senha
 userSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.senha);

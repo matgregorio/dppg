@@ -119,7 +119,7 @@ const publicController = {
       
       const subeventos = await Subevento.find({ simposio: simposioId }).sort({ data: 1, horarioInicio: 1 });
       
-      // Se houver usuário autenticado, buscar presenças dele
+      // Se houver usuário autenticado, buscar presenças e inscrições dele
       if (req.user) {
         const Presenca = require('../models/Presenca');
         const Participant = require('../models/Participant');
@@ -131,24 +131,50 @@ const publicController = {
             subevento: { $in: subeventos.map(s => s._id) }
           });
           
-          console.log(`[DEBUG] Usuário ${req.user.userId} - Participant: ${participant._id} - Presenças encontradas: ${presencas.length}`);
-          
           const presencasMap = {};
           presencas.forEach(p => {
             presencasMap[p.subevento.toString()] = true;
-            console.log(`[DEBUG] Presença confirmada no subevento: ${p.subevento}`);
           });
           
-          // Adiciona flag de presença em cada subevento
+          // Adiciona informações de presença, inscrição e vagas em cada subevento
           subeventos.forEach(s => {
+            // Verifica presença
             s._doc.presenca = presencasMap[s._id.toString()] || false;
-            console.log(`[DEBUG] Subevento ${s.titulo} - presenca: ${s._doc.presenca}`);
+            
+            // Verifica inscrição
+            const inscricao = s.inscritos.find(
+              i => i.participant.toString() === participant._id.toString() && i.status === 'CONFIRMADO'
+            );
+            s._doc.inscrito = !!inscricao;
+            
+            // Verifica se é mesário responsável
+            s._doc.isMesarioResponsavel = s.responsaveisMesarios.some(
+              mesarioId => mesarioId.toString() === req.user.userId
+            );
+            
+            // Calcula vagas restantes
+            if (s.vagas) {
+              const inscritosConfirmados = s.inscritos.filter(i => i.status === 'CONFIRMADO').length;
+              s._doc.vagasRestantes = s.vagas - inscritosConfirmados;
+              s._doc.vagasTotal = s.vagas;
+            } else {
+              s._doc.vagasRestantes = null; // Sem limite de vagas
+              s._doc.vagasTotal = null;
+            }
           });
-        } else {
-          console.log(`[DEBUG] Participante não encontrado para usuário ${req.user.userId}`);
         }
       } else {
-        console.log(`[DEBUG] Requisição sem autenticação`);
+        // Para usuários não autenticados, apenas adicionar contagem de vagas
+        subeventos.forEach(s => {
+          if (s.vagas) {
+            const inscritosConfirmados = s.inscritos.filter(i => i.status === 'CONFIRMADO').length;
+            s._doc.vagasRestantes = s.vagas - inscritosConfirmados;
+            s._doc.vagasTotal = s.vagas;
+          } else {
+            s._doc.vagasRestantes = null;
+            s._doc.vagasTotal = null;
+          }
+        });
       }
       
       res.json({ success: true, data: subeventos });
@@ -156,6 +182,62 @@ const publicController = {
       res.status(500).json({ success: false, message: error.message });
     }
   },
+};
+
+// Rotas para dados de cadastro
+publicController.getInstituicoes = async (req, res) => {
+  try {
+    const Instituicao = require('../models/Instituicao');
+    const instituicoes = await Instituicao.find({}).sort({ nome: 1 });
+    res.json({ success: true, data: instituicoes });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+publicController.getGrandesAreas = async (req, res) => {
+  try {
+    const GrandeArea = require('../models/GrandeArea');
+    const areas = await GrandeArea.find({}).sort({ nome: 1 });
+    res.json({ success: true, data: areas });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+publicController.getSubareas = async (req, res) => {
+  try {
+    const Subarea = require('../models/Subarea');
+    const subareas = await Subarea.find({}).populate('grandeArea areaAtuacao').sort({ nome: 1 });
+    res.json({ success: true, data: subareas });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+publicController.getApoios = async (req, res) => {
+  try {
+    const Apoio = require('../models/Apoio');
+    const apoios = await Apoio.find({}).sort({ nome: 1 });
+    res.json({ success: true, data: apoios });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+publicController.getDocentes = async (req, res) => {
+  try {
+    const Docente = require('../models/Docente');
+    const docentes = await Docente.find({})
+      .populate('instituicao', 'nome sigla')
+      .populate('grandeArea', 'nome')
+      .populate('subarea', 'nome')
+      .sort({ nome: 1 })
+      .select('nome cpf email instituicao grandeArea subarea visitante');
+    res.json({ success: true, data: docentes });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 };
 
 router.get('/simposios', publicController.getSimposios);
@@ -166,5 +248,12 @@ router.get('/programacao', publicController.getProgramacao);
 router.get('/certificados/validar/:hash', publicController.validarCertificado);
 router.get('/modelo-poster', publicController.getModeloPoster);
 router.get('/acervo', acervoController.listarPublico);
+
+// Rotas para dados de cadastro e submissão
+router.get('/instituicoes', publicController.getInstituicoes);
+router.get('/grande-areas', publicController.getGrandesAreas);
+router.get('/subareas', publicController.getSubareas);
+router.get('/apoios', publicController.getApoios);
+router.get('/docentes', publicController.getDocentes);
 
 module.exports = router;

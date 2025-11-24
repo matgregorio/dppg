@@ -10,7 +10,34 @@ const dayjs = require('dayjs');
  */
 exports.register = async (req, res) => {
   try {
-    const { email, senha, nome, cpf, telefone, tipoParticipante } = req.body;
+    const { 
+      email, 
+      senha, 
+      nome, 
+      cpf, 
+      telefone, 
+      tipoParticipante,
+      instituicao,
+      grandeArea,
+      subarea,
+      visitante 
+    } = req.body;
+    
+    // Validações
+    if (!instituicao) {
+      return res.status(400).json({
+        success: false,
+        message: 'Instituição é obrigatória',
+      });
+    }
+    
+    // Para DOCENTE, grande área e subárea são obrigatórias
+    if (tipoParticipante === 'DOCENTE' && (!grandeArea || !subarea)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Grande área e subárea são obrigatórias para docentes',
+      });
+    }
     
     // Verifica se o usuário já existe
     const existingUser = await User.findOne({ $or: [{ email }, { cpf }] });
@@ -31,17 +58,43 @@ exports.register = async (req, res) => {
       roles: ['USER'],
     });
     
-    // Cria o participante associado
-    const participant = await Participant.create({
+    // Cria o participante associado com os novos campos
+    const participantData = {
       user: user._id,
       cpf,
       nome,
       telefone,
       email,
-      tipoParticipante: tipoParticipante || 'DISCENTE',
-    });
+      tipoParticipante: tipoParticipante || 'ALUNO',
+      instituicao,
+    };
     
-    logAudit('USER_REGISTER', user._id.toString(), { email, nome });
+    // Adiciona campos específicos para DOCENTE
+    if (tipoParticipante === 'DOCENTE') {
+      participantData.grandeArea = grandeArea;
+      participantData.subarea = subarea;
+      participantData.visitante = visitante || false;
+    }
+    
+    const participant = await Participant.create(participantData);
+    
+    // Se for docente, também cria registro na coleção Docente
+    if (tipoParticipante === 'DOCENTE') {
+      const Docente = require('../models/Docente');
+      await Docente.create({
+        user: user._id,
+        nome,
+        cpf,
+        email,
+        telefone,
+        instituicao,
+        grandeArea,
+        subarea,
+        visitante: visitante || false,
+      });
+    }
+    
+    logAudit('USER_REGISTER', user._id.toString(), { email, nome, tipoParticipante });
     
     // Gera tokens
     const accessToken = generateAccessToken(user._id, user.roles);
@@ -310,7 +363,7 @@ exports.forgotPassword = async (req, res) => {
     console.log(`\n=== TOKEN DE RESET DE SENHA ===`);
     console.log(`Email: ${email}`);
     console.log(`Token: ${resetToken.token}`);
-    console.log(`Link: ${process.env.PUBLIC_BASE_URL || 'http://localhost:5173'}/reset-password?token=${resetToken.token}`);
+    console.log(`Link: ${process.env.FRONTEND_URL}/reset-password?token=${resetToken.token}`);
     console.log(`===============================\n`);
     
     res.json({

@@ -5,6 +5,9 @@ const requireRoles = require('../middlewares/requireRoles');
 const acervoController = require('../controllers/acervoController');
 const paginasController = require('../controllers/paginasController');
 const reportsController = require('../controllers/reportsController');
+const docenteController = require('../controllers/docenteController');
+const instituicaoController = require('../controllers/instituicaoController');
+const apoioController = require('../controllers/apoioController');
 const { uploadAcervo, uploadPagina } = require('../utils/storageService');
 
 /**
@@ -2008,10 +2011,16 @@ router.post('/trabalhos/:id/atribuir-avaliador', auth, requireRoles(['ADMIN', 'S
 router.post('/trabalhos/:id/revogar-avaliador', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.revogarAvaliador);
 
 // Áreas do Conhecimento
+// Rotas alternativas para compatibilidade
 router.get('/grandes-areas', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.getGrandeAreas);
 router.post('/grandes-areas', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.createGrandeArea);
 router.put('/grandes-areas/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.updateGrandeArea);
 router.delete('/grandes-areas/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.deleteGrandeArea);
+
+router.get('/grande-areas', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.getGrandeAreas);
+router.post('/grande-areas', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.createGrandeArea);
+router.put('/grande-areas/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.updateGrandeArea);
+router.delete('/grande-areas/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.deleteGrandeArea);
 
 router.get('/areas-atuacao', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.getAreasAtuacao);
 router.post('/areas-atuacao', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.createAreaAtuacao);
@@ -2048,6 +2057,27 @@ router.delete('/avaliacoes-externas/:id', auth, requireRoles(['ADMIN', 'SUBADMIN
 // Funções Administrativas
 router.post('/usuarios/:id/promover', auth, requireRoles(['ADMIN']), adminController.promoverUsuario);
 router.post('/simposio/finalizar-completo', auth, requireRoles(['ADMIN']), adminController.finalizarSimposioCompleto);
+
+// Docentes
+router.get('/docentes', auth, requireRoles(['ADMIN', 'SUBADMIN']), docenteController.listarDocentes);
+router.get('/docentes/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), docenteController.buscarDocente);
+router.post('/docentes', auth, requireRoles(['ADMIN', 'SUBADMIN']), docenteController.criarDocente);
+router.put('/docentes/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), docenteController.atualizarDocente);
+router.delete('/docentes/:id', auth, requireRoles(['ADMIN']), docenteController.excluirDocente);
+
+// Instituições
+router.get('/instituicoes', auth, requireRoles(['ADMIN', 'SUBADMIN']), instituicaoController.listarInstituicoes);
+router.get('/instituicoes/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), instituicaoController.buscarInstituicao);
+router.post('/instituicoes', auth, requireRoles(['ADMIN', 'SUBADMIN']), instituicaoController.criarInstituicao);
+router.put('/instituicoes/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), instituicaoController.atualizarInstituicao);
+router.delete('/instituicoes/:id', auth, requireRoles(['ADMIN']), instituicaoController.excluirInstituicao);
+
+// Apoios
+router.get('/apoios', auth, requireRoles(['ADMIN', 'SUBADMIN']), apoioController.listarApoios);
+router.get('/apoios/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), apoioController.buscarApoio);
+router.post('/apoios', auth, requireRoles(['ADMIN', 'SUBADMIN']), apoioController.criarApoio);
+router.put('/apoios/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), apoioController.atualizarApoio);
+router.delete('/apoios/:id', auth, requireRoles(['ADMIN']), apoioController.excluirApoio);
 
 // Certificados
 router.get('/certificados', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.listarCertificados);

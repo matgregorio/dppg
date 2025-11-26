@@ -7,13 +7,8 @@ import MainLayout from '../layouts/MainLayout';
 import { FormInput, FormSelect } from '../components/forms';
 import api from '../services/api';
 
-const grandeAreaSchema = z.object({
-  nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
-});
-
 const areaAtuacaoSchema = z.object({
   nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
-  grandeArea: z.string().min(1, 'Selecione uma Grande Área'),
 });
 
 const subareaSchema = z.object({
@@ -22,8 +17,7 @@ const subareaSchema = z.object({
 });
 
 const AdminAreas = () => {
-  const [activeTab, setActiveTab] = useState('grandeAreas');
-  const [grandeAreas, setGrandeAreas] = useState([]);
+  const [activeTab, setActiveTab] = useState('areasAtuacao');
   const [areasAtuacao, setAreasAtuacao] = useState([]);
   const [subareas, setSubareas] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -32,7 +26,6 @@ const AdminAreas = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   
-  const grandeAreaMethods = useForm({ resolver: zodResolver(grandeAreaSchema) });
   const areaAtuacaoMethods = useForm({ resolver: zodResolver(areaAtuacaoSchema) });
   const subareaMethods = useForm({ resolver: zodResolver(subareaSchema) });
   
@@ -43,13 +36,11 @@ const AdminAreas = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [gaRes, aaRes, saRes] = await Promise.all([
-        api.get('/admin/grandes-areas'),
+      const [aaRes, saRes] = await Promise.all([
         api.get('/admin/areas-atuacao'),
         api.get('/admin/subareas'),
       ]);
       
-      if (gaRes.data.success) setGrandeAreas(gaRes.data.data);
       if (aaRes.data.success) setAreasAtuacao(aaRes.data.data);
       if (saRes.data.success) setSubareas(saRes.data.data);
     } catch (err) {
@@ -62,21 +53,14 @@ const AdminAreas = () => {
   
   const handleCreate = (type) => {
     setEditingItem(null);
-    if (type === 'grandeArea') grandeAreaMethods.reset({ nome: '' });
-    if (type === 'areaAtuacao') areaAtuacaoMethods.reset({ nome: '', grandeArea: '' });
+    if (type === 'areaAtuacao') areaAtuacaoMethods.reset({ nome: '' });
     if (type === 'subarea') subareaMethods.reset({ nome: '', areaAtuacao: '' });
     setShowModal(type);
   };
   
   const handleEdit = (item, type) => {
     setEditingItem(item);
-    if (type === 'grandeArea') grandeAreaMethods.reset({ nome: item.nome });
-    if (type === 'areaAtuacao') {
-      areaAtuacaoMethods.reset({
-        nome: item.nome,
-        grandeArea: item.grandeArea?._id || item.grandeArea,
-      });
-    }
+    if (type === 'areaAtuacao') areaAtuacaoMethods.reset({ nome: item.nome });
     if (type === 'subarea') {
       subareaMethods.reset({
         nome: item.nome,
@@ -84,27 +68,6 @@ const AdminAreas = () => {
       });
     }
     setShowModal(type);
-  };
-  
-  const onSubmitGrandeArea = async (data) => {
-    try {
-      setError('');
-      setSuccess('');
-      
-      if (editingItem) {
-        await api.put(`/admin/grandes-areas/${editingItem._id}`, data);
-        setSuccess('Grande Área atualizada!');
-      } else {
-        await api.post('/admin/grandes-areas', data);
-        setSuccess('Grande Área criada!');
-      }
-      
-      fetchData();
-      setShowModal(false);
-      grandeAreaMethods.reset();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Erro ao salvar');
-    }
   };
   
   const onSubmitAreaAtuacao = async (data) => {
@@ -156,10 +119,7 @@ const AdminAreas = () => {
       setError('');
       setSuccess('');
       
-      if (type === 'grandeArea') {
-        await api.delete(`/admin/grandes-areas/${id}`);
-        setSuccess('Grande Área excluída!');
-      } else if (type === 'areaAtuacao') {
+      if (type === 'areaAtuacao') {
         await api.delete(`/admin/areas-atuacao/${id}`);
         setSuccess('Área de Atuação excluída!');
       } else if (type === 'subarea') {
@@ -211,12 +171,6 @@ const AdminAreas = () => {
           <nav className="tab-nav">
             <ul>
               <li
-                className={`tab-item ${activeTab === 'grandeAreas' ? 'active' : ''}`}
-                onClick={() => setActiveTab('grandeAreas')}
-              >
-                <button type="button">Grandes Áreas</button>
-              </li>
-              <li
                 className={`tab-item ${activeTab === 'areasAtuacao' ? 'active' : ''}`}
                 onClick={() => setActiveTab('areasAtuacao')}
               >
@@ -232,57 +186,6 @@ const AdminAreas = () => {
           </nav>
           
           <div className="tab-content">
-            {activeTab === 'grandeAreas' && (
-              <div className="tab-panel active">
-                <div className="d-flex justify-content-end mb-3">
-                  <button
-                    onClick={() => handleCreate('grandeArea')}
-                    className="br-button primary"
-                  >
-                    <i className="fas fa-plus mr-2"></i>Nova Grande Área
-                  </button>
-                </div>
-                
-                {loading ? (
-                  <div className="text-center"><div className="br-loading"></div></div>
-                ) : (
-                  <div className="br-table">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Nome</th>
-                          <th style={{ width: '150px' }}>Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {grandeAreas.map((item) => (
-                          <tr key={item._id}>
-                            <td>{item.nome}</td>
-                            <td>
-                              <button
-                                onClick={() => handleEdit(item, 'grandeArea')}
-                                className="br-button circle small"
-                                title="Editar"
-                              >
-                                <i className="fas fa-edit"></i>
-                              </button>
-                              <button
-                                onClick={() => handleDelete(item._id, 'grandeArea')}
-                                className="br-button circle small ml-2"
-                                title="Excluir"
-                              >
-                                <i className="fas fa-trash"></i>
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            )}
-            
             {activeTab === 'areasAtuacao' && (
               <div className="tab-panel active">
                 <div className="d-flex justify-content-end mb-3">
@@ -302,7 +205,6 @@ const AdminAreas = () => {
                       <thead>
                         <tr>
                           <th>Nome</th>
-                          <th>Grande Área</th>
                           <th style={{ width: '150px' }}>Ações</th>
                         </tr>
                       </thead>
@@ -310,7 +212,6 @@ const AdminAreas = () => {
                         {areasAtuacao.map((item) => (
                           <tr key={item._id}>
                             <td>{item.nome}</td>
-                            <td>{item.grandeArea?.nome || 'N/A'}</td>
                             <td>
                               <button
                                 onClick={() => handleEdit(item, 'areaAtuacao')}
@@ -392,33 +293,6 @@ const AdminAreas = () => {
         </div>
       </div>
       
-      {/* Modal Grande Área */}
-      {showModal === 'grandeArea' && (
-        <>
-          <div className="br-scrim" onClick={() => setShowModal(false)}></div>
-          <div className="br-modal medium" style={{ display: 'block' }}>
-            <div className="br-modal-header">
-              <h4>{editingItem ? 'Editar' : 'Nova'} Grande Área</h4>
-            </div>
-            <FormProvider {...grandeAreaMethods}>
-              <form onSubmit={grandeAreaMethods.handleSubmit(onSubmitGrandeArea)}>
-                <div className="br-modal-body">
-                  <FormInput name="nome" label="Nome" required />
-                </div>
-                <div className="br-modal-footer">
-                  <button type="button" className="br-button secondary" onClick={() => setShowModal(false)}>
-                    Cancelar
-                  </button>
-                  <button type="submit" className="br-button primary">
-                    Salvar
-                  </button>
-                </div>
-              </form>
-            </FormProvider>
-          </div>
-        </>
-      )}
-      
       {/* Modal Área Atuação */}
       {showModal === 'areaAtuacao' && (
         <>
@@ -431,12 +305,6 @@ const AdminAreas = () => {
               <form onSubmit={areaAtuacaoMethods.handleSubmit(onSubmitAreaAtuacao)}>
                 <div className="br-modal-body">
                   <FormInput name="nome" label="Nome" required />
-                  <FormSelect
-                    name="grandeArea"
-                    label="Grande Área"
-                    required
-                    options={grandeAreas.map((ga) => ({ value: ga._id, label: ga.nome }))}
-                  />
                 </div>
                 <div className="br-modal-footer">
                   <button type="button" className="br-button secondary" onClick={() => setShowModal(false)}>
@@ -464,12 +332,46 @@ const AdminAreas = () => {
               <form onSubmit={subareaMethods.handleSubmit(onSubmitSubarea)}>
                 <div className="br-modal-body">
                   <FormInput name="nome" label="Nome" required />
-                  <FormSelect
-                    name="areaAtuacao"
-                    label="Área de Atuação"
-                    required
-                    options={areasAtuacao.map((aa) => ({ value: aa._id, label: aa.nome }))}
-                  />
+                  
+                  <div className="mb-3">
+                    <div className={`br-input ${subareaMethods.formState.errors.areaAtuacao ? 'danger' : ''}`}>
+                      <label htmlFor="areaAtuacao-select">
+                        Área de Atuação <span className="text-danger">*</span>
+                      </label>
+                      <div className="input-group">
+                        <select
+                          id="areaAtuacao-select"
+                          className="form-select"
+                          style={{
+                            height: '40px',
+                            padding: '8px 12px',
+                            fontSize: '16px',
+                            lineHeight: '1.5',
+                            border: '1px solid #888',
+                            borderRadius: '4px',
+                            backgroundColor: '#fff',
+                            width: '100%'
+                          }}
+                          {...subareaMethods.register('areaAtuacao', {
+                            required: 'Selecione uma Área de Atuação'
+                          })}
+                        >
+                          <option value="">Selecione...</option>
+                          {areasAtuacao.map((aa) => (
+                            <option key={aa._id} value={aa._id}>
+                              {aa.nome}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      {subareaMethods.formState.errors.areaAtuacao && (
+                        <span className="feedback danger" role="alert">
+                          <i className="fas fa-times-circle" aria-hidden="true"></i>
+                          {subareaMethods.formState.errors.areaAtuacao.message}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
                 <div className="br-modal-footer">
                   <button type="button" className="br-button secondary" onClick={() => setShowModal(false)}>

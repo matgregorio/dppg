@@ -11,18 +11,12 @@ const mongoose = require('mongoose');
  *       properties:
  *         nome:
  *           type: string
- *         grandeArea:
- *           type: string
  */
 const areaAtuacaoSchema = new mongoose.Schema({
   nome: {
     type: String,
     required: true,
     trim: true,
-  },
-  grandeArea: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'GrandeArea',
   },
   deleted_at: {
     type: Date,
@@ -34,7 +28,6 @@ const areaAtuacaoSchema = new mongoose.Schema({
 
 // Índices
 areaAtuacaoSchema.index({ nome: 1, deleted_at: 1 }, { unique: true });
-areaAtuacaoSchema.index({ grandeArea: 1 });
 
 // Escopo padrão: não incluir deletados
 areaAtuacaoSchema.pre(/^find/, function(next) {

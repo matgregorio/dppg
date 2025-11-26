@@ -83,9 +83,9 @@ const TrabalhoDetalhesModal = ({ trabalho, isOpen, onClose, isAdmin = false }) =
               </div>
             )}
 
-            {trabalho.grandeArea && (
+            {trabalho.areaAtuacao && (
               <div className="mb-2">
-                <strong>Grande Área:</strong> {trabalho.grandeArea.nome || trabalho.grandeArea}
+                <strong>Grande Área:</strong> {trabalho.areaAtuacao.nome || trabalho.areaAtuacao}
               </div>
             )}
 

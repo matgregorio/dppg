@@ -65,9 +65,9 @@ const participantSchema = new mongoose.Schema({
     required: true,
   },
   // Campos específicos para DOCENTE
-  grandeArea: {
+  areaAtuacao: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'GrandeArea',
+    ref: 'AreaAtuacao',
   },
   subarea: {
     type: mongoose.Schema.Types.ObjectId,

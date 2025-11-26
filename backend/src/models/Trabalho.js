@@ -74,10 +74,6 @@ const trabalhoSchema = new mongoose.Schema({
   arquivo: {
     type: String, // path do arquivo
   },
-  grandeArea: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'GrandeArea',
-  },
   areaAtuacao: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'AreaAtuacao',

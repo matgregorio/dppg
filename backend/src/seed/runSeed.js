@@ -8,7 +8,7 @@ const User = require('../models/User');
 const Participant = require('../models/Participant');
 const Simposio = require('../models/Simposio');
 const InscricaoSimposio = require('../models/InscricaoSimposio');
-const GrandeArea = require('../models/GrandeArea');
+const AreaAtuacao = require('../models/AreaAtuacao');
 const AreaAtuacao = require('../models/AreaAtuacao');
 const Subarea = require('../models/Subarea');
 const PaginasEstaticas = require('../models/PaginasEstaticas');
@@ -140,14 +140,14 @@ const runSeed = async () => {
     }
     console.log(`   Nome: ${simposio.nome}\n`);
     
-    // 4. GrandeArea
+    // 4. AreaAtuacao
     console.log('📝 Criando grandes áreas...');
     const grandesAreas = ['Ciências Exatas e da Terra', 'Engenharias', 'Ciências da Saúde', 'Ciências Humanas'];
     const areasCreated = [];
     for (const nome of grandesAreas) {
-      let area = await GrandeArea.findOne({ nome });
+      let area = await AreaAtuacao.findOne({ nome });
       if (!area) {
-        area = await GrandeArea.create({ nome });
+        area = await AreaAtuacao.create({ nome });
       }
       areasCreated.push(area);
     }
@@ -157,12 +157,12 @@ const runSeed = async () => {
     console.log('📝 Criando áreas de atuação e subáreas...');
     let areaAtuacao = await AreaAtuacao.findOne({ nome: 'Ciência da Computação' });
     if (!areaAtuacao) {
-      areaAtuacao = await AreaAtuacao.create({ nome: 'Ciência da Computação', grandeArea: areasCreated[0]._id });
+      areaAtuacao = await AreaAtuacao.create({ nome: 'Ciência da Computação', AreaAtuacao: areasCreated[0]._id });
     }
     
-    let subarea = await Subarea.findOne({ nome: 'Algoritmos', grandeArea: areasCreated[0]._id });
+    let subarea = await Subarea.findOne({ nome: 'Algoritmos', AreaAtuacao: areasCreated[0]._id });
     if (!subarea) {
-      subarea = await Subarea.create({ nome: 'Algoritmos', grandeArea: areasCreated[0]._id });
+      subarea = await Subarea.create({ nome: 'Algoritmos', AreaAtuacao: areasCreated[0]._id });
     }
     console.log(`✅ Áreas de atuação e subáreas criadas\n`);
     
@@ -255,7 +255,7 @@ const runSeed = async () => {
         titulo: 'Análise de Algoritmos para Simpósios',
         autores: [{ nome: 'Autor 1', email: 'autor1@test.com' }],
         palavras_chave: ['algoritmos', 'otimização'],
-        grandeArea: areasCreated[0]._id,
+        AreaAtuacao: areasCreated[0]._id,
         areaAtuacao: areaAtuacao._id,
         subarea: subarea._id,
         simposio: simposio._id,
@@ -269,7 +269,7 @@ const runSeed = async () => {
         titulo: 'Estudo de Densidades Informacionais',
         autores: [{ nome: 'Autor 2', email: 'autor2@test.com' }],
         palavras_chave: ['informação', 'densidade'],
-        grandeArea: areasCreated[0]._id,
+        AreaAtuacao: areasCreated[0]._id,
         simposio: simposio._id,
         status: 'EM_AVALIACAO',
         atribuicoes: [
@@ -351,7 +351,7 @@ const runSeed = async () => {
     console.log(`   Participantes: ${await Participant.countDocuments()}`);
     console.log(`   Simpósios: ${await Simposio.countDocuments()}`);
     console.log(`   Inscrições: ${await InscricaoSimposio.countDocuments()}`);
-    console.log(`   Grandes Áreas: ${await GrandeArea.countDocuments()}`);
+    console.log(`   Grandes Áreas: ${await AreaAtuacao.countDocuments()}`);
     console.log(`   Subeventos: ${await Subevento.countDocuments()}`);
     console.log(`   Trabalhos: ${await Trabalho.countDocuments()}`);
     console.log(`   Certificados: ${await Certificado.countDocuments()}`);

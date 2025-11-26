@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
+import SelectGovBR from './SelectGovBR';
 
 const QRScanner = ({ onScan, onError, onClose }) => {
   const [isScanning, setIsScanning] = useState(false);
@@ -117,20 +118,17 @@ const QRScanner = ({ onScan, onError, onClose }) => {
         )}
 
         {cameras.length > 1 && !isScanning && (
-          <div className="br-input mb-3">
-            <label htmlFor="camera-select">Selecionar Câmera</label>
-            <select
+          <div className="mb-3">
+            <SelectGovBR
               id="camera-select"
-              className="br-select"
+              label="Selecionar Câmera"
               value={selectedCamera}
               onChange={(e) => setSelectedCamera(e.target.value)}
-            >
-              {cameras.map((camera) => (
-                <option key={camera.id} value={camera.id}>
-                  {camera.label || `Câmera ${camera.id}`}
-                </option>
-              ))}
-            </select>
+              options={cameras.map((camera) => ({
+                value: camera.id,
+                label: camera.label || `Câmera ${camera.id}`
+              }))}
+            />
           </div>
         )}
 

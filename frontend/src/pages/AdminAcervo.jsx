@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
+import SelectGovBR from '../components/SelectGovBR';
 import api from '../services/api';
 import useNotification from '../hooks/useNotification';
 
@@ -341,22 +342,20 @@ const AdminAcervo = () => {
                   </div>
                   
                   <div className="col-md-6 mb-3">
-                    <div className="br-select">
-                      <label htmlFor="anoEvento">Ano do Evento (Simpósio) *</label>
-                      <select
-                        id="anoEvento"
-                        value={formData.anoEvento}
-                        onChange={(e) => setFormData({ ...formData, anoEvento: e.target.value })}
-                        required
-                      >
-                        <option value="">Selecione o ano...</option>
-                        {simposios.map((simposio) => (
-                          <option key={simposio._id} value={simposio.ano}>
-                            {simposio.ano} - {simposio.titulo}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                    <SelectGovBR
+                      id="anoEvento"
+                      label="Ano do Evento (Simpósio) *"
+                      value={formData.anoEvento}
+                      onChange={(e) => setFormData({ ...formData, anoEvento: e.target.value })}
+                      placeholder="Selecione o ano..."
+                      options={[
+                        { value: '', label: 'Selecione o ano...' },
+                        ...simposios.map((simposio) => ({
+                          value: simposio.ano,
+                          label: `${simposio.ano} - ${simposio.titulo}`
+                        }))
+                      ]}
+                    />
                   </div>
                   
                   <div className="col-md-6 mb-3">

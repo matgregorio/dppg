@@ -94,6 +94,21 @@ const adminController = {
         return res.status(404).json({ success: false, message: 'Trabalho não encontrado' });
       }
       
+      // Verifica se o trabalho foi aprovado pelo orientador
+      if (trabalho.status === 'AGUARDANDO_ORIENTADOR') {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'O trabalho ainda está aguardando avaliação do orientador' 
+        });
+      }
+      
+      if (trabalho.status === 'REPROVADO_ORIENTADOR') {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'O trabalho foi reprovado pelo orientador e não pode receber avaliadores' 
+        });
+      }
+      
       // Verifica se já está atribuído
       const jaAtribuido = trabalho.atribuicoes.find(
         a => a.avaliador.toString() === avaliadorId && !a.revogado_em
@@ -142,27 +157,6 @@ const adminController = {
       logAudit('AVALIADOR_REVOGADO', req.user.id, { trabalhoId: trabalho._id, avaliadorId });
       
       res.json({ success: true, data: trabalho });
-    } catch (error) {
-      res.status(500).json({ success: false, message: error.message });
-    }
-  },
-  
-  // CRUD genérico (exemplo: GrandeArea)
-  createGrandeArea: async (req, res) => {
-    try {
-      const GrandeArea = require('../models/GrandeArea');
-      const grandeArea = await GrandeArea.create(req.body);
-      res.status(201).json({ success: true, data: grandeArea });
-    } catch (error) {
-      res.status(500).json({ success: false, message: error.message });
-    }
-  },
-  
-  getGrandeAreas: async (req, res) => {
-    try {
-      const GrandeArea = require('../models/GrandeArea');
-      const areas = await GrandeArea.find();
-      res.json({ success: true, data: areas });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
     }
@@ -259,7 +253,7 @@ const adminController = {
   getAreasAtuacao: async (req, res) => {
     try {
       const AreaAtuacao = require('../models/AreaAtuacao');
-      const areas = await AreaAtuacao.find().populate('grandeArea');
+      const areas = await AreaAtuacao.find();
       res.json({ success: true, data: areas });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
@@ -317,6 +311,7 @@ const adminController = {
     try {
       const Subarea = require('../models/Subarea');
       const subarea = await Subarea.create(req.body);
+      await subarea.populate('areaAtuacao');
       res.status(201).json({ success: true, data: subarea });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
@@ -330,6 +325,7 @@ const adminController = {
       if (!subarea) {
         return res.status(404).json({ success: false, message: 'Subárea não encontrada' });
       }
+      await subarea.populate('areaAtuacao');
       res.json({ success: true, data: subarea });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
@@ -349,33 +345,6 @@ const adminController = {
     }
   },
   
-  // Grande Área - UPDATE e DELETE
-  updateGrandeArea: async (req, res) => {
-    try {
-      const GrandeArea = require('../models/GrandeArea');
-      const area = await GrandeArea.findByIdAndUpdate(req.params.id, req.body, { new: true });
-      if (!area) {
-        return res.status(404).json({ success: false, message: 'Grande Área não encontrada' });
-      }
-      res.json({ success: true, data: area });
-    } catch (error) {
-      res.status(500).json({ success: false, message: error.message });
-    }
-  },
-  
-  deleteGrandeArea: async (req, res) => {
-    try {
-      const GrandeArea = require('../models/GrandeArea');
-      const area = await GrandeArea.findByIdAndDelete(req.params.id);
-      if (!area) {
-        return res.status(404).json({ success: false, message: 'Grande Área não encontrada' });
-      }
-      res.json({ success: true, message: 'Grande Área removida com sucesso' });
-    } catch (error) {
-      res.status(500).json({ success: false, message: error.message });
-    }
-  },
-
   // Avaliação Externa
   listarTrabalhosParaAvaliacaoExterna: async (req, res) => {
     try {
@@ -405,9 +374,8 @@ const adminController = {
       
       const trabalhos = await Trabalho.find(query)
         .populate('simposio', 'ano status')
-        .populate('grandeArea', 'nome')
         .populate('areaAtuacao', 'nome')
-        .select('titulo autores notaExterna media status simposio grandeArea areaAtuacao')
+        .select('titulo autores notaExterna media status simposio areaAtuacao subarea')
         .sort({ titulo: 1 })
         .skip(skip)
         .limit(parseInt(limit));
@@ -520,7 +488,6 @@ const adminController = {
     try {
       const Trabalho = require('../models/Trabalho');
       const Simposio = require('../models/Simposio');
-      const GrandeArea = require('../models/GrandeArea');
       const AreaAtuacao = require('../models/AreaAtuacao');
       const User = require('../models/User');
       
@@ -558,8 +525,8 @@ const adminController = {
       
       const trabalhos = await Trabalho.find(query)
         .populate('simposio', 'ano status')
-        .populate('grandeArea', 'nome')
         .populate('areaAtuacao', 'nome')
+        .populate('subarea', 'nome')
         .populate('atribuicoes.avaliador', 'nome email')
         .populate('avaliacoes.avaliador', 'nome email')
         .sort({ createdAt: -1 })
@@ -588,7 +555,6 @@ const adminController = {
       
       const trabalho = await Trabalho.findById(req.params.id)
         .populate('simposio', 'ano status')
-        .populate('grandeArea', 'nome')
         .populate('areaAtuacao', 'nome')
         .populate('subarea', 'nome')
         .populate('atribuicoes.avaliador', 'nome email')
@@ -751,13 +717,13 @@ const adminController = {
       const avaliadoresData = await Promise.all(
         users.map(async (user) => {
           const avaliador = await Avaliador.findOne({ user: user._id })
-            .populate('areasConhecimento');
+            .populate('areasPreferencia');
           return {
             _id: user._id,
             nome: user.nome,
             email: user.email,
             cpf: user.cpf,
-            areasConhecimento: avaliador?.areasConhecimento || [],
+            areasPreferencia: avaliador?.areasPreferencia || [],
             lattes: avaliador?.lattes || '',
           };
         })
@@ -785,7 +751,7 @@ const adminController = {
       const Avaliador = require('../models/Avaliador');
       const bcrypt = require('bcryptjs');
       
-      const { nome, email, cpf, senha, areasConhecimento, lattes } = req.body;
+      const { nome, email, cpf, senha, areasPreferencia, lattes } = req.body;
       
       // Verifica se já existe
       const existente = await User.findOne({ email });
@@ -806,7 +772,7 @@ const adminController = {
       // Cria registro de avaliador
       await Avaliador.create({
         user: user._id,
-        areasConhecimento: areasConhecimento || [],
+        areasPreferencia: areasPreferencia || [],
         lattes: lattes || '',
       });
       
@@ -825,7 +791,7 @@ const adminController = {
       const User = require('../models/User');
       const Avaliador = require('../models/Avaliador');
       
-      const { nome, email, cpf, areasConhecimento, lattes } = req.body;
+      const { nome, email, cpf, areasPreferencia, lattes } = req.body;
       
       const user = await User.findById(req.params.id);
       if (!user) {
@@ -844,7 +810,7 @@ const adminController = {
         avaliador = await Avaliador.create({ user: user._id });
       }
       
-      if (areasConhecimento) avaliador.areasConhecimento = areasConhecimento;
+      if (areasPreferencia) avaliador.areasPreferencia = areasPreferencia;
       if (lattes !== undefined) avaliador.lattes = lattes;
       await avaliador.save();
       
@@ -2011,17 +1977,6 @@ router.post('/trabalhos/:id/atribuir-avaliador', auth, requireRoles(['ADMIN', 'S
 router.post('/trabalhos/:id/revogar-avaliador', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.revogarAvaliador);
 
 // Áreas do Conhecimento
-// Rotas alternativas para compatibilidade
-router.get('/grandes-areas', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.getGrandeAreas);
-router.post('/grandes-areas', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.createGrandeArea);
-router.put('/grandes-areas/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.updateGrandeArea);
-router.delete('/grandes-areas/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.deleteGrandeArea);
-
-router.get('/grande-areas', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.getGrandeAreas);
-router.post('/grande-areas', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.createGrandeArea);
-router.put('/grande-areas/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.updateGrandeArea);
-router.delete('/grande-areas/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.deleteGrandeArea);
-
 router.get('/areas-atuacao', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.getAreasAtuacao);
 router.post('/areas-atuacao', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.createAreaAtuacao);
 router.put('/areas-atuacao/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.updateAreaAtuacao);
@@ -2031,10 +1986,6 @@ router.get('/subareas', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminControll
 router.post('/subareas', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.createSubarea);
 router.put('/subareas/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.updateSubarea);
 router.delete('/subareas/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.deleteSubarea);
-
-// CRUD (legacy - mantido para compatibilidade)
-router.post('/grande-area', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.createGrandeArea);
-router.get('/grande-area', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.getGrandeAreas);
 
 // Acervo
 router.get('/acervo', auth, requireRoles(['ADMIN', 'SUBADMIN']), acervoController.listar);

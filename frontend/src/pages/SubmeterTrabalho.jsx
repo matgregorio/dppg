@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,11 +8,15 @@ import api from '../services/api';
 
 const trabalhoSchema = z.object({
   titulo: z.string().min(10, 'Título deve ter no mínimo 10 caracteres'),
+  resumo: z.string().min(100, 'Resumo deve ter no mínimo 100 caracteres'),
   autores: z.string().min(1, 'Informe ao menos um autor'),
   palavras_chave: z.string().min(1, 'Informe ao menos uma palavra-chave'),
-  grandeArea: z.string().optional(),
-  areaAtuacao: z.string().optional(),
-  subarea: z.string().optional(),
+  tipoProjeto: z.enum(['PESQUISA', 'EXTENSAO', 'ENSINO'], {
+    errorMap: () => ({ message: 'Selecione o tipo de projeto' })
+  }),
+  orientador: z.string().min(1, 'Selecione um orientador'),
+  areaAtuacao: z.string().min(1, 'Selecione uma Área de Atuação'),
+  subarea: z.string().min(1, 'Selecione uma Subárea'),
 });
 
 const SubmeterTrabalho = () => {
@@ -20,14 +24,94 @@ const SubmeterTrabalho = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [arquivo, setArquivo] = useState(null);
+  const [areasAtuacao, setAreasAtuacao] = useState([]);
+  const [subareas, setSubareas] = useState([]);
+  const [subareasFiltradas, setSubareasFiltradas] = useState([]);
+  const [docentes, setDocentes] = useState([]);
+  
+  // Estados para autocomplete de orientador
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [filteredDocentes, setFilteredDocentes] = useState([]);
+  const [selectedOrientador, setSelectedOrientador] = useState(null);
   
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(trabalhoSchema),
   });
+
+  const areaAtuacaoSelecionada = watch('areaAtuacao');
+
+  // Carregar áreas de atuação, subáreas e docentes
+  useEffect(() => {
+    const carregarDados = async () => {
+      try {
+        const [aaRes, saRes, docRes] = await Promise.all([
+          api.get('/public/areas-atuacao'),
+          api.get('/public/subareas'),
+          api.get('/public/docentes'),
+        ]);
+        
+        if (aaRes.data.success) setAreasAtuacao(aaRes.data.data);
+        if (saRes.data.success) setSubareas(saRes.data.data);
+        if (docRes.data.success) setDocentes(docRes.data.data);
+      } catch (err) {
+        console.error('Erro ao carregar dados:', err);
+      }
+    };
+    
+    carregarDados();
+  }, []);
+
+  // Filtrar subáreas quando a área de atuação muda
+  useEffect(() => {
+    if (areaAtuacaoSelecionada) {
+      const filtradas = subareas.filter(
+        (sub) => sub.areaAtuacao?._id === areaAtuacaoSelecionada || sub.areaAtuacao === areaAtuacaoSelecionada
+      );
+      setSubareasFiltradas(filtradas);
+    } else {
+      setSubareasFiltradas([]);
+    }
+  }, [areaAtuacaoSelecionada, subareas]);
+
+  // Filtrar docentes conforme o usuário digita
+  useEffect(() => {
+    if (searchTerm.trim().length > 0) {
+      const filtered = docentes.filter((doc) =>
+        doc.nome.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredDocentes(filtered);
+    } else {
+      setFilteredDocentes([]);
+    }
+  }, [searchTerm, docentes]);
+
+  // Função para selecionar um orientador do autocomplete
+  const handleSelectOrientador = (docente) => {
+    setSelectedOrientador(docente);
+    setSearchTerm(docente.nome);
+    setValue('orientador', docente._id);
+    setShowSuggestions(false);
+  };
+
+  // Fechar sugestões ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const autocompleteContainer = document.getElementById('orientador');
+      if (autocompleteContainer && !autocompleteContainer.closest('.mb-3').contains(event.target)) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   
   const onSubmit = async (formData) => {
     try {
@@ -47,11 +131,13 @@ const SubmeterTrabalho = () => {
       // Criar FormData
       const data = new FormData();
       data.append('titulo', formData.titulo);
+      data.append('resumo', formData.resumo);
       data.append('autores', JSON.stringify(autoresArray));
       data.append('palavras_chave', JSON.stringify(palavrasChaveArray));
-      if (formData.grandeArea) data.append('grandeArea', formData.grandeArea);
-      if (formData.areaAtuacao) data.append('areaAtuacao', formData.areaAtuacao);
-      if (formData.subarea) data.append('subarea', formData.subarea);
+      data.append('tipoProjeto', formData.tipoProjeto);
+      data.append('orientador', formData.orientador);
+      data.append('areaAtuacao', formData.areaAtuacao);
+      data.append('subarea', formData.subarea);
       if (arquivo) data.append('arquivo', arquivo);
       data.append('ano', new Date().getFullYear());
       
@@ -131,6 +217,26 @@ const SubmeterTrabalho = () => {
                   </span>
                 )}
               </div>
+
+              <div className="br-textarea mb-3">
+                <label htmlFor="resumo">
+                  Resumo <span className="text-danger">*</span>
+                  <span className="text-down-01 ml-2">(mínimo 100 caracteres)</span>
+                </label>
+                <textarea
+                  {...register('resumo')}
+                  id="resumo"
+                  rows="6"
+                  placeholder="Descreva o resumo do seu trabalho..."
+                  className={errors.resumo ? 'danger' : ''}
+                />
+                {errors.resumo && (
+                  <span className="feedback danger" role="alert">
+                    <i className="fas fa-times-circle" aria-hidden="true"></i>
+                    {errors.resumo.message}
+                  </span>
+                )}
+              </div>
               
               <div className="br-textarea mb-3">
                 <label htmlFor="autores">
@@ -170,6 +276,221 @@ const SubmeterTrabalho = () => {
                     {errors.palavras_chave.message}
                   </span>
                 )}
+              </div>
+
+              <div className="mb-3">
+                <div className={`br-input ${errors.tipoProjeto ? 'danger' : ''}`}>
+                  <label htmlFor="tipoProjeto">
+                    Tipo de Projeto <span className="text-danger">*</span>
+                  </label>
+                  <select
+                    id="tipoProjeto"
+                    style={{
+                      height: '40px',
+                      padding: '8px 12px',
+                      fontSize: '16px',
+                      lineHeight: '1.5',
+                      border: '1px solid #888',
+                      borderRadius: '4px',
+                      backgroundColor: '#fff',
+                      width: '100%'
+                    }}
+                    {...register('tipoProjeto')}
+                  >
+                    <option value="">Selecione...</option>
+                    <option value="PESQUISA">Pesquisa</option>
+                    <option value="EXTENSAO">Extensão</option>
+                    <option value="ENSINO">Ensino</option>
+                  </select>
+                  {errors.tipoProjeto && (
+                    <span className="feedback danger" role="alert">
+                      <i className="fas fa-times-circle" aria-hidden="true"></i>
+                      {errors.tipoProjeto.message}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="mb-3" style={{ position: 'relative' }}>
+                <div className={`br-input ${errors.orientador ? 'danger' : ''}`}>
+                  <label htmlFor="orientador">
+                    Orientador <span className="text-danger">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="orientador"
+                    placeholder="Digite o nome do orientador..."
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setShowSuggestions(true);
+                      if (!e.target.value) {
+                        setValue('orientador', '');
+                        setSelectedOrientador(null);
+                      }
+                    }}
+                    onFocus={() => setShowSuggestions(true)}
+                    autoComplete="off"
+                    style={{
+                      height: '40px',
+                      padding: '8px 12px',
+                      fontSize: '16px',
+                      lineHeight: '1.5',
+                      border: '1px solid #888',
+                      borderRadius: '4px',
+                      backgroundColor: '#fff',
+                      width: '100%'
+                    }}
+                  />
+                  <input type="hidden" {...register('orientador')} />
+                  {errors.orientador && (
+                    <span className="feedback danger" role="alert">
+                      <i className="fas fa-times-circle" aria-hidden="true"></i>
+                      {errors.orientador.message}
+                    </span>
+                  )}
+                </div>
+                
+                {/* Lista de sugestões */}
+                {showSuggestions && searchTerm && filteredDocentes.length > 0 && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      zIndex: 1000,
+                      backgroundColor: '#fff',
+                      border: '1px solid #888',
+                      borderTop: 'none',
+                      borderRadius: '0 0 4px 4px',
+                      maxHeight: '200px',
+                      overflowY: 'auto',
+                      boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                    }}
+                  >
+                    {filteredDocentes.map((doc) => (
+                      <div
+                        key={doc._id}
+                        onClick={() => handleSelectOrientador(doc)}
+                        style={{
+                          padding: '10px 12px',
+                          cursor: 'pointer',
+                          borderBottom: '1px solid #e0e0e0',
+                          fontSize: '14px'
+                        }}
+                        onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                        onMouseLeave={(e) => e.target.style.backgroundColor = '#fff'}
+                      >
+                        <div style={{ fontWeight: '500' }}>{doc.nome}</div>
+                        {doc.instituicao?.nome && (
+                          <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>
+                            {doc.instituicao.nome}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {showSuggestions && searchTerm && filteredDocentes.length === 0 && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      zIndex: 1000,
+                      backgroundColor: '#fff',
+                      border: '1px solid #888',
+                      borderTop: 'none',
+                      borderRadius: '0 0 4px 4px',
+                      padding: '10px 12px',
+                      color: '#666',
+                      fontSize: '14px',
+                      boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                    }}
+                  >
+                    Nenhum orientador encontrado
+                  </div>
+                )}
+              </div>
+
+              <div className="mb-3">
+                <div className={`br-input ${errors.areaAtuacao ? 'danger' : ''}`}>
+                  <label htmlFor="areaAtuacao">
+                    Área de Atuação <span className="text-danger">*</span>
+                  </label>
+                  <select
+                    id="areaAtuacao"
+                    style={{
+                      height: '40px',
+                      padding: '8px 12px',
+                      fontSize: '16px',
+                      lineHeight: '1.5',
+                      border: '1px solid #888',
+                      borderRadius: '4px',
+                      backgroundColor: '#fff',
+                      width: '100%'
+                    }}
+                    {...register('areaAtuacao')}
+                  >
+                    <option value="">Selecione...</option>
+                    {areasAtuacao.map((area) => (
+                      <option key={area._id} value={area._id}>
+                        {area.nome}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.areaAtuacao && (
+                    <span className="feedback danger" role="alert">
+                      <i className="fas fa-times-circle" aria-hidden="true"></i>
+                      {errors.areaAtuacao.message}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <div className={`br-input ${errors.subarea ? 'danger' : ''}`}>
+                  <label htmlFor="subarea">
+                    Subárea <span className="text-danger">*</span>
+                  </label>
+                  <select
+                    id="subarea"
+                    style={{
+                      height: '40px',
+                      padding: '8px 12px',
+                      fontSize: '16px',
+                      lineHeight: '1.5',
+                      border: '1px solid #888',
+                      borderRadius: '4px',
+                      backgroundColor: '#fff',
+                      width: '100%'
+                    }}
+                    {...register('subarea')}
+                    disabled={!areaAtuacaoSelecionada || subareasFiltradas.length === 0}
+                  >
+                    <option value="">
+                      {!areaAtuacaoSelecionada 
+                        ? 'Selecione primeiro uma Área de Atuação' 
+                        : subareasFiltradas.length === 0 
+                        ? 'Nenhuma subárea disponível'
+                        : 'Selecione...'}
+                    </option>
+                    {subareasFiltradas.map((sub) => (
+                      <option key={sub._id} value={sub._id}>
+                        {sub.nome}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.subarea && (
+                    <span className="feedback danger" role="alert">
+                      <i className="fas fa-times-circle" aria-hidden="true"></i>
+                      {errors.subarea.message}
+                    </span>
+                  )}
+                </div>
               </div>
               
               <div className="br-upload mb-3">

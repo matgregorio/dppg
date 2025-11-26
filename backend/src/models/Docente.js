@@ -27,9 +27,9 @@ const mongoose = require('mongoose');
  *         instituicao:
  *           type: string
  *           description: Referência à Instituição
- *         grandeArea:
+ *         areaAtuacao:
  *           type: string
- *           description: Referência à Grande Área
+ *           description: Referência à Área de Atuação
  *         subarea:
  *           type: string
  *           description: Referência à Subárea
@@ -68,9 +68,9 @@ const docenteSchema = new mongoose.Schema({
     ref: 'Instituicao',
     required: true,
   },
-  grandeArea: {
+  areaAtuacao: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'GrandeArea',
+    ref: 'AreaAtuacao',
     required: true,
   },
   subarea: {

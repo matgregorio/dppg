@@ -29,7 +29,7 @@ const avaliadorSchema = new mongoose.Schema({
   },
   areasPreferencia: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'GrandeArea',
+    ref: 'AreaAtuacao',
   }],
   ativo: {
     type: Boolean,

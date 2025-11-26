@@ -239,7 +239,7 @@ const AvaliacoesExternas = () => {
                         </small>
                       </td>
                       <td>
-                        {trabalho.grandeArea?.nome || '-'}
+                        {trabalho.areaAtuacao?.nome || '-'}
                         {trabalho.areaAtuacao && (
                           <>
                             <br />

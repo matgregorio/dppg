@@ -18,7 +18,7 @@ exports.register = async (req, res) => {
       telefone, 
       tipoParticipante,
       instituicao,
-      grandeArea,
+      areaAtuacao,
       subarea,
       visitante 
     } = req.body;
@@ -31,11 +31,11 @@ exports.register = async (req, res) => {
       });
     }
     
-    // Para DOCENTE, grande área e subárea são obrigatórias
-    if (tipoParticipante === 'DOCENTE' && (!grandeArea || !subarea)) {
+    // Para DOCENTE, área de atuação e subárea são obrigatórias
+    if (tipoParticipante === 'DOCENTE' && (!areaAtuacao || !subarea)) {
       return res.status(400).json({
         success: false,
-        message: 'Grande área e subárea são obrigatórias para docentes',
+        message: 'Área de atuação e subárea são obrigatórias para docentes',
       });
     }
     
@@ -71,7 +71,7 @@ exports.register = async (req, res) => {
     
     // Adiciona campos específicos para DOCENTE
     if (tipoParticipante === 'DOCENTE') {
-      participantData.grandeArea = grandeArea;
+      participantData.areaAtuacao = areaAtuacao;
       participantData.subarea = subarea;
       participantData.visitante = visitante || false;
     }
@@ -88,7 +88,7 @@ exports.register = async (req, res) => {
         email,
         telefone,
         instituicao,
-        grandeArea,
+        areaAtuacao,
         subarea,
         visitante: visitante || false,
       });

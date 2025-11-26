@@ -8,11 +8,11 @@ const mongoose = require('mongoose');
  *       type: object
  *       required:
  *         - nome
- *         - grandeArea
+ *         - areaAtuacao
  *       properties:
  *         nome:
  *           type: string
- *         grandeArea:
+ *         areaAtuacao:
  *           type: string
  */
 const subareaSchema = new mongoose.Schema({
@@ -21,9 +21,9 @@ const subareaSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
-  grandeArea: {
+  areaAtuacao: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'GrandeArea',
+    ref: 'AreaAtuacao',
     required: true,
   },
   deleted_at: {
@@ -34,9 +34,9 @@ const subareaSchema = new mongoose.Schema({
   timestamps: true,
 });
 
-// Índice único composto (nome + grandeArea)
+// Índice único composto (nome + areaAtuacao)
 subareaSchema.index(
-  { nome: 1, grandeArea: 1, deleted_at: 1 },
+  { nome: 1, areaAtuacao: 1, deleted_at: 1 },
   { unique: true }
 );
 

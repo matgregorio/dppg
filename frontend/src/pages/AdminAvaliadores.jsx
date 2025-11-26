@@ -16,7 +16,7 @@ const AdminAvaliadores = () => {
     totalPages: 0,
   });
   const [busca, setBusca] = useState('');
-  const [grandesAreas, setGrandesAreas] = useState([]);
+  const [areasAtuacao, setareasAtuacao] = useState([]);
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
@@ -29,7 +29,7 @@ const AdminAvaliadores = () => {
 
   useEffect(() => {
     fetchAvaliadores();
-    fetchGrandesAreas();
+    fetchareasAtuacao();
   }, [pagination.page, busca]);
 
   const fetchAvaliadores = async () => {
@@ -57,11 +57,11 @@ const AdminAvaliadores = () => {
     }
   };
 
-  const fetchGrandesAreas = async () => {
+  const fetchareasAtuacao = async () => {
     try {
       const { data } = await api.get('/admin/grandes-areas');
       if (data.success) {
-        setGrandesAreas(data.data);
+        setareasAtuacao(data.data);
       }
     } catch (err) {
       console.error('Erro ao carregar áreas:', err);
@@ -422,7 +422,7 @@ const AdminAvaliadores = () => {
                     <strong>Áreas de Conhecimento</strong>
                   </label>
                   <div className="row">
-                    {grandesAreas.map((area) => (
+                    {areasAtuacao.map((area) => (
                       <div key={area._id} className="col-md-4 mb-2">
                         <div className="br-checkbox">
                           <input

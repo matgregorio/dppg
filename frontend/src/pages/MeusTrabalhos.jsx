@@ -171,10 +171,10 @@ const MeusTrabalhos = () => {
                     
                     <div className="row mb-3">
                       <div className="col-md-4">
-                        {trabalho.grandeArea && (
+                        {trabalho.areaAtuacao && (
                           <div className="mb-2">
                             <strong><i className="fas fa-book mr-2 text-primary-default"></i>Grande Área:</strong>
-                            <div className="ml-4 text-down-01">{trabalho.grandeArea.nome}</div>
+                            <div className="ml-4 text-down-01">{trabalho.areaAtuacao.nome}</div>
                           </div>
                         )}
                       </div>

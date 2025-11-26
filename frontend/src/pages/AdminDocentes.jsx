@@ -13,7 +13,7 @@ const docenteSchema = z.object({
   email: z.string().email('Email inválido'),
   telefone: z.string().optional(),
   instituicao: z.string().min(1, 'Instituição é obrigatória'),
-  grandeArea: z.string().min(1, 'Grande área é obrigatória'),
+  areaAtuacao: z.string().min(1, 'Área de Atuação é obrigatória'),
   subarea: z.string().min(1, 'Subárea é obrigatória'),
   visitante: z.boolean().optional(),
 });
@@ -21,7 +21,7 @@ const docenteSchema = z.object({
 const AdminDocentes = () => {
   const [docentes, setDocentes] = useState([]);
   const [instituicoes, setInstituicoes] = useState([]);
-  const [grandesAreas, setGrandesAreas] = useState([]);
+  const [areasAtuacao, setareasAtuacao] = useState([]);
   const [subareas, setSubareas] = useState([]);
   const [filteredSubareas, setFilteredSubareas] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -31,7 +31,7 @@ const AdminDocentes = () => {
   const [editingItem, setEditingItem] = useState(null);
   
   const methods = useForm({ resolver: zodResolver(docenteSchema) });
-  const watchGrandeArea = methods.watch('grandeArea');
+  const watchAreaAtuacao = methods.watch('areaAtuacao');
   
   useEffect(() => {
     fetchData();
@@ -39,14 +39,16 @@ const AdminDocentes = () => {
   }, []);
   
   useEffect(() => {
-    if (watchGrandeArea) {
+    if (watchAreaAtuacao) {
       const filtered = subareas.filter(s => 
-        s.areaAtuacao?.grandeArea?._id === watchGrandeArea ||
-        s.areaAtuacao?.grandeArea === watchGrandeArea
+        s.areaAtuacao?._id === watchAreaAtuacao ||
+        s.areaAtuacao === watchAreaAtuacao
       );
       setFilteredSubareas(filtered);
+    } else {
+      setFilteredSubareas([]);
     }
-  }, [watchGrandeArea, subareas]);
+  }, [watchAreaAtuacao, subareas]);
   
   const fetchData = async () => {
     try {
@@ -68,12 +70,12 @@ const AdminDocentes = () => {
     try {
       const [instRes, gaRes, saRes] = await Promise.all([
         api.get('/public/instituicoes'),
-        api.get('/public/grande-areas'),
+        api.get('/public/areas-atuacao'),
         api.get('/public/subareas'),
       ]);
       
       if (instRes.data.success) setInstituicoes(instRes.data.data);
-      if (gaRes.data.success) setGrandesAreas(gaRes.data.data);
+      if (gaRes.data.success) setareasAtuacao(gaRes.data.data);
       if (saRes.data.success) setSubareas(saRes.data.data);
     } catch (err) {
       console.error('Erro ao carregar dados do formulário:', err);
@@ -88,7 +90,7 @@ const AdminDocentes = () => {
       email: '',
       telefone: '',
       instituicao: '',
-      grandeArea: '',
+      areaAtuacao: '',
       subarea: '',
       visitante: false,
     });
@@ -103,7 +105,7 @@ const AdminDocentes = () => {
       email: item.email,
       telefone: item.telefone || '',
       instituicao: item.instituicao?._id || item.instituicao,
-      grandeArea: item.grandeArea?._id || item.grandeArea,
+      areaAtuacao: item.areaAtuacao?._id || item.areaAtuacao,
       subarea: item.subarea?._id || item.subarea,
       visitante: item.visitante || false,
     });
@@ -203,7 +205,7 @@ const AdminDocentes = () => {
                   <th>CPF</th>
                   <th>Email</th>
                   <th>Instituição</th>
-                  <th>Grande Área</th>
+                  <th>Área de Atuação</th>
                   <th>Subárea</th>
                   <th>Visitante</th>
                   <th style={{ width: '150px' }}>Ações</th>
@@ -223,7 +225,7 @@ const AdminDocentes = () => {
                       <td>{item.cpf}</td>
                       <td>{item.email}</td>
                       <td>{item.instituicao?.nome || '-'}</td>
-                      <td>{item.grandeArea?.nome || '-'}</td>
+                      <td>{item.areaAtuacao?.nome || '-'}</td>
                       <td>{item.subarea?.nome || '-'}</td>
                       <td>{item.visitante ? 'Sim' : 'Não'}</td>
                       <td>
@@ -280,30 +282,116 @@ const AdminDocentes = () => {
                     </div>
                   </div>
                   
-                  <FormSelect
-                    name="instituicao"
-                    label="Instituição"
-                    required
-                    options={instituicoes.map(i => ({ value: i._id, label: i.nome }))}
-                  />
+                  <div className="mb-3">
+                    <div className={`br-input ${methods.formState.errors.instituicao ? 'danger' : ''}`}>
+                      <label htmlFor="instituicao">
+                        Instituição <span className="text-danger">*</span>
+                      </label>
+                      <select
+                        id="instituicao"
+                        style={{
+                          height: '40px',
+                          padding: '8px 12px',
+                          fontSize: '16px',
+                          lineHeight: '1.5',
+                          border: '1px solid #888',
+                          borderRadius: '4px',
+                          backgroundColor: '#fff',
+                          width: '100%'
+                        }}
+                        {...methods.register('instituicao')}
+                      >
+                        <option value="">Selecione...</option>
+                        {instituicoes.map(i => (
+                          <option key={i._id} value={i._id}>
+                            {i.nome}
+                          </option>
+                        ))}
+                      </select>
+                      {methods.formState.errors.instituicao && (
+                        <span className="feedback danger" role="alert">
+                          <i className="fas fa-times-circle" aria-hidden="true"></i>
+                          {methods.formState.errors.instituicao.message}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                   
                   <div className="row">
                     <div className="col-md-6">
-                      <FormSelect
-                        name="grandeArea"
-                        label="Grande Área"
-                        required
-                        options={grandesAreas.map(ga => ({ value: ga._id, label: ga.nome }))}
-                      />
+                      <div className="mb-3">
+                        <div className={`br-input ${methods.formState.errors.areaAtuacao ? 'danger' : ''}`}>
+                          <label htmlFor="areaAtuacao">
+                            Área de Atuação <span className="text-danger">*</span>
+                          </label>
+                          <select
+                            id="areaAtuacao"
+                            style={{
+                              height: '40px',
+                              padding: '8px 12px',
+                              fontSize: '16px',
+                              lineHeight: '1.5',
+                              border: '1px solid #888',
+                              borderRadius: '4px',
+                              backgroundColor: '#fff',
+                              width: '100%'
+                            }}
+                            {...methods.register('areaAtuacao')}
+                          >
+                            <option value="">Selecione...</option>
+                            {areasAtuacao.map(ga => (
+                              <option key={ga._id} value={ga._id}>
+                                {ga.nome}
+                              </option>
+                            ))}
+                          </select>
+                          {methods.formState.errors.areaAtuacao && (
+                            <span className="feedback danger" role="alert">
+                              <i className="fas fa-times-circle" aria-hidden="true"></i>
+                              {methods.formState.errors.areaAtuacao.message}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
                     <div className="col-md-6">
-                      <FormSelect
-                        name="subarea"
-                        label="Subárea"
-                        required
-                        options={filteredSubareas.map(sa => ({ value: sa._id, label: sa.nome }))}
-                        disabled={!watchGrandeArea}
-                      />
+                      <div className="mb-3">
+                        <div className={`br-input ${methods.formState.errors.subarea ? 'danger' : ''}`}>
+                          <label htmlFor="subarea">
+                            Subárea <span className="text-danger">*</span>
+                          </label>
+                          <select
+                            id="subarea"
+                            style={{
+                              height: '40px',
+                              padding: '8px 12px',
+                              fontSize: '16px',
+                              lineHeight: '1.5',
+                              border: '1px solid #888',
+                              borderRadius: '4px',
+                              backgroundColor: '#fff',
+                              width: '100%'
+                            }}
+                            {...methods.register('subarea')}
+                            disabled={!watchAreaAtuacao}
+                          >
+                            <option value="">
+                              {!watchAreaAtuacao ? 'Selecione primeiro uma Área de Atuação' : 'Selecione...'}
+                            </option>
+                            {filteredSubareas.map(sa => (
+                              <option key={sa._id} value={sa._id}>
+                                {sa.nome}
+                              </option>
+                            ))}
+                          </select>
+                          {methods.formState.errors.subarea && (
+                            <span className="feedback danger" role="alert">
+                              <i className="fas fa-times-circle" aria-hidden="true"></i>
+                              {methods.formState.errors.subarea.message}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                   

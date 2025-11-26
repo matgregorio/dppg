@@ -132,6 +132,16 @@ const Menu = () => {
                 </>
               )}
               
+              {isAuthenticated && hasRole(['DOCENTE']) && (
+                <>
+                  <div className="br-divider my-3"></div>
+                  <div className="menu-title">Orientador</div>
+                  <Link className={`menu-item ${isActive('/orientador/trabalhos')}`} to="/orientador/trabalhos" onClick={handleLinkClick}>
+                    <span className="content">Trabalhos Orientados</span>
+                  </Link>
+                </>
+              )}
+              
               {isAuthenticated && hasRole(['ADMIN', 'SUBADMIN']) && (
                 <>
                   <div className="br-divider my-3"></div>

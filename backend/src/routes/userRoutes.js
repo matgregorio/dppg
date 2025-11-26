@@ -32,7 +32,6 @@ const userController = {
     try {
       const Trabalho = require('../models/Trabalho');
       const Participant = require('../models/Participant');
-      const GrandeArea = require('../models/GrandeArea');
       const AreaAtuacao = require('../models/AreaAtuacao');
       const Subarea = require('../models/Subarea');
       const ano = req.query.ano || process.env.DEFAULT_SIMPOSIO_ANO;
@@ -53,7 +52,6 @@ const userController = {
         simposio: simposio._id,
         autor: participant._id,
       })
-        .populate('grandeArea', 'nome')
         .populate('areaAtuacao', 'nome')
         .populate('subarea', 'nome')
         .sort({ createdAt: -1 });
@@ -69,14 +67,12 @@ const userController = {
     try {
       const Trabalho = require('../models/Trabalho');
       const Participant = require('../models/Participant');
-      const GrandeArea = require('../models/GrandeArea');
       const AreaAtuacao = require('../models/AreaAtuacao');
       const Subarea = require('../models/Subarea');
       const Simposio = require('../models/Simposio');
       
       const trabalho = await Trabalho.findById(req.params.id)
         .populate('simposio', 'ano status')
-        .populate('grandeArea', 'nome')
         .populate('areaAtuacao', 'nome')
         .populate('subarea', 'nome')
         .populate('autor');
@@ -120,7 +116,7 @@ const userController = {
   
   submeterTrabalho: async (req, res) => {
     try {
-      const { titulo, autores, palavras_chave, grandeArea, areaAtuacao, subarea } = req.body;
+      const { titulo, autores, palavras_chave, areaAtuacao, subarea } = req.body;
       const Trabalho = require('../models/Trabalho');
       const InscricaoSimposio = require('../models/InscricaoSimposio');
       const Participant = require('../models/Participant');
@@ -153,7 +149,6 @@ const userController = {
         autor: participant._id,
         autores: JSON.parse(autores),
         palavras_chave: JSON.parse(palavras_chave || '[]'),
-        grandeArea,
         areaAtuacao,
         subarea,
         arquivo: arquivoPath,

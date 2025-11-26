@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -23,7 +23,7 @@ const registerSchema = z.object({
     required_error: 'Selecione o tipo de participante'
   }),
   instituicao: z.string().min(1, 'Instituição é obrigatória'),
-  grandeArea: z.string().optional(),
+  areaAtuacao: z.string().optional(),
   subarea: z.string().optional(),
   visitante: z.boolean().optional(),
 }).refine((data) => data.senha === data.confirmarSenha, {
@@ -32,12 +32,12 @@ const registerSchema = z.object({
 }).refine((data) => {
   // Para DOCENTE, grande área e subárea são obrigatórias
   if (data.tipoParticipante === 'DOCENTE') {
-    return data.grandeArea && data.subarea;
+    return data.areaAtuacao && data.subarea;
   }
   return true;
 }, {
   message: 'Grande área e subárea são obrigatórias para docentes',
-  path: ['grandeArea'],
+  path: ['areaAtuacao'],
 });
 
 const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
@@ -47,7 +47,7 @@ const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
   const [loading, setLoading] = useState(false);
   const { showSuccess } = useNotification();
   const [instituicoes, setInstituicoes] = useState([]);
-  const [grandesAreas, setGrandesAreas] = useState([]);
+  const [areasAtuacao, setareasAtuacao] = useState([]);
   const [subareas, setSubareas] = useState([]);
   const [subareasFiltradas, setSubareasFiltradas] = useState([]);
   
@@ -57,6 +57,7 @@ const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
     formState: { errors },
     reset,
     watch,
+    setValue,
   } = useForm({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -66,7 +67,7 @@ const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
   });
   
   const tipoParticipante = watch('tipoParticipante');
-  const grandeAreaSelecionada = watch('grandeArea');
+  const areaAtuacaoSelecionada = watch('areaAtuacao');
   
   // Carregar dados necessários
   React.useEffect(() => {
@@ -77,13 +78,14 @@ const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
   
   // Filtrar subáreas quando grande área mudar
   React.useEffect(() => {
-    if (grandeAreaSelecionada) {
-      const filtradas = subareas.filter(s => s.grandeArea?._id === grandeAreaSelecionada);
+    if (areaAtuacaoSelecionada) {
+      // Filtrar subáreas cuja área de atuação pertence à grande área selecionada
+      const filtradas = subareas.filter(s => s.areaAtuacao?.areaAtuacao?._id === areaAtuacaoSelecionada || s.areaAtuacao?.areaAtuacao === areaAtuacaoSelecionada);
       setSubareasFiltradas(filtradas);
     } else {
       setSubareasFiltradas([]);
     }
-  }, [grandeAreaSelecionada, subareas]);
+  }, [areaAtuacaoSelecionada, subareas]);
   
   const carregarDados = async () => {
     try {
@@ -94,11 +96,11 @@ const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
         setInstituicoes(instData.data || []);
       }
       
-      // Carregar grandes áreas
-      const gaResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api/v1'}/public/grande-areas`);
+      // Carregar áreas de atuação
+      const gaResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api/v1'}/public/areas-atuacao`);
       if (gaResponse.ok) {
         const gaData = await gaResponse.json();
-        setGrandesAreas(gaData.data || []);
+        setareasAtuacao(gaData.data || []);
       }
       
       // Carregar subáreas
@@ -157,7 +159,7 @@ const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
       
       // Adiciona campos específicos para DOCENTE
       if (data.tipoParticipante === 'DOCENTE') {
-        registerData.grandeArea = data.grandeArea;
+        registerData.areaAtuacao = data.areaAtuacao;
         registerData.subarea = data.subarea;
         registerData.visitante = data.visitante || false;
       }
@@ -205,6 +207,48 @@ const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
   const handleTelefoneChange = (e) => {
     e.target.value = formatTelefone(e.target.value);
   };
+  
+  // Inicializa os selects GOV.BR quando o modal abre
+  useEffect(() => {
+    if (isOpen && window.core && window.core.BRSelect) {
+      const timer = setTimeout(() => {
+        const selectElements = document.querySelectorAll('.br-modal .br-select:not([data-initialized])');
+        
+        selectElements.forEach((element) => {
+          element.setAttribute('data-initialized', 'true');
+          
+          const notFoundElement = `
+            <div class="br-item not-found">
+              <div class="container">
+                <div class="row">
+                  <div class="col">
+                    <p><strong>Ops!</strong> Não encontramos o que você está procurando!</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          
+          try {
+            const brSelectInstance = new window.core.BRSelect('br-select', element, notFoundElement);
+            
+            // Adiciona listener para atualizar o React Hook Form
+            element.addEventListener('onChange', (e) => {
+              const inputName = element.querySelector('input[type="hidden"]')?.name;
+              if (inputName && brSelectInstance) {
+                const selectedValue = brSelectInstance.selectedValue || '';
+                setValue(inputName, selectedValue, { shouldValidate: true });
+              }
+            });
+          } catch (error) {
+            console.warn('Erro ao inicializar BRSelect:', error);
+          }
+        });
+      }, 150);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, instituicoes, areasAtuacao, subareasFiltradas, setValue]);
   
   if (!isOpen) return null;
   
@@ -338,18 +382,49 @@ const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
               
               <div className="col-md-6 mb-3">
                 <div className={`br-select ${errors.tipoParticipante ? 'danger' : ''}`}>
-                  <label htmlFor="tipoParticipante">
-                    Tipo de Participante <span className="text-danger">*</span>
-                  </label>
-                  <select
-                    id="tipoParticipante"
-                    disabled={loading}
-                    {...register('tipoParticipante')}
-                  >
-                    <option value="ALUNO">Aluno</option>
-                    <option value="DOCENTE">Docente (Professor)</option>
-                    <option value="EX_ALUNO">Ex-Aluno</option>
-                  </select>
+                  <div className="br-input">
+                    <label htmlFor="tipoParticipante-input">
+                      Tipo de Participante <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      id="tipoParticipante-input"
+                      type="text"
+                      placeholder="Selecione o tipo de participante"
+                      disabled={loading}
+                      readOnly
+                    />
+                    <button
+                      className="br-button"
+                      type="button"
+                      aria-label="Exibir lista"
+                      tabIndex="-1"
+                      data-trigger="data-trigger"
+                      disabled={loading}
+                    >
+                      <i className="fas fa-angle-down" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                  <input type="hidden" {...register('tipoParticipante')} />
+                  <div className="br-list" tabIndex="0">
+                    <div className="br-item">
+                      <div className="br-radio">
+                        <input id="tipo-aluno" type="radio" name="tipoParticipante-radio" value="ALUNO" />
+                        <label htmlFor="tipo-aluno">Aluno</label>
+                      </div>
+                    </div>
+                    <div className="br-item">
+                      <div className="br-radio">
+                        <input id="tipo-docente" type="radio" name="tipoParticipante-radio" value="DOCENTE" />
+                        <label htmlFor="tipo-docente">Docente (Professor)</label>
+                      </div>
+                    </div>
+                    <div className="br-item">
+                      <div className="br-radio">
+                        <input id="tipo-ex-aluno" type="radio" name="tipoParticipante-radio" value="EX_ALUNO" />
+                        <label htmlFor="tipo-ex-aluno">Ex-Aluno</label>
+                      </div>
+                    </div>
+                  </div>
                   {errors.tipoParticipante && (
                     <span className="feedback danger" role="alert">
                       <i className="fas fa-times-circle"></i>
@@ -361,21 +436,46 @@ const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
               
               <div className="col-md-12 mb-3">
                 <div className={`br-select ${errors.instituicao ? 'danger' : ''}`}>
-                  <label htmlFor="instituicao">
-                    Instituição <span className="text-danger">*</span>
-                  </label>
-                  <select
-                    id="instituicao"
-                    disabled={loading}
-                    {...register('instituicao')}
-                  >
-                    <option value="">Selecione uma instituição</option>
+                  <div className="br-input">
+                    <label htmlFor="instituicao-input">
+                      Instituição <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      id="instituicao-input"
+                      type="text"
+                      placeholder="Selecione uma instituição"
+                      disabled={loading}
+                      readOnly
+                    />
+                    <button
+                      className="br-button"
+                      type="button"
+                      aria-label="Exibir lista"
+                      tabIndex="-1"
+                      data-trigger="data-trigger"
+                      disabled={loading}
+                    >
+                      <i className="fas fa-angle-down" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                  <input type="hidden" {...register('instituicao')} />
+                  <div className="br-list" tabIndex="0">
                     {instituicoes.map(inst => (
-                      <option key={inst._id} value={inst._id}>
-                        {inst.sigla ? `${inst.sigla} - ${inst.nome}` : inst.nome}
-                      </option>
+                      <div key={inst._id} className="br-item">
+                        <div className="br-radio">
+                          <input
+                            id={`inst-${inst._id}`}
+                            type="radio"
+                            name="instituicao-radio"
+                            value={inst._id}
+                          />
+                          <label htmlFor={`inst-${inst._id}`}>
+                            {inst.sigla ? `${inst.sigla} - ${inst.nome}` : inst.nome}
+                          </label>
+                        </div>
+                      </div>
                     ))}
-                  </select>
+                  </div>
                   {errors.instituicao && (
                     <span className="feedback danger" role="alert">
                       <i className="fas fa-times-circle"></i>
@@ -388,26 +488,51 @@ const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
               {tipoParticipante === 'DOCENTE' && (
                 <>
                   <div className="col-md-6 mb-3">
-                    <div className={`br-select ${errors.grandeArea ? 'danger' : ''}`}>
-                      <label htmlFor="grandeArea">
-                        Grande Área <span className="text-danger">*</span>
-                      </label>
-                      <select
-                        id="grandeArea"
-                        disabled={loading}
-                        {...register('grandeArea')}
-                      >
-                        <option value="">Selecione uma grande área</option>
-                        {grandesAreas.map(ga => (
-                          <option key={ga._id} value={ga._id}>
-                            {ga.nome}
-                          </option>
+                    <div className={`br-select ${errors.areaAtuacao ? 'danger' : ''}`}>
+                      <div className="br-input">
+                        <label htmlFor="areaAtuacao-input">
+                          Grande Área <span className="text-danger">*</span>
+                        </label>
+                        <input
+                          id="areaAtuacao-input"
+                          type="text"
+                          placeholder="Selecione uma grande área"
+                          disabled={loading}
+                          readOnly
+                        />
+                        <button
+                          className="br-button"
+                          type="button"
+                          aria-label="Exibir lista"
+                          tabIndex="-1"
+                          data-trigger="data-trigger"
+                          disabled={loading}
+                        >
+                          <i className="fas fa-angle-down" aria-hidden="true"></i>
+                        </button>
+                      </div>
+                      <input type="hidden" {...register('areaAtuacao')} />
+                      <div className="br-list" tabIndex="0">
+                        {areasAtuacao.map(ga => (
+                          <div key={ga._id} className="br-item">
+                            <div className="br-radio">
+                              <input
+                                id={`ga-${ga._id}`}
+                                type="radio"
+                                name="areaAtuacao-radio"
+                                value={ga._id}
+                              />
+                              <label htmlFor={`ga-${ga._id}`}>
+                                {ga.nome}
+                              </label>
+                            </div>
+                          </div>
                         ))}
-                      </select>
-                      {errors.grandeArea && (
+                      </div>
+                      {errors.areaAtuacao && (
                         <span className="feedback danger" role="alert">
                           <i className="fas fa-times-circle"></i>
-                          {errors.grandeArea.message}
+                          {errors.areaAtuacao.message}
                         </span>
                       )}
                     </div>
@@ -415,21 +540,46 @@ const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
                   
                   <div className="col-md-6 mb-3">
                     <div className={`br-select ${errors.subarea ? 'danger' : ''}`}>
-                      <label htmlFor="subarea">
-                        Subárea <span className="text-danger">*</span>
-                      </label>
-                      <select
-                        id="subarea"
-                        disabled={loading || !grandeAreaSelecionada}
-                        {...register('subarea')}
-                      >
-                        <option value="">Selecione uma subárea</option>
+                      <div className="br-input">
+                        <label htmlFor="subarea-input">
+                          Subárea <span className="text-danger">*</span>
+                        </label>
+                        <input
+                          id="subarea-input"
+                          type="text"
+                          placeholder={!areaAtuacaoSelecionada ? "Selecione uma grande área primeiro" : "Selecione uma subárea"}
+                          disabled={loading || !areaAtuacaoSelecionada}
+                          readOnly
+                        />
+                        <button
+                          className="br-button"
+                          type="button"
+                          aria-label="Exibir lista"
+                          tabIndex="-1"
+                          data-trigger="data-trigger"
+                          disabled={loading || !areaAtuacaoSelecionada}
+                        >
+                          <i className="fas fa-angle-down" aria-hidden="true"></i>
+                        </button>
+                      </div>
+                      <input type="hidden" {...register('subarea')} />
+                      <div className="br-list" tabIndex="0">
                         {subareasFiltradas.map(sub => (
-                          <option key={sub._id} value={sub._id}>
-                            {sub.nome}
-                          </option>
+                          <div key={sub._id} className="br-item">
+                            <div className="br-radio">
+                              <input
+                                id={`sub-${sub._id}`}
+                                type="radio"
+                                name="subarea-radio"
+                                value={sub._id}
+                              />
+                              <label htmlFor={`sub-${sub._id}`}>
+                                {sub.nome}
+                              </label>
+                            </div>
+                          </div>
                         ))}
-                      </select>
+                      </div>
                       {errors.subarea && (
                         <span className="feedback danger" role="alert">
                           <i className="fas fa-times-circle"></i>

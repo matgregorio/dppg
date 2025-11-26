@@ -17,8 +17,8 @@ const gerarRelatorioTrabalhosExcel = async (req, res) => {
     
     const trabalhos = await Trabalho.find(filter)
       .populate('autor', 'nome email cpf')
-      .populate('grandeArea', 'nome')
       .populate('areaAtuacao', 'nome')
+      .populate('subarea', 'nome')
       .populate('simposio', 'ano')
       .sort({ createdAt: -1 })
       .lean();
@@ -30,7 +30,7 @@ const gerarRelatorioTrabalhosExcel = async (req, res) => {
       'Autor': t.autor?.nome || 'N/A',
       'Email': t.autor?.email || 'N/A',
       'CPF': t.autor?.cpf || 'N/A',
-      'Grande Área': t.grandeArea?.nome || 'N/A',
+      'Grande Área': t.areaAtuacao?.nome || 'N/A',
       'Área de Atuação': t.areaAtuacao?.nome || 'N/A',
       'Tipo': t.tipo || 'N/A',
       'Status': t.status,
@@ -90,7 +90,7 @@ const gerarRelatorioTrabalhosPDF = async (req, res) => {
     
     const trabalhos = await Trabalho.find(filter)
       .populate('autor', 'nome email')
-      .populate('grandeArea', 'nome')
+      .populate('areaAtuacao', 'nome')
       .populate('simposio', 'ano')
       .sort({ createdAt: -1 })
       .limit(100) // Limitar para não sobrecarregar PDF
@@ -123,7 +123,7 @@ const gerarRelatorioTrabalhosPDF = async (req, res) => {
       doc.fontSize(10);
       doc.text(`Autor: ${t.autor?.nome || 'N/A'}`);
       doc.text(`Email: ${t.autor?.email || 'N/A'}`);
-      doc.text(`Grande Área: ${t.grandeArea?.nome || 'N/A'}`);
+      doc.text(`Grande Área: ${t.areaAtuacao?.nome || 'N/A'}`);
       doc.text(`Status: ${t.status}`);
       doc.text(`Avaliações: ${t.qtd_avaliados || 0} | Média: ${t.media ? t.media.toFixed(2) : 'N/A'}`);
       doc.text(`Data: ${t.createdAt ? new Date(t.createdAt).toLocaleDateString('pt-BR') : 'N/A'}`);

@@ -195,10 +195,10 @@ publicController.getInstituicoes = async (req, res) => {
   }
 };
 
-publicController.getGrandesAreas = async (req, res) => {
+publicController.getAreasAtuacao = async (req, res) => {
   try {
-    const GrandeArea = require('../models/GrandeArea');
-    const areas = await GrandeArea.find({}).sort({ nome: 1 });
+    const AreaAtuacao = require('../models/AreaAtuacao');
+    const areas = await AreaAtuacao.find({}).sort({ nome: 1 });
     res.json({ success: true, data: areas });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -208,7 +208,7 @@ publicController.getGrandesAreas = async (req, res) => {
 publicController.getSubareas = async (req, res) => {
   try {
     const Subarea = require('../models/Subarea');
-    const subareas = await Subarea.find({}).populate('grandeArea areaAtuacao').sort({ nome: 1 });
+    const subareas = await Subarea.find({}).populate('areaAtuacao').sort({ nome: 1 });
     res.json({ success: true, data: subareas });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -230,10 +230,10 @@ publicController.getDocentes = async (req, res) => {
     const Docente = require('../models/Docente');
     const docentes = await Docente.find({})
       .populate('instituicao', 'nome sigla')
-      .populate('grandeArea', 'nome')
+      .populate('areaAtuacao', 'nome')
       .populate('subarea', 'nome')
       .sort({ nome: 1 })
-      .select('nome cpf email instituicao grandeArea subarea visitante');
+      .select('nome cpf email instituicao areaAtuacao subarea visitante');
     res.json({ success: true, data: docentes });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -251,7 +251,7 @@ router.get('/acervo', acervoController.listarPublico);
 
 // Rotas para dados de cadastro e submissão
 router.get('/instituicoes', publicController.getInstituicoes);
-router.get('/grande-areas', publicController.getGrandesAreas);
+router.get('/areas-atuacao', publicController.getAreasAtuacao);
 router.get('/subareas', publicController.getSubareas);
 router.get('/apoios', publicController.getApoios);
 router.get('/docentes', publicController.getDocentes);

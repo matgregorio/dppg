@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import SelectGovBR from '../SelectGovBR';
 
 const EditarTrabalhoModal = ({ trabalho, isOpen, onClose, onSave }) => {
   const [formData, setFormData] = useState({
@@ -62,45 +63,42 @@ const EditarTrabalhoModal = ({ trabalho, isOpen, onClose, onSave }) => {
               <form onSubmit={handleSubmit}>
                 <div className="row">
                   <div className="col-md-6">
-                    <div className="br-input mb-3">
-                      <label htmlFor="status">
+                    <div className="mb-3">
+                      <label htmlFor="status" className="mb-2">
                         <i className="fas fa-flag mr-2"></i>
                         Status *
                       </label>
-                      <select
+                      <SelectGovBR
                         id="status"
-                        name="status"
-                        className="form-control"
                         value={formData.status}
-                        onChange={handleChange}
-                        required
-                      >
-                        <option value="SUBMETIDO">Submetido</option>
-                        <option value="EM_AVALIACAO">Em Avaliação</option>
-                        <option value="ACEITO">Aceito</option>
-                        <option value="REJEITADO">Rejeitado</option>
-                        <option value="PUBLICADO">Publicado</option>
-                      </select>
+                        onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                        options={[
+                          { value: 'SUBMETIDO', label: 'Submetido' },
+                          { value: 'EM_AVALIACAO', label: 'Em Avaliação' },
+                          { value: 'ACEITO', label: 'Aceito' },
+                          { value: 'REJEITADO', label: 'Rejeitado' },
+                          { value: 'PUBLICADO', label: 'Publicado' },
+                        ]}
+                      />
                     </div>
                   </div>
                   
                   <div className="col-md-6">
-                    <div className="br-input mb-3">
-                      <label htmlFor="tipoApresentacao">
+                    <div className="mb-3">
+                      <label htmlFor="tipoApresentacao" className="mb-2">
                         <i className="fas fa-presentation mr-2"></i>
                         Tipo de Apresentação
                       </label>
-                      <select
+                      <SelectGovBR
                         id="tipoApresentacao"
-                        name="tipoApresentacao"
-                        className="form-control"
                         value={formData.tipoApresentacao}
-                        onChange={handleChange}
-                      >
-                        <option value="NAO_DEFINIDO">Não Definido</option>
-                        <option value="POSTER">Poster</option>
-                        <option value="ORAL">Oral</option>
-                      </select>
+                        onChange={(e) => setFormData({ ...formData, tipoApresentacao: e.target.value })}
+                        options={[
+                          { value: 'NAO_DEFINIDO', label: 'Não Definido' },
+                          { value: 'POSTER', label: 'Poster' },
+                          { value: 'ORAL', label: 'Oral' },
+                        ]}
+                      />
                     </div>
                   </div>
                 </div>

@@ -115,7 +115,7 @@ const enviarAtribuicaoAvaliacao = async (avaliador, trabalho) => {
       <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
         <h3 style="margin-top: 0;">Dados do Trabalho:</h3>
         <p><strong>Título:</strong> ${trabalho.titulo}</p>
-        <p><strong>Área:</strong> ${trabalho.grandeArea?.nome || 'Não especificada'}</p>
+        <p><strong>Área:</strong> ${trabalho.areaAtuacao?.nome || 'Não especificada'}</p>
         <p><strong>Tipo:</strong> ${trabalho.tipo || 'Não especificado'}</p>
       </div>
       

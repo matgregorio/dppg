@@ -34,6 +34,10 @@ import MeusCertificados from './pages/MeusCertificados';
 import TrabalhosAvaliador from './pages/TrabalhosAvaliador';
 import AvaliarTrabalho from './pages/AvaliarTrabalho';
 
+// Orientador Pages
+import OrientadorTrabalhos from './pages/OrientadorTrabalhos';
+import AvaliarTrabalhoOrientador from './pages/AvaliarTrabalhoOrientador';
+
 // Admin Pages
 import AdminSimposio from './pages/AdminSimposio';
 import ConfigurarDatas from './pages/ConfigurarDatas';
@@ -197,6 +201,29 @@ function App() {
           <RequireAuth>
             <RequireRoles roles={['AVALIADOR']}>
               <AvaliarTrabalho />
+            </RequireRoles>
+          </RequireAuth>
+        }
+      />
+      
+      {/* Rotas de orientador */}
+      <Route
+        path="/orientador/trabalhos"
+        element={
+          <RequireAuth>
+            <RequireRoles roles={['DOCENTE']}>
+              <OrientadorTrabalhos />
+            </RequireRoles>
+          </RequireAuth>
+        }
+      />
+      
+      <Route
+        path="/orientador/trabalhos/:id"
+        element={
+          <RequireAuth>
+            <RequireRoles roles={['DOCENTE']}>
+              <AvaliarTrabalhoOrientador />
             </RequireRoles>
           </RequireAuth>
         }

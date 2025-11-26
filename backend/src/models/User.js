@@ -28,7 +28,7 @@ const bcrypt = require('bcrypt');
  *           type: array
  *           items:
  *             type: string
- *             enum: [USER, AVALIADOR, SUBADMIN, ADMIN, MESARIO]
+ *             enum: [USER, AVALIADOR, SUBADMIN, ADMIN, MESARIO, DOCENTE]
  *         ativo:
  *           type: boolean
  */
@@ -62,7 +62,7 @@ const userSchema = new mongoose.Schema({
   },
   roles: [{
     type: String,
-    enum: ['USER', 'AVALIADOR', 'SUBADMIN', 'ADMIN', 'MESARIO'],
+    enum: ['USER', 'AVALIADOR', 'SUBADMIN', 'ADMIN', 'MESARIO', 'DOCENTE'],
     default: 'USER',
   }],
   ativo: {

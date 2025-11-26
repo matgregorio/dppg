@@ -243,7 +243,16 @@ const AdminTrabalhos = () => {
               <label htmlFor="status">Status</label>
               <select
                 id="status"
-                className="form-control"
+                style={{
+                  height: '40px',
+                  padding: '8px 12px',
+                  fontSize: '16px',
+                  lineHeight: '1.5',
+                  border: '1px solid #888',
+                  borderRadius: '4px',
+                  backgroundColor: '#fff',
+                  width: '100%'
+                }}
                 value={filtros.status}
                 onChange={(e) => handleFiltroChange('status', e.target.value)}
               >
@@ -320,7 +329,7 @@ const AdminTrabalhos = () => {
                         </small>
                       </td>
                       <td>
-                        {trabalho.grandeArea?.nome || '-'}
+                        {trabalho.areaAtuacao?.nome || '-'}
                         {trabalho.areaAtuacao && (
                           <>
                             <br />
@@ -366,7 +375,29 @@ const AdminTrabalhos = () => {
                           <button
                             onClick={() => handleAtribuir(trabalho)}
                             className="br-button primary small"
-                            title="Atribuir avaliador"
+                            title={
+                              trabalho.status === 'AGUARDANDO_ORIENTADOR'
+                                ? 'Aguardando aprovação do orientador'
+                                : trabalho.status === 'REPROVADO_ORIENTADOR'
+                                ? 'Trabalho reprovado pelo orientador'
+                                : 'Atribuir avaliador'
+                            }
+                            disabled={
+                              trabalho.status === 'AGUARDANDO_ORIENTADOR' ||
+                              trabalho.status === 'REPROVADO_ORIENTADOR'
+                            }
+                            style={{
+                              opacity:
+                                trabalho.status === 'AGUARDANDO_ORIENTADOR' ||
+                                trabalho.status === 'REPROVADO_ORIENTADOR'
+                                  ? 0.5
+                                  : 1,
+                              cursor:
+                                trabalho.status === 'AGUARDANDO_ORIENTADOR' ||
+                                trabalho.status === 'REPROVADO_ORIENTADOR'
+                                  ? 'not-allowed'
+                                  : 'pointer',
+                            }}
                           >
                             <i className="fas fa-user-plus"></i>
                           </button>
@@ -428,11 +459,20 @@ const AdminTrabalhos = () => {
                 <strong>Trabalho:</strong> {selectedTrabalho.titulo}
               </p>
               
-              <div className="br-select">
+              <div className="br-input">
                 <label htmlFor="avaliador">Selecione um avaliador</label>
                 <select
                   id="avaliador"
-                  className="form-control"
+                  style={{
+                    height: '40px',
+                    padding: '8px 12px',
+                    fontSize: '16px',
+                    lineHeight: '1.5',
+                    border: '1px solid #888',
+                    borderRadius: '4px',
+                    backgroundColor: '#fff',
+                    width: '100%'
+                  }}
                   value={selectedAvaliadorId}
                   onChange={(e) => setSelectedAvaliadorId(e.target.value)}
                 >

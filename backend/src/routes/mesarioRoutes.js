@@ -24,6 +24,7 @@ const mesarioController = {
     try {
       const Subevento = require('../models/Subevento');
       const Simposio = require('../models/Simposio');
+      const Participant = require('../models/Participant');
       
       const ano = req.query.ano || process.env.DEFAULT_SIMPOSIO_ANO;
       const simposio = await Simposio.findOne({ ano: parseInt(ano) });
@@ -32,9 +33,17 @@ const mesarioController = {
         return res.status(404).json({ success: false, message: 'Simpósio não encontrado' });
       }
       
+      // Busca o participante associado ao usuário logado
+      const participant = await Participant.findOne({ user: req.user.id });
+      
+      if (!participant) {
+        return res.status(404).json({ success: false, message: 'Participante não encontrado' });
+      }
+      
+      // Busca subeventos onde o participante é responsável
       const subeventos = await Subevento.find({
         simposio: simposio._id,
-        responsaveisMesarios: req.user.id,
+        responsaveisMesarios: participant._id,
       });
       
       res.json({ success: true, data: subeventos });
@@ -237,8 +246,7 @@ const mesarioController = {
         subevento: qrToken.subevento,
         checkins: [{ 
           origem: 'QRCODE',
-          timestamp: new Date(),
-          ip: req.ip || req.connection.remoteAddress
+          data: new Date()
         }],
       });
       
@@ -386,7 +394,11 @@ const mesarioController = {
       presenca = await Presenca.create({
         participant: participantId,
         subevento: subeventoId,
-        checkins: [{ origem: 'MANUAL' }],
+        checkins: [{ 
+          origem: 'MANUAL',
+          data: new Date(),
+          confirmadoPor: req.user.id
+        }],
       });
 
       const { logAudit } = require('../utils/auditLogger');

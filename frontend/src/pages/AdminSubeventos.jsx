@@ -15,6 +15,10 @@ const AdminSubeventos = () => {
   const [participantes, setParticipantes] = useState([]);
   const [loadingInscritos, setLoadingInscritos] = useState(false);
   const [showAddInscritoModal, setShowAddInscritoModal] = useState(false);
+  const [showMesariosModal, setShowMesariosModal] = useState(false);
+  const [subeventoMesarios, setSubeventoMesarios] = useState(null);
+  const [mesariosSelecionados, setMesariosSelecionados] = useState([]);
+  const [buscaMesario, setBuscaMesario] = useState('');
   const [participanteSelecionado, setParticipanteSelecionado] = useState('');
   const [filtroParticipante, setFiltroParticipante] = useState('');
   const [editando, setEditando] = useState(null);
@@ -88,13 +92,17 @@ const AdminSubeventos = () => {
   const fetchMesarios = async () => {
     try {
       const { data } = await api.get('/admin/participantes', {
-        params: { tipo: 'MESARIO', limit: 100 },
+        params: { limit: 1000 },
       });
       if (data.success) {
-        setMesarios(data.data);
+        // Ordena por nome para facilitar a busca
+        const participantesOrdenados = data.data.sort((a, b) => 
+          a.nome.localeCompare(b.nome)
+        );
+        setMesarios(participantesOrdenados);
       }
     } catch (err) {
-      console.error('Erro ao carregar mesários:', err);
+      console.error('Erro ao carregar participantes:', err);
     }
   };
 
@@ -275,6 +283,36 @@ const AdminSubeventos = () => {
     }));
   };
 
+  const handleGerenciarMesarios = (subevento) => {
+    setSubeventoMesarios(subevento);
+    setMesariosSelecionados(subevento.responsaveisMesarios?.map(m => m._id) || []);
+    setBuscaMesario('');
+    setShowMesariosModal(true);
+  };
+
+  const handleToggleMesarioModal = (mesarioId) => {
+    setMesariosSelecionados(prev =>
+      prev.includes(mesarioId)
+        ? prev.filter(id => id !== mesarioId)
+        : [...prev, mesarioId]
+    );
+  };
+
+  const handleSalvarMesarios = async () => {
+    try {
+      await api.put(`/admin/subeventos/${subeventoMesarios._id}`, {
+        ...subeventoMesarios,
+        responsaveisMesarios: mesariosSelecionados,
+        simposio: subeventoMesarios.simposio._id || subeventoMesarios.simposio,
+      });
+      showSuccess('Mesários atualizados com sucesso!');
+      setShowMesariosModal(false);
+      fetchSubeventos();
+    } catch (err) {
+      showError(err.response?.data?.message || 'Erro ao atualizar mesários');
+    }
+  };
+
   const formatData = (data) => {
     return new Date(data).toLocaleDateString('pt-BR');
   };
@@ -417,6 +455,13 @@ const AdminSubeventos = () => {
                               title={subeventoExpandido === subevento._id ? 'Recolher Inscritos' : 'Gerenciar Inscritos'}
                             >
                               <i className={`fas fa-${subeventoExpandido === subevento._id ? 'chevron-up' : 'users'}`}></i>
+                            </button>
+                            <button
+                              onClick={() => handleGerenciarMesarios(subevento)}
+                              className="br-button secondary small"
+                              title="Gerenciar Responsáveis"
+                            >
+                              <i className="fas fa-users-cog"></i>
                             </button>
                             <button
                               onClick={() => handleEditar(subevento)}
@@ -763,11 +808,14 @@ const AdminSubeventos = () => {
                 {mesarios.length > 0 && (
                   <div className="mb-3">
                     <label className="d-block mb-2">
-                      <strong>Mesários Responsáveis</strong>
+                      <strong>Responsáveis pelo Subevento (opcional)</strong>
                     </label>
-                    <div className="row">
+                    <p className="text-down-01 mb-2" style={{ color: '#666' }}>
+                      Selecione os participantes que serão responsáveis por gerenciar este subevento
+                    </p>
+                    <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #ddd', borderRadius: '4px', padding: '8px' }}>
                       {mesarios.map((mesario) => (
-                        <div key={mesario._id} className="col-md-4 mb-2">
+                        <div key={mesario._id} className="col-md-12 mb-1">
                           <div className="br-checkbox">
                             <input
                               id={`mesario-${mesario._id}`}
@@ -775,11 +823,20 @@ const AdminSubeventos = () => {
                               checked={formData.responsaveisMesarios.includes(mesario._id)}
                               onChange={() => handleMesarioToggle(mesario._id)}
                             />
-                            <label htmlFor={`mesario-${mesario._id}`}>{mesario.nome}</label>
+                            <label htmlFor={`mesario-${mesario._id}`}>
+                              {mesario.nome} <span className="text-down-01" style={{ opacity: 0.7 }}>({mesario.user?.email})</span>
+                            </label>
                           </div>
                         </div>
                       ))}
                     </div>
+                    {formData.responsaveisMesarios.length > 0 && (
+                      <div className="mt-2">
+                        <span className="br-tag info small">
+                          {formData.responsaveisMesarios.length} responsável{formData.responsaveisMesarios.length !== 1 ? 'eis' : ''} selecionado{formData.responsaveisMesarios.length !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -912,6 +969,226 @@ const AdminSubeventos = () => {
             </div>
           </div>
           <div className="br-scrim active" onClick={() => setShowAddInscritoModal(false)}></div>
+        </>
+      )}
+
+      {/* Modal de Gerenciar Mesários */}
+      {showMesariosModal && subeventoMesarios && (
+        <>
+          <div className="br-modal active" style={{ display: 'block' }}>
+            <div className="br-modal-dialog">
+              <div className="br-modal-content">
+                <div className="br-modal-header">
+                  <div className="br-modal-title">
+                    <i className="fas fa-users-cog mr-2"></i>
+                    Gerenciar Responsáveis pelo Subevento
+                  </div>
+                  <button
+                    className="br-button circle small"
+                    onClick={() => setShowMesariosModal(false)}
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+                <div className="br-modal-body">
+                  <div className="mb-3">
+                    <h6 className="text-weight-semi-bold">{subeventoMesarios.titulo}</h6>
+                    <p className="text-down-01 mb-0">
+                      <i className="fas fa-calendar mr-1"></i>
+                      {formatData(subeventoMesarios.data)} às {subeventoMesarios.horarioInicio}
+                    </p>
+                  </div>
+
+                  <div className="br-divider my-3"></div>
+
+                  {mesarios.length === 0 ? (
+                    <div className="br-message warning">
+                      <div className="icon">
+                        <i className="fas fa-exclamation-triangle"></i>
+                      </div>
+                      <div className="content">
+                        Nenhum participante cadastrado no sistema.
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="br-message info mb-3">
+                        <div className="icon">
+                          <i className="fas fa-info-circle"></i>
+                        </div>
+                        <div className="content">
+                          <p className="mb-1"><strong>Responsáveis são opcionais</strong></p>
+                          <p className="mb-0 text-down-01">Qualquer participante pode ser selecionado como responsável. Eles terão acesso para gerenciar presenças e gerar QR Codes para este subevento.</p>
+                        </div>
+                      </div>
+                      
+                      <div className="mb-3" style={{ position: 'relative' }}>
+                        <div className="br-input">
+                          <label htmlFor="buscaMesario">
+                            <i className="fas fa-search mr-1"></i>
+                            Buscar por nome, e-mail ou CPF
+                          </label>
+                          <input
+                            id="buscaMesario"
+                            type="text"
+                            placeholder="Digite para filtrar..."
+                            value={buscaMesario}
+                            onChange={(e) => setBuscaMesario(e.target.value)}
+                            autoFocus
+                            style={{ paddingRight: buscaMesario ? '40px' : '12px' }}
+                          />
+                        </div>
+                        {buscaMesario && (
+                          <button
+                            className="br-button circle small"
+                            style={{ 
+                              position: 'absolute', 
+                              right: '4px', 
+                              bottom: '4px',
+                              zIndex: 10
+                            }}
+                            onClick={() => setBuscaMesario('')}
+                            type="button"
+                            title="Limpar busca"
+                          >
+                            <i className="fas fa-times"></i>
+                          </button>
+                        )}
+                      </div>
+
+                      <p className="text-weight-semi-bold mb-2">
+                        {buscaMesario ? 'Resultados da busca:' : 'Selecione os participantes responsáveis:'}
+                      </p>
+                      
+                      <div style={{ maxHeight: '350px', overflowY: 'auto', border: '1px solid #ddd', borderRadius: '4px', padding: '8px' }}>
+                        {(() => {
+                          const participantesFiltrados = mesarios.filter(mesario => {
+                            if (!buscaMesario) return true;
+                            const busca = buscaMesario.toLowerCase().trim();
+                            const nome = (mesario.nome || '').toLowerCase();
+                            const email = (mesario.user?.email || mesario.email || '').toLowerCase();
+                            const cpf = (mesario.cpf || '').replace(/\D/g, '');
+                            const buscaLimpa = busca.replace(/\D/g, '');
+                            
+                            const match = (
+                              nome.includes(busca) ||
+                              email.includes(busca) ||
+                              (buscaLimpa && cpf.includes(buscaLimpa))
+                            );
+                            
+                            return match;
+                          });
+                          
+                          return participantesFiltrados.map((mesario) => {
+                            const estaSelecionado = mesariosSelecionados.includes(mesario._id);
+                            
+                            return (
+                              <div
+                                key={mesario._id}
+                                className="br-checkbox mb-2"
+                                style={{
+                                  padding: '12px',
+                                  backgroundColor: estaSelecionado ? '#f0f7ff' : 'transparent',
+                                  borderRadius: '4px',
+                                  border: estaSelecionado ? '2px solid #1351b4' : '1px solid #ddd',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.2s'
+                                }}
+                                onClick={() => handleToggleMesarioModal(mesario._id)}
+                              >
+                                <input
+                                  id={`mesario-modal-${mesario._id}`}
+                                  type="checkbox"
+                                  checked={estaSelecionado}
+                                  onChange={() => handleToggleMesarioModal(mesario._id)}
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                                <label 
+                                  htmlFor={`mesario-modal-${mesario._id}`}
+                                  style={{ cursor: 'pointer', marginBottom: 0 }}
+                                >
+                                  <div>
+                                    <div className="text-weight-semi-bold">
+                                      {mesario.nome}
+                                      {estaSelecionado && (
+                                        <span className="br-tag success tiny ml-2" style={{ fontSize: '0.7rem', padding: '2px 6px' }}>
+                                          <i className="fas fa-user-check mr-1"></i>
+                                          RESPONSÁVEL
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="text-down-01" style={{ opacity: 0.7 }}>
+                                      {mesario.user?.email} • CPF: {mesario.cpf}
+                                      {mesario.tipo && (
+                                        <span className="br-tag tiny ml-2" style={{ fontSize: '0.7rem', padding: '2px 6px' }}>
+                                          {mesario.tipo}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </label>
+                              </div>
+                            );
+                          });
+                        })()}
+                        {buscaMesario && (() => {
+                          const participantesFiltrados = mesarios.filter(mesario => {
+                            const busca = buscaMesario.toLowerCase().trim();
+                            const nome = (mesario.nome || '').toLowerCase();
+                            const email = (mesario.user?.email || mesario.email || '').toLowerCase();
+                            const cpf = (mesario.cpf || '').replace(/\D/g, '');
+                            const buscaLimpa = busca.replace(/\D/g, '');
+                            
+                            return (
+                              nome.includes(busca) ||
+                              email.includes(busca) ||
+                              (buscaLimpa && cpf.includes(buscaLimpa))
+                            );
+                          });
+                          
+                          return participantesFiltrados.length === 0 && (
+                            <div className="text-center py-4" style={{ color: '#666' }}>
+                              <i className="fas fa-search fa-2x mb-2"></i>
+                              <p className="mb-0">Nenhum participante encontrado para "{buscaMesario}"</p>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                      <div className="mt-3">
+                        {mesariosSelecionados.length > 0 ? (
+                          <span className="br-tag info">
+                            <i className="fas fa-check-circle mr-1"></i>
+                            {mesariosSelecionados.length} responsável{mesariosSelecionados.length !== 1 ? 'eis' : ''} selecionado{mesariosSelecionados.length !== 1 ? 's' : ''}
+                          </span>
+                        ) : (
+                          <span className="br-tag warning">
+                            <i className="fas fa-exclamation-circle mr-1"></i>
+                            Nenhum responsável selecionado
+                          </span>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+                <div className="br-modal-footer">
+                  <button
+                    className="br-button secondary"
+                    onClick={() => setShowMesariosModal(false)}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    className="br-button primary"
+                    onClick={handleSalvarMesarios}
+                  >
+                    <i className="fas fa-save mr-2"></i>
+                    Salvar Alterações
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="br-scrim active" onClick={() => setShowMesariosModal(false)}></div>
         </>
       )}
     </MainLayout>

@@ -58,7 +58,6 @@ const PainelPresencas = () => {
       month: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
-      second: '2-digit',
     });
   };
   
@@ -220,7 +219,7 @@ const PainelPresencas = () => {
                             )}
                           </td>
                           <td>
-                            {inscrito.presenca ? formatDateTime(ultimoCheckin?.data) : '-'}
+                            {inscrito.presenca && ultimoCheckin?.data ? formatDateTime(ultimoCheckin.data) : '-'}
                           </td>
                           <td>
                             {origem ? (

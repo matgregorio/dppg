@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { loginStart, loginSuccess, loginFailure } from '../store/slices/authSlice';
 import authService from '../services/authService';
 import MainLayout from '../layouts/MainLayout';
+import RegisterModal from '../components/modals/RegisterModal';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido').min(1, 'Email é obrigatório'),
@@ -17,6 +18,7 @@ const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [error, setError] = useState('');
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
   
   const {
     register,
@@ -135,9 +137,13 @@ const Login = () => {
                       Esqueci minha senha
                     </Link>
                     <br />
-                    <Link to="/registro" className="br-button secondary small mt-2">
+                    <button 
+                      type="button"
+                      onClick={() => setShowRegisterModal(true)}
+                      className="br-button secondary small mt-2"
+                    >
                       Criar conta
-                    </Link>
+                    </button>
                   </div>
                 </form>
               </div>
@@ -155,6 +161,15 @@ const Login = () => {
           </div>
         </div>
       </div>
+      
+      <RegisterModal 
+        isOpen={showRegisterModal} 
+        onClose={() => setShowRegisterModal(false)} 
+        onOpenLogin={() => {
+          setShowRegisterModal(false);
+          // Já estamos na página de login, não precisa fazer nada
+        }}
+      />
     </MainLayout>
   );
 };

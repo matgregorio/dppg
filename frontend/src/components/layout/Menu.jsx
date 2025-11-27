@@ -191,53 +191,6 @@ const Menu = () => {
                   </Link>
                 </>
               )}
-              
-              <div className="br-divider my-3"></div>
-              <div className="menu-title">Links Importantes</div>
-              <a 
-                className="menu-item" 
-                href="https://www.gov.br/capes" 
-                target="_blank" 
-                rel="noopener noreferrer"
-              >
-                <span className="content">
-                  <i className="fas fa-external-link-alt mr-2"></i>
-                  CAPES
-                </span>
-              </a>
-              <a 
-                className="menu-item" 
-                href="https://www.gov.br/cnpq" 
-                target="_blank" 
-                rel="noopener noreferrer"
-              >
-                <span className="content">
-                  <i className="fas fa-external-link-alt mr-2"></i>
-                  CNPq
-                </span>
-              </a>
-              <a 
-                className="menu-item" 
-                href="https://www.periodicos.capes.gov.br" 
-                target="_blank" 
-                rel="noopener noreferrer"
-              >
-                <span className="content">
-                  <i className="fas fa-external-link-alt mr-2"></i>
-                  Portal de Periódicos
-                </span>
-              </a>
-              <a 
-                className="menu-item" 
-                href="https://lattes.cnpq.br" 
-                target="_blank" 
-                rel="noopener noreferrer"
-              >
-                <span className="content">
-                  <i className="fas fa-external-link-alt mr-2"></i>
-                  Plataforma Lattes
-                </span>
-              </a>
             </div>
           </nav>
         </div>

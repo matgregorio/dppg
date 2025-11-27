@@ -208,55 +208,15 @@ const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
     e.target.value = formatTelefone(e.target.value);
   };
   
-  // Inicializa os selects GOV.BR quando o modal abre
-  useEffect(() => {
-    if (isOpen && window.core && window.core.BRSelect) {
-      const timer = setTimeout(() => {
-        const selectElements = document.querySelectorAll('.br-modal .br-select:not([data-initialized])');
-        
-        selectElements.forEach((element) => {
-          element.setAttribute('data-initialized', 'true');
-          
-          const notFoundElement = `
-            <div class="br-item not-found">
-              <div class="container">
-                <div class="row">
-                  <div class="col">
-                    <p><strong>Ops!</strong> Não encontramos o que você está procurando!</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          `;
-          
-          try {
-            const brSelectInstance = new window.core.BRSelect('br-select', element, notFoundElement);
-            
-            // Adiciona listener para atualizar o React Hook Form
-            element.addEventListener('onChange', (e) => {
-              const inputName = element.querySelector('input[type="hidden"]')?.name;
-              if (inputName && brSelectInstance) {
-                const selectedValue = brSelectInstance.selectedValue || '';
-                setValue(inputName, selectedValue, { shouldValidate: true });
-              }
-            });
-          } catch (error) {
-            console.warn('Erro ao inicializar BRSelect:', error);
-          }
-        });
-      }, 150);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen, instituicoes, areasAtuacao, subareasFiltradas, setValue]);
+
   
   if (!isOpen) return null;
   
   return (
     <>
       <div className="br-scrim fundo-modal" onClick={handleClose}></div>
-      <div className="br-modal large modal-centralizado" style={{ maxHeight: '95vh' }}>
-        <div className="br-modal-header">
+      <div className="br-modal large modal-centralizado" style={{ maxWidth: '800px', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
+        <div className="br-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
           <div className="br-modal-title">
             <i className="fas fa-user-plus mr-2"></i>
             Criar Conta
@@ -271,8 +231,8 @@ const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
           </button>
         </div>
         
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="br-modal-body" style={{ maxHeight: 'calc(95vh - 180px)', overflowY: 'auto' }}>
+        <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+          <div className="br-modal-body" style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             {error && (
               <div className="br-message danger mb-3" role="alert">
                 <div className="icon">
@@ -356,7 +316,9 @@ const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
                   )}
                 </div>
               </div>
-              
+            </div>
+            
+            <div className="row">
               <div className="col-md-6 mb-3">
                 <div className={`br-input ${errors.telefone ? 'danger' : ''}`}>
                   <label htmlFor="telefone">
@@ -381,50 +343,21 @@ const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
               </div>
               
               <div className="col-md-6 mb-3">
-                <div className={`br-select ${errors.tipoParticipante ? 'danger' : ''}`}>
-                  <div className="br-input">
-                    <label htmlFor="tipoParticipante-input">
-                      Tipo de Participante <span className="text-danger">*</span>
-                    </label>
-                    <input
-                      id="tipoParticipante-input"
-                      type="text"
-                      placeholder="Selecione o tipo de participante"
-                      disabled={loading}
-                      readOnly
-                    />
-                    <button
-                      className="br-button"
-                      type="button"
-                      aria-label="Exibir lista"
-                      tabIndex="-1"
-                      data-trigger="data-trigger"
-                      disabled={loading}
-                    >
-                      <i className="fas fa-angle-down" aria-hidden="true"></i>
-                    </button>
-                  </div>
-                  <input type="hidden" {...register('tipoParticipante')} />
-                  <div className="br-list" tabIndex="0">
-                    <div className="br-item">
-                      <div className="br-radio">
-                        <input id="tipo-aluno" type="radio" name="tipoParticipante-radio" value="ALUNO" />
-                        <label htmlFor="tipo-aluno">Aluno</label>
-                      </div>
-                    </div>
-                    <div className="br-item">
-                      <div className="br-radio">
-                        <input id="tipo-docente" type="radio" name="tipoParticipante-radio" value="DOCENTE" />
-                        <label htmlFor="tipo-docente">Docente (Professor)</label>
-                      </div>
-                    </div>
-                    <div className="br-item">
-                      <div className="br-radio">
-                        <input id="tipo-ex-aluno" type="radio" name="tipoParticipante-radio" value="EX_ALUNO" />
-                        <label htmlFor="tipo-ex-aluno">Ex-Aluno</label>
-                      </div>
-                    </div>
-                  </div>
+                <div className={`br-input ${errors.tipoParticipante ? 'danger' : ''}`}>
+                  <label htmlFor="tipoParticipante">
+                    Tipo de Participante <span className="text-danger">*</span>
+                  </label>
+                  <select
+                    id="tipoParticipante"
+                    className="form-control"
+                    disabled={loading}
+                    {...register('tipoParticipante')}
+                  >
+                    <option value="">Selecione o tipo de participante</option>
+                    <option value="ALUNO">Aluno</option>
+                    <option value="DOCENTE">Docente (Professor)</option>
+                    <option value="EX_ALUNO">Ex-Aluno</option>
+                  </select>
                   {errors.tipoParticipante && (
                     <span className="feedback danger" role="alert">
                       <i className="fas fa-times-circle"></i>
@@ -433,49 +366,27 @@ const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
                   )}
                 </div>
               </div>
-              
-              <div className="col-md-12 mb-3">
-                <div className={`br-select ${errors.instituicao ? 'danger' : ''}`}>
-                  <div className="br-input">
-                    <label htmlFor="instituicao-input">
-                      Instituição <span className="text-danger">*</span>
-                    </label>
-                    <input
-                      id="instituicao-input"
-                      type="text"
-                      placeholder="Selecione uma instituição"
-                      disabled={loading}
-                      readOnly
-                    />
-                    <button
-                      className="br-button"
-                      type="button"
-                      aria-label="Exibir lista"
-                      tabIndex="-1"
-                      data-trigger="data-trigger"
-                      disabled={loading}
-                    >
-                      <i className="fas fa-angle-down" aria-hidden="true"></i>
-                    </button>
-                  </div>
-                  <input type="hidden" {...register('instituicao')} />
-                  <div className="br-list" tabIndex="0">
+            </div>
+            
+            <div className="row">
+              <div className="col-md-6 mb-3">
+                <div className={`br-input ${errors.instituicao ? 'danger' : ''}`}>
+                  <label htmlFor="instituicao">
+                    Instituição <span className="text-danger">*</span>
+                  </label>
+                  <select
+                    id="instituicao"
+                    className="form-control"
+                    disabled={loading}
+                    {...register('instituicao')}
+                  >
+                    <option value="">Selecione uma instituição</option>
                     {instituicoes.map(inst => (
-                      <div key={inst._id} className="br-item">
-                        <div className="br-radio">
-                          <input
-                            id={`inst-${inst._id}`}
-                            type="radio"
-                            name="instituicao-radio"
-                            value={inst._id}
-                          />
-                          <label htmlFor={`inst-${inst._id}`}>
-                            {inst.sigla ? `${inst.sigla} - ${inst.nome}` : inst.nome}
-                          </label>
-                        </div>
-                      </div>
+                      <option key={inst._id} value={inst._id}>
+                        {inst.sigla ? `${inst.sigla} - ${inst.nome}` : inst.nome}
+                      </option>
                     ))}
-                  </div>
+                  </select>
                   {errors.instituicao && (
                     <span className="feedback danger" role="alert">
                       <i className="fas fa-times-circle"></i>
@@ -484,51 +395,28 @@ const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
                   )}
                 </div>
               </div>
+            </div>
               
               {tipoParticipante === 'DOCENTE' && (
                 <>
                   <div className="col-md-6 mb-3">
-                    <div className={`br-select ${errors.areaAtuacao ? 'danger' : ''}`}>
-                      <div className="br-input">
-                        <label htmlFor="areaAtuacao-input">
-                          Grande Área <span className="text-danger">*</span>
-                        </label>
-                        <input
-                          id="areaAtuacao-input"
-                          type="text"
-                          placeholder="Selecione uma grande área"
-                          disabled={loading}
-                          readOnly
-                        />
-                        <button
-                          className="br-button"
-                          type="button"
-                          aria-label="Exibir lista"
-                          tabIndex="-1"
-                          data-trigger="data-trigger"
-                          disabled={loading}
-                        >
-                          <i className="fas fa-angle-down" aria-hidden="true"></i>
-                        </button>
-                      </div>
-                      <input type="hidden" {...register('areaAtuacao')} />
-                      <div className="br-list" tabIndex="0">
+                    <div className={`br-input ${errors.areaAtuacao ? 'danger' : ''}`}>
+                      <label htmlFor="areaAtuacao">
+                        Grande Área <span className="text-danger">*</span>
+                      </label>
+                      <select
+                        id="areaAtuacao"
+                        className="form-control"
+                        disabled={loading}
+                        {...register('areaAtuacao')}
+                      >
+                        <option value="">Selecione uma grande área</option>
                         {areasAtuacao.map(ga => (
-                          <div key={ga._id} className="br-item">
-                            <div className="br-radio">
-                              <input
-                                id={`ga-${ga._id}`}
-                                type="radio"
-                                name="areaAtuacao-radio"
-                                value={ga._id}
-                              />
-                              <label htmlFor={`ga-${ga._id}`}>
-                                {ga.nome}
-                              </label>
-                            </div>
-                          </div>
+                          <option key={ga._id} value={ga._id}>
+                            {ga.nome}
+                          </option>
                         ))}
-                      </div>
+                      </select>
                       {errors.areaAtuacao && (
                         <span className="feedback danger" role="alert">
                           <i className="fas fa-times-circle"></i>
@@ -539,47 +427,25 @@ const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
                   </div>
                   
                   <div className="col-md-6 mb-3">
-                    <div className={`br-select ${errors.subarea ? 'danger' : ''}`}>
-                      <div className="br-input">
-                        <label htmlFor="subarea-input">
-                          Subárea <span className="text-danger">*</span>
-                        </label>
-                        <input
-                          id="subarea-input"
-                          type="text"
-                          placeholder={!areaAtuacaoSelecionada ? "Selecione uma grande área primeiro" : "Selecione uma subárea"}
-                          disabled={loading || !areaAtuacaoSelecionada}
-                          readOnly
-                        />
-                        <button
-                          className="br-button"
-                          type="button"
-                          aria-label="Exibir lista"
-                          tabIndex="-1"
-                          data-trigger="data-trigger"
-                          disabled={loading || !areaAtuacaoSelecionada}
-                        >
-                          <i className="fas fa-angle-down" aria-hidden="true"></i>
-                        </button>
-                      </div>
-                      <input type="hidden" {...register('subarea')} />
-                      <div className="br-list" tabIndex="0">
+                    <div className={`br-input ${errors.subarea ? 'danger' : ''}`}>
+                      <label htmlFor="subarea">
+                        Subárea <span className="text-danger">*</span>
+                      </label>
+                      <select
+                        id="subarea"
+                        className="form-control"
+                        disabled={loading || !areaAtuacaoSelecionada}
+                        {...register('subarea')}
+                      >
+                        <option value="">
+                          {!areaAtuacaoSelecionada ? "Selecione uma grande área primeiro" : "Selecione uma subárea"}
+                        </option>
                         {subareasFiltradas.map(sub => (
-                          <div key={sub._id} className="br-item">
-                            <div className="br-radio">
-                              <input
-                                id={`sub-${sub._id}`}
-                                type="radio"
-                                name="subarea-radio"
-                                value={sub._id}
-                              />
-                              <label htmlFor={`sub-${sub._id}`}>
-                                {sub.nome}
-                              </label>
-                            </div>
-                          </div>
+                          <option key={sub._id} value={sub._id}>
+                            {sub.nome}
+                          </option>
                         ))}
-                      </div>
+                      </select>
                       {errors.subarea && (
                         <span className="feedback danger" role="alert">
                           <i className="fas fa-times-circle"></i>
@@ -604,7 +470,8 @@ const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
                   </div>
                 </>
               )}
-              
+            
+            <div className="row">
               <div className="col-md-6 mb-3">
                 <div className={`br-input ${errors.senha ? 'danger' : ''}`}>
                   <label htmlFor="senha">
@@ -665,7 +532,7 @@ const RegisterModal = ({ isOpen, onClose, onOpenLogin }) => {
             </div>
           </div>
           
-          <div className="br-modal-footer justify-content-between">
+          <div className="br-modal-footer justify-content-between" style={{ flexShrink: 0 }}>
             <div>
               <button
                 type="button"

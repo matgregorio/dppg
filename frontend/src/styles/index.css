@@ -382,27 +382,50 @@ body {
 /* Estilo para o corpo do modal que precisa rolar */
 .modal-centralizado .br-modal-body {
   overflow-y: auto !important;
-  /* Remove barra de rolagem visível mas mantém funcionalidade */
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  /* Remove completamente a barra de rolagem */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE e Edge */
 }
 
-/* Customização para navegadores webkit */
+/* Customização para navegadores webkit - ocultar barra de rolagem */
 .modal-centralizado .br-modal-body::-webkit-scrollbar {
-  width: 6px;
+  display: none; /* Chrome, Safari, Opera */
+  width: 0;
+  height: 0;
 }
 
-.modal-centralizado .br-modal-body::-webkit-scrollbar-track {
-  background: transparent;
+/* Estilo para selects nativos no modal */
+.modal-centralizado .form-control,
+.modal-centralizado select.form-control {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #333;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid #888;
+  border-radius: 0.25rem;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  appearance: auto;
+  -webkit-appearance: menulist;
+  -moz-appearance: menulist;
 }
 
-.modal-centralizado .br-modal-body::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 3px;
+.modal-centralizado .form-control:focus,
+.modal-centralizado select.form-control:focus {
+  color: #333;
+  background-color: #fff;
+  border-color: #1351b4;
+  outline: 0;
+  box-shadow: 0 0 0 0.2rem rgba(19, 81, 180, 0.25);
 }
 
-.modal-centralizado .br-modal-body::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(0, 0, 0, 0.3);
+.modal-centralizado .form-control:disabled,
+.modal-centralizado select.form-control:disabled {
+  background-color: #e9ecef;
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .modal-centralizado .br-modal-header,

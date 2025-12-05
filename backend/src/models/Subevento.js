@@ -70,7 +70,7 @@ const subeventoSchema = new mongoose.Schema({
   },
   responsaveisMesarios: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'Participant',
   }],
   inscritos: [{
     participant: {

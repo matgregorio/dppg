@@ -7,6 +7,21 @@ const multer = require('multer');
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
 
+// Função auxiliar para verificar se o usuário é responsável pelo subevento
+const isResponsavel = async (userId, subevento) => {
+  const Participant = require('../models/Participant');
+  
+  // Busca o participante associado ao user
+  const participant = await Participant.findOne({ user: userId });
+  
+  if (!participant) {
+    return false;
+  }
+  
+  // Verifica se o participante está na lista de responsáveis
+  return subevento.responsaveisMesarios.some(r => r.toString() === participant._id.toString());
+};
+
 // Placeholder controllers
 const userController = {
   getCertificados: async (req, res) => {
@@ -159,6 +174,18 @@ const userController = {
       const { logAudit } = require('../utils/auditLogger');
       logAudit('TRABALHO_SUBMETIDO', req.user.id, { trabalhoId: trabalho._id, titulo });
       
+      // Enviar email de confirmação de submissão
+      const emailService = require('../services/emailService');
+      const user = await User.findById(req.user.id);
+      emailService.enviarEmail('TRABALHO_ENVIADO', user.email, {
+        usuario_nome: user.nome,
+        usuario_email: user.email,
+        trabalho_titulo: titulo,
+        simposio_nome: req.simposio.nome,
+        data_submissao: new Date().toLocaleDateString('pt-BR'),
+        url_trabalhos: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/trabalhos`,
+      }).catch(err => console.error('Erro ao enviar email de confirmação de trabalho:', err));
+      
       res.status(201).json({ success: true, data: trabalho });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
@@ -212,6 +239,18 @@ const userController = {
       
       const { logAudit } = require('../utils/auditLogger');
       logAudit('INSCRICAO_CRIADA', req.user.id, { inscricaoId: inscricao._id, simposioAno: req.simposio.ano });
+      
+      // Enviar email de confirmação de inscrição
+      const emailService = require('../services/emailService');
+      const user = await User.findById(req.user.id);
+      emailService.enviarEmail('NOVA_INSCRICAO', user.email, {
+        usuario_nome: user.nome,
+        usuario_email: user.email,
+        usuario_cpf: user.cpf,
+        simposio_nome: req.simposio.nome,
+        data_inscricao: new Date().toLocaleDateString('pt-BR'),
+        url_sistema: process.env.FRONTEND_URL || 'http://localhost:5173',
+      }).catch(err => console.error('Erro ao enviar email de inscrição:', err));
       
       res.status(201).json({ success: true, data: inscricao });
     } catch (error) {
@@ -276,9 +315,7 @@ const userController = {
       }
       
       // Verifica se o usuário é mesário responsável por este subevento
-      const isMesarioResponsavel = subevento.responsaveisMesarios.some(
-        mesarioId => mesarioId.toString() === req.user.id
-      );
+      const isMesarioResponsavel = await isResponsavel(req.user.id, subevento);
       
       if (isMesarioResponsavel) {
         return res.status(403).json({ 

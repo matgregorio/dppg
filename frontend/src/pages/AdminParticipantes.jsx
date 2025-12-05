@@ -77,32 +77,6 @@ const AdminParticipantes = () => {
     return badges[tipo] || 'secondary';
   };
   
-  const baixarRelatorioParticipantes = async () => {
-    try {
-      const params = new URLSearchParams({
-        ...(filtros.tipo && { tipo: filtros.tipo }),
-      });
-      
-      const response = await api.get(`/admin/reports/participantes/excel?${params}`, {
-        responseType: 'blob',
-      });
-      
-      const blob = new Blob([response.data]);
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `participantes_${Date.now()}.xlsx`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      
-      showSuccess('Relatório Excel gerado com sucesso!');
-    } catch (err) {
-      showError(err.response?.data?.message || 'Erro ao gerar relatório');
-    }
-  };
-  
   return (
     <MainLayout>
       <div className="br-breadcrumb">
@@ -124,14 +98,6 @@ const AdminParticipantes = () => {
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h1 className="text-up-03 text-weight-bold">Participantes</h1>
           <div className="d-flex gap-2 align-items-center">
-            <button
-              onClick={baixarRelatorioParticipantes}
-              className="br-button secondary"
-              title="Exportar para Excel"
-            >
-              <i className="fas fa-file-excel mr-2"></i>
-              Exportar Excel
-            </button>
             <span className="br-tag info large">{pagination.total} Total</span>
           </div>
         </div>

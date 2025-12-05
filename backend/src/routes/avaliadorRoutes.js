@@ -77,6 +77,24 @@ const avaliadorController = {
       const { logAudit } = require('../utils/auditLogger');
       logAudit('AVALIACAO_REGISTRADA', req.user.id, { trabalhoId: trabalho._id, nota, media: trabalho.media });
       
+      // Enviar email ao autor informando sobre a avaliação recebida
+      const emailService = require('../services/emailService');
+      const Participant = require('../models/Participant');
+      const User = require('../models/User');
+      
+      const autor = await Participant.findById(trabalho.autor).populate('user');
+      if (autor && autor.user) {
+        const statusAvaliacao = nota >= 7 ? 'Aprovado' : nota >= 5 ? 'Em análise' : 'Reprovado';
+        emailService.enviarEmail('AVALIACAO_RECEBIDA', autor.user.email, {
+          usuario_nome: autor.user.nome,
+          trabalho_titulo: trabalho.titulo,
+          avaliacao_status: statusAvaliacao,
+          avaliacao_nota: nota.toString(),
+          avaliacao_comentarios: parecer || 'Sem comentários',
+          url_trabalhos: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/trabalhos`,
+        }).catch(err => console.error('Erro ao enviar email de avaliação recebida:', err));
+      }
+      
       res.json({ success: true, data: trabalho });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });

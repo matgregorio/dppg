@@ -227,10 +227,31 @@ const AdminSubeventos = () => {
       vagas: subevento.vagas || '',
       evento: subevento.evento || '',
       simposio: subevento.simposio._id || subevento.simposio,
-      responsaveisMesarios: subevento.responsaveisMesarios?.map(m => m._id) || [],
+      responsaveisMesarios: (subevento.responsaveisMesarios || [])
+        .map(m => typeof m === 'object' ? m._id : m)
+        .filter(id => id && id !== null && id !== undefined && id !== '') || [],
     });
     setEditando(subevento);
     setShowModal(true);
+  };
+
+  const handleFecharModal = () => {
+    setShowModal(false);
+    setFormData({
+      titulo: '',
+      tipo: '',
+      data: '',
+      horarioInicio: '',
+      duracao: '',
+      palestrante: '',
+      local: '',
+      descricao: '',
+      vagas: '',
+      evento: '',
+      simposio: '',
+      responsaveisMesarios: [],
+    });
+    setEditando(null);
   };
 
   const handleSubmit = async (e) => {
@@ -251,7 +272,7 @@ const AdminSubeventos = () => {
       }
       
       fetchSubeventos();
-      setShowModal(false);
+      handleFecharModal();
     } catch (err) {
       showError(err.response?.data?.message || 'Erro ao salvar subevento');
     }
@@ -285,7 +306,19 @@ const AdminSubeventos = () => {
 
   const handleGerenciarMesarios = (subevento) => {
     setSubeventoMesarios(subevento);
-    setMesariosSelecionados(subevento.responsaveisMesarios?.map(m => m._id) || []);
+    // Se responsaveisMesarios são objetos, pega o _id, senão usa o próprio valor (já é um ID)
+    const idsResponsaveis = (subevento.responsaveisMesarios || [])
+      .map(m => typeof m === 'object' ? m._id : m)
+      .filter(id => id && id !== null && id !== undefined && id !== ''); // Remove valores inválidos
+    
+    console.log('🔍 Debug Modal Mesários:');
+    console.log('Subevento:', subevento.titulo);
+    console.log('Subevento completo:', subevento);
+    console.log('responsaveisMesarios original:', subevento.responsaveisMesarios);
+    console.log('IDs filtrados:', idsResponsaveis);
+    console.log('Quantidade:', idsResponsaveis.length);
+    
+    setMesariosSelecionados(idsResponsaveis);
     setBuscaMesario('');
     setShowMesariosModal(true);
   };
@@ -298,15 +331,28 @@ const AdminSubeventos = () => {
     );
   };
 
+  const handleFecharModalMesarios = () => {
+    setShowMesariosModal(false);
+    setMesariosSelecionados([]);
+    setSubeventoMesarios(null);
+  };
+
   const handleSalvarMesarios = async () => {
     try {
-      await api.put(`/admin/subeventos/${subeventoMesarios._id}`, {
+      const payload = {
         ...subeventoMesarios,
         responsaveisMesarios: mesariosSelecionados,
         simposio: subeventoMesarios.simposio._id || subeventoMesarios.simposio,
-      });
+      };
+      
+      console.log('💾 Frontend - Salvando Mesários:');
+      console.log('Subevento ID:', subeventoMesarios._id);
+      console.log('mesariosSelecionados:', mesariosSelecionados);
+      console.log('Payload completo:', payload);
+      
+      await api.put(`/admin/subeventos/${subeventoMesarios._id}`, payload);
       showSuccess('Mesários atualizados com sucesso!');
-      setShowMesariosModal(false);
+      handleFecharModalMesarios();
       fetchSubeventos();
     } catch (err) {
       showError(err.response?.data?.message || 'Erro ao atualizar mesários');
@@ -645,7 +691,7 @@ const AdminSubeventos = () => {
       {/* Modal */}
       {showModal && (
         <>
-          <div className="br-scrim-util foco" onClick={() => setShowModal(false)}></div>
+          <div className="br-scrim-util foco" onClick={handleFecharModal}></div>
           <div className="br-modal large" style={{ display: 'block', maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="br-modal-header">
               <div className="br-modal-title">
@@ -844,7 +890,7 @@ const AdminSubeventos = () => {
                 <button
                   type="button"
                   className="br-button secondary"
-                  onClick={() => setShowModal(false)}
+                  onClick={handleFecharModal}
                 >
                   Cancelar
                 </button>
@@ -1173,7 +1219,7 @@ const AdminSubeventos = () => {
                 <div className="br-modal-footer">
                   <button
                     className="br-button secondary"
-                    onClick={() => setShowMesariosModal(false)}
+                    onClick={handleFecharModalMesarios}
                   >
                     Cancelar
                   </button>
@@ -1188,7 +1234,7 @@ const AdminSubeventos = () => {
               </div>
             </div>
           </div>
-          <div className="br-scrim active" onClick={() => setShowMesariosModal(false)}></div>
+          <div className="br-scrim active" onClick={handleFecharModalMesarios}></div>
         </>
       )}
     </MainLayout>

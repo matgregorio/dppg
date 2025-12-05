@@ -103,7 +103,7 @@ const Menu = () => {
                   <Link className={`menu-item ${isActive('/trabalhos')}`} to="/trabalhos" onClick={handleLinkClick}>
                     <span className="content">Meus Trabalhos</span>
                   </Link>
-                  <Link className={`menu-item ${isActive('/submeter-trabalho-novo')}`} to="/submeter-trabalho-novo" onClick={handleLinkClick}>
+                  <Link className={`menu-item ${isActive('/submeter-trabalho')}`} to="/submeter-trabalho" onClick={handleLinkClick}>
                     <span className="content">Submeter Trabalho</span>
                   </Link>
                   <Link className={`menu-item ${isActive('/certificados')}`} to="/certificados" onClick={handleLinkClick}>
@@ -188,6 +188,9 @@ const Menu = () => {
                   </Link>
                   <Link className={`menu-item ${isActive('/admin/paginas')}`} to="/admin/paginas" onClick={handleLinkClick}>
                     <span className="content">Páginas Estáticas</span>
+                  </Link>
+                  <Link className={`menu-item ${isActive('/admin/email-templates')}`} to="/admin/email-templates" onClick={handleLinkClick}>
+                    <span className="content">Templates de Email</span>
                   </Link>
                 </>
               )}

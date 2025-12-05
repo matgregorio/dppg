@@ -33,4 +33,5 @@ const useNotification = () => {
   };
 };
 
+export { useNotification };
 export default useNotification;

@@ -19,6 +19,21 @@ const getLocalIP = () => {
   return '0.0.0.0'; // fallback
 };
 
+// Função auxiliar para verificar se o usuário é responsável pelo subevento
+const isResponsavel = async (userId, subevento) => {
+  const Participant = require('../models/Participant');
+  
+  // Busca o participante associado ao user
+  const participant = await Participant.findOne({ user: userId });
+  
+  if (!participant) {
+    return false;
+  }
+  
+  // Verifica se o participante está na lista de responsáveis
+  return subevento.responsaveisMesarios.some(r => r.toString() === participant._id.toString());
+};
+
 const mesarioController = {
   getSubeventos: async (req, res) => {
     try {
@@ -26,19 +41,28 @@ const mesarioController = {
       const Simposio = require('../models/Simposio');
       const Participant = require('../models/Participant');
       
+      console.log('\n📋 Mesário - Buscar Subeventos');
+      console.log('User ID:', req.user.id);
+      
       const ano = req.query.ano || process.env.DEFAULT_SIMPOSIO_ANO;
       const simposio = await Simposio.findOne({ ano: parseInt(ano) });
       
       if (!simposio) {
+        console.log('❌ Simpósio não encontrado para ano:', ano);
         return res.status(404).json({ success: false, message: 'Simpósio não encontrado' });
       }
+      
+      console.log('✓ Simpósio encontrado:', simposio.ano);
       
       // Busca o participante associado ao usuário logado
       const participant = await Participant.findOne({ user: req.user.id });
       
       if (!participant) {
+        console.log('❌ Participante não encontrado para user:', req.user.id);
         return res.status(404).json({ success: false, message: 'Participante não encontrado' });
       }
+      
+      console.log('✓ Participante encontrado:', participant.nome, '| ID:', participant._id);
       
       // Busca subeventos onde o participante é responsável
       const subeventos = await Subevento.find({
@@ -46,8 +70,15 @@ const mesarioController = {
         responsaveisMesarios: participant._id,
       });
       
+      console.log('✓ Subeventos encontrados:', subeventos.length);
+      subeventos.forEach(s => {
+        console.log(`  - ${s.titulo} | Responsáveis: ${s.responsaveisMesarios.length}`);
+      });
+      console.log('');
+      
       res.json({ success: true, data: subeventos });
     } catch (error) {
+      console.error('❌ Erro ao buscar subeventos:', error.message);
       res.status(500).json({ success: false, message: error.message });
     }
   },
@@ -63,7 +94,8 @@ const mesarioController = {
       }
       
       // Verifica se é responsável
-      if (!subevento.responsaveisMesarios.some(r => r.toString() === req.user.id)) {
+      const ehResponsavel = await isResponsavel(req.user.id, subevento);
+      if (!ehResponsavel) {
         return res.status(403).json({ success: false, message: 'Você não é responsável por este subevento' });
       }
       
@@ -85,7 +117,8 @@ const mesarioController = {
       }
       
       // Verifica se é responsável
-      if (!subevento.responsaveisMesarios.some(r => r.toString() === req.user.id)) {
+      const ehResponsavel = await isResponsavel(req.user.id, subevento);
+      if (!ehResponsavel) {
         return res.status(403).json({ success: false, message: 'Você não é responsável por este subevento' });
       }
       
@@ -303,6 +336,10 @@ const mesarioController = {
       const Participant = require('../models/Participant');
       const subeventoId = req.params.id;
       
+      console.log('\n📋 Mesário - Inscritos com Presença');
+      console.log('Subevento ID:', subeventoId);
+      console.log('User ID:', req.user.id);
+      
       // Busca o subevento com os inscritos
       const subevento = await Subevento.findById(subeventoId)
         .populate({
@@ -311,11 +348,21 @@ const mesarioController = {
         });
       
       if (!subevento) {
+        console.log('❌ Subevento não encontrado');
         return res.status(404).json({ success: false, message: 'Subevento não encontrado' });
       }
       
+      console.log('✓ Subevento encontrado:', subevento.titulo);
+      console.log('Inscritos:', subevento.inscritos.length);
+      console.log('Responsáveis:', subevento.responsaveisMesarios.length);
+      
       // Verifica se é responsável
-      if (!subevento.responsaveisMesarios.some(r => r.toString() === req.user.id)) {
+      console.log('Verificando se é responsável...');
+      const ehResponsavel = await isResponsavel(req.user.id, subevento);
+      console.log('É responsável?', ehResponsavel);
+      
+      if (!ehResponsavel) {
+        console.log('❌ Não é responsável');
         return res.status(403).json({ success: false, message: 'Você não é responsável por este subevento' });
       }
       
@@ -330,7 +377,15 @@ const mesarioController = {
       
       // Monta a lista de inscritos com status de presença
       const inscritosComPresenca = subevento.inscritos
-        .filter(inscrito => inscrito.status === 'CONFIRMADO')
+        .filter(inscrito => {
+          // Remove inscritos que não são CONFIRMADO ou que não têm participant válido
+          if (inscrito.status !== 'CONFIRMADO') return false;
+          if (!inscrito.participant || !inscrito.participant._id) {
+            console.log('⚠️  Inscrito sem participant válido:', inscrito);
+            return false;
+          }
+          return true;
+        })
         .map(inscrito => {
           const participantId = inscrito.participant._id.toString();
           const presenca = presencaMap[participantId];
@@ -352,8 +407,13 @@ const mesarioController = {
           return (a.participant.nome || '').localeCompare(b.participant.nome || '');
         });
       
+      console.log('✓ Inscritos com presença:', inscritosComPresenca.length);
+      console.log('');
+      
       res.json({ success: true, data: inscritosComPresenca });
     } catch (error) {
+      console.error('❌ Erro ao buscar inscritos com presença:', error);
+      console.error('Stack:', error.stack);
       res.status(500).json({ success: false, message: error.message });
     }
   },
@@ -373,7 +433,8 @@ const mesarioController = {
       }
 
       // Verifica se é responsável
-      if (!subevento.responsaveisMesarios.some(r => r.toString() === req.user.id)) {
+      const ehResponsavel = await isResponsavel(req.user.id, subevento);
+      if (!ehResponsavel) {
         return res.status(403).json({ success: false, message: 'Você não é responsável por este subevento' });
       }
 
@@ -451,9 +512,7 @@ const mesarioController = {
       }
       
       // Verifica se o usuário é mesário responsável por este subevento
-      const isMesarioResponsavel = subevento.responsaveisMesarios.some(
-        mesarioId => mesarioId.toString() === req.user.id
-      );
+      const isMesarioResponsavel = await isResponsavel(req.user.id, subevento);
       
       if (isMesarioResponsavel) {
         return res.status(403).json({ 

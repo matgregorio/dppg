@@ -21,10 +21,10 @@ const Footer = ({ className = '' }) => {
         </div>
         <div className="br-list horizontal" data-toggle="data-toggle" data-unique="data-unique">
           <div className="col-3">
-            <a className="br-item header" href="javascript:void(0);" data-toggle="data-toggle">
+            <button className="br-item header" type="button" data-toggle="data-toggle" style={{ border: 'none', background: 'none', width: '100%', textAlign: 'left' }}>
               <div className="content text-down-01 text-bold text-uppercase">Institucional</div>
               <div className="support"><i className="fas fa-angle-down"></i></div>
-            </a>
+            </button>
             <div className="br-list">
               <Link className="br-item" to="/apresentacao">
                 <div className="content">Apresentação</div>
@@ -44,10 +44,10 @@ const Footer = ({ className = '' }) => {
             </div>
           </div>
           <div className="col-3">
-            <a className="br-item header" href="javascript:void(0);" data-toggle="data-toggle">
+            <button className="br-item header" type="button" data-toggle="data-toggle" style={{ border: 'none', background: 'none', width: '100%', textAlign: 'left' }}>
               <div className="content text-down-01 text-bold text-uppercase">Publicações</div>
               <div className="support"><i className="fas fa-angle-down"></i></div>
-            </a>
+            </button>
             <div className="br-list">
               <Link className="br-item" to="/normas-publicacao">
                 <div className="content">Normas para Publicação</div>
@@ -61,10 +61,10 @@ const Footer = ({ className = '' }) => {
             </div>
           </div>
           <div className="col-3">
-            <a className="br-item header" href="javascript:void(0);" data-toggle="data-toggle">
+            <button className="br-item header" type="button" data-toggle="data-toggle" style={{ border: 'none', background: 'none', width: '100%', textAlign: 'left' }}>
               <div className="content text-down-01 text-bold text-uppercase">Serviços</div>
               <div className="support"><i className="fas fa-angle-down"></i></div>
-            </a>
+            </button>
             <div className="br-list">
               <Link className="br-item" to="/validar-certificado">
                 <div className="content">Validar Certificado</div>
@@ -75,10 +75,10 @@ const Footer = ({ className = '' }) => {
             </div>
           </div>
           <div className="col-3">
-            <a className="br-item header" href="javascript:void(0);" data-toggle="data-toggle">
+            <button className="br-item header" type="button" data-toggle="data-toggle" style={{ border: 'none', background: 'none', width: '100%', textAlign: 'left' }}>
               <div className="content text-down-01 text-bold text-uppercase">Links Importantes</div>
               <div className="support"><i className="fas fa-angle-down"></i></div>
-            </a>
+            </button>
             <div className="br-list">
               <a className="br-item" href="https://www.gov.br/capes" target="_blank" rel="noopener noreferrer">
                 <div className="content">CAPES</div>

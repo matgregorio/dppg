@@ -96,6 +96,15 @@ exports.register = async (req, res) => {
     
     logAudit('USER_REGISTER', user._id.toString(), { email, nome, tipoParticipante });
     
+    // Enviar email de boas-vindas
+    const emailService = require('../services/emailService');
+    emailService.enviarEmail('NOVO_USUARIO', email, {
+      usuario_nome: nome,
+      usuario_email: email,
+      usuario_cpf: cpf,
+      url_sistema: process.env.FRONTEND_URL || 'http://localhost:5173',
+    }).catch(err => console.error('Erro ao enviar email de boas-vindas:', err));
+    
     // Gera tokens
     const accessToken = generateAccessToken(user._id, user.roles);
     const refreshToken = generateRefreshToken(user._id);
@@ -360,10 +369,20 @@ exports.forgotPassword = async (req, res) => {
     
     logAudit('PASSWORD_RESET_REQUEST', user._id.toString(), { email });
     
+    // Enviar email de recuperação de senha
+    const emailService = require('../services/emailService');
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken.token}`;
+    emailService.enviarEmail('RECUPERAR_SENHA', email, {
+      usuario_nome: user.nome,
+      usuario_email: email,
+      reset_url: resetUrl,
+      validade_token: '1 hora',
+    }).catch(err => console.error('Erro ao enviar email de recuperação:', err));
+    
     console.log(`\n=== TOKEN DE RESET DE SENHA ===`);
     console.log(`Email: ${email}`);
     console.log(`Token: ${resetToken.token}`);
-    console.log(`Link: ${process.env.FRONTEND_URL}/reset-password?token=${resetToken.token}`);
+    console.log(`Link: ${resetUrl}`);
     console.log(`===============================\n`);
     
     res.json({

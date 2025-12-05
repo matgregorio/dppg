@@ -5,7 +5,7 @@ import MainLayout from '../layouts/MainLayout';
 import LoginModal from '../components/modals/LoginModal';
 import RegisterModal from '../components/modals/RegisterModal';
 import api from '../services/api';
-import useNotification from '../hooks/useNotification';
+import { useNotification } from '../hooks/useNotification';
 
 const Home = () => {
   const currentYear = new Date().getFullYear();
@@ -28,26 +28,16 @@ const Home = () => {
     }
   }, [isAuthenticated]);
   
-  useEffect(() => {
-    console.log('📊 Estado do simpósio:', simposio);
-    console.log('⏳ Loading simpósio:', loadingSimposio);
-  }, [simposio, loadingSimposio]);
-  
   const buscarSimposio = async () => {
     try {
       setLoadingSimposio(true);
-      console.log('🔍 Buscando simpósio do ano:', currentYear);
       const { data } = await api.get(`/public/simposios/${currentYear}`);
       
-      console.log('📦 Resposta da API:', data);
-      
       if (data.success) {
-        console.log('✅ Simpósio encontrado:', data.data);
         setSimposio(data.data);
       }
     } catch (err) {
-      console.error('❌ Erro ao buscar simpósio:', err);
-      console.error('❌ Detalhes do erro:', err.response?.data);
+      console.error('Erro ao buscar simpósio:', err);
     } finally {
       setLoadingSimposio(false);
     }

@@ -4,10 +4,10 @@ const auth = require('../middlewares/auth');
 const requireRoles = require('../middlewares/requireRoles');
 const acervoController = require('../controllers/acervoController');
 const paginasController = require('../controllers/paginasController');
-const reportsController = require('../controllers/reportsController');
 const docenteController = require('../controllers/docenteController');
 const instituicaoController = require('../controllers/instituicaoController');
 const apoioController = require('../controllers/apoioController');
+const emailTemplateController = require('../controllers/emailTemplateController');
 const { uploadAcervo, uploadPagina } = require('../utils/storageService');
 
 /**
@@ -962,10 +962,18 @@ const adminController = {
         responsaveisMesarios,
       } = req.body;
       
+      console.log('🔍 Backend - Atualizar Subevento:');
+      console.log('ID:', req.params.id);
+      console.log('responsaveisMesarios recebido:', responsaveisMesarios);
+      console.log('tipo:', typeof responsaveisMesarios);
+      console.log('é array?', Array.isArray(responsaveisMesarios));
+      
       const subevento = await Subevento.findById(req.params.id);
       if (!subevento) {
         return res.status(404).json({ success: false, message: 'Subevento não encontrado' });
       }
+      
+      console.log('responsaveisMesarios ANTES:', subevento.responsaveisMesarios);
       
       if (titulo) subevento.titulo = titulo;
       if (tipo !== undefined) subevento.tipo = tipo;
@@ -977,9 +985,65 @@ const adminController = {
       if (descricao !== undefined) subevento.descricao = descricao;
       if (vagas !== undefined) subevento.vagas = vagas;
       if (evento !== undefined) subevento.evento = evento;
-      if (responsaveisMesarios) subevento.responsaveisMesarios = responsaveisMesarios;
+      if (responsaveisMesarios !== undefined) {
+        subevento.responsaveisMesarios = responsaveisMesarios;
+        
+        // Adiciona role MESARIO aos participantes que foram adicionados como responsáveis
+        if (Array.isArray(responsaveisMesarios) && responsaveisMesarios.length > 0) {
+          const Participant = require('../models/Participant');
+          const User = require('../models/User');
+          
+          console.log(`\n🔧 Adicionando role MESARIO aos ${responsaveisMesarios.length} responsáveis...`);
+          
+          for (const participantId of responsaveisMesarios) {
+            try {
+              console.log(`  Buscando participante ${participantId}...`);
+              // Busca o participante
+              const participant = await Participant.findById(participantId);
+              
+              if (!participant) {
+                console.log(`  ❌ Participante não encontrado!`);
+                continue;
+              }
+              
+              console.log(`  ✓ Participante encontrado: ${participant.nome}`);
+              console.log(`    User ID: ${participant.user || 'NÃO TEM'}`);
+              
+              if (participant && participant.user) {
+                // Busca o usuário associado
+                const user = await User.findById(participant.user);
+                
+                if (!user) {
+                  console.log(`  ❌ User não encontrado!`);
+                  continue;
+                }
+                
+                console.log(`  ✓ User encontrado: ${user.email}`);
+                console.log(`    Roles atuais: ${user.roles.join(', ')}`);
+                
+                if (user && !user.roles.includes('MESARIO')) {
+                  user.roles.push('MESARIO');
+                  await user.save();
+                  console.log(`  ✅ Role MESARIO adicionada ao usuário ${user.email}`);
+                } else {
+                  console.log(`  ℹ️  User já possui role MESARIO`);
+                }
+              } else {
+                console.log(`  ⚠️  Participante não tem user associado!`);
+              }
+            } catch (err) {
+              console.error(`  ❌ Erro ao processar participante ${participantId}:`, err.message);
+            }
+          }
+          console.log('');
+        }
+      }
+      
+      console.log('responsaveisMesarios DEPOIS:', subevento.responsaveisMesarios);
       
       await subevento.save();
+      
+      console.log('responsaveisMesarios APÓS SAVE:', subevento.responsaveisMesarios);
       
       const { logAudit } = require('../utils/auditLogger');
       logAudit('SUBEVENTO_ATUALIZADO', req.user.id, { subeventoId: subevento._id });
@@ -2038,11 +2102,12 @@ router.delete('/certificados/:id', auth, requireRoles(['ADMIN']), adminControlle
 router.post('/certificados/:id/enviar', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.enviarCertificado);
 router.post('/certificados/:id/regenerar', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.regenerarCertificado);
 
-// Relatórios
-router.get('/reports/trabalhos/excel', auth, requireRoles(['ADMIN', 'SUBADMIN']), reportsController.gerarRelatorioTrabalhosExcel);
-router.get('/reports/trabalhos/pdf', auth, requireRoles(['ADMIN', 'SUBADMIN']), reportsController.gerarRelatorioTrabalhosPDF);
-router.get('/reports/participantes/excel', auth, requireRoles(['ADMIN', 'SUBADMIN']), reportsController.gerarRelatorioParticipantesExcel);
-router.get('/reports/certificados/excel', auth, requireRoles(['ADMIN', 'SUBADMIN']), reportsController.gerarRelatorioCertificadosExcel);
-router.get('/reports/inscricoes/excel', auth, requireRoles(['ADMIN', 'SUBADMIN']), reportsController.gerarRelatorioInscricoesExcel);
+// Templates de Email
+router.get('/email-templates', auth, requireRoles(['ADMIN', 'SUBADMIN']), emailTemplateController.listarTemplates);
+router.get('/email-templates/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), emailTemplateController.obterTemplate);
+router.put('/email-templates/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), emailTemplateController.atualizarTemplate);
+router.post('/email-templates/:id/restaurar', auth, requireRoles(['ADMIN', 'SUBADMIN']), emailTemplateController.restaurarTemplatePadrao);
+router.post('/email-templates/inicializar', auth, requireRoles(['ADMIN']), emailTemplateController.inicializarTemplates);
+router.post('/email-templates/:id/testar', auth, requireRoles(['ADMIN', 'SUBADMIN']), emailTemplateController.testarTemplate);
 
 module.exports = router;

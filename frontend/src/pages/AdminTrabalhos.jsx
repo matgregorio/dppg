@@ -89,37 +89,6 @@ const AdminTrabalhos = () => {
     }
   };
   
-  const baixarRelatorio = async (formato) => {
-    try {
-      const params = new URLSearchParams({
-        ano: filtros.ano,
-        ...(filtros.status && { status: filtros.status }),
-      });
-      
-      const endpoint = formato === 'pdf' 
-        ? `/admin/reports/trabalhos/pdf?${params}`
-        : `/admin/reports/trabalhos/excel?${params}`;
-      
-      const response = await api.get(endpoint, {
-        responseType: 'blob',
-      });
-      
-      const blob = new Blob([response.data]);
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `trabalhos_${filtros.ano}.${formato === 'pdf' ? 'pdf' : 'xlsx'}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      
-      showSuccess(`Relatório ${formato.toUpperCase()} gerado com sucesso!`);
-    } catch (err) {
-      showError(err.response?.data?.message || 'Erro ao gerar relatório');
-    }
-  };
-  
   const handleSubmit = async (e) => {
     if (!selectedAvaliadorId || !selectedTrabalho) return;
     
@@ -200,29 +169,7 @@ const AdminTrabalhos = () => {
       </div>
       
       <div className="my-4">
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <h1 className="text-up-03 text-weight-bold mb-0">Gerenciar Trabalhos</h1>
-          
-          {/* Botões de Exportação */}
-          <div className="d-flex gap-2">
-            <button
-              onClick={() => baixarRelatorio('excel')}
-              className="br-button secondary"
-              title="Exportar para Excel"
-            >
-              <i className="fas fa-file-excel mr-2"></i>
-              Excel
-            </button>
-            <button
-              onClick={() => baixarRelatorio('pdf')}
-              className="br-button secondary"
-              title="Exportar para PDF"
-            >
-              <i className="fas fa-file-pdf mr-2"></i>
-              PDF
-            </button>
-          </div>
-        </div>
+        <h1 className="text-up-03 text-weight-bold mb-4">Gerenciar Trabalhos</h1>
         
         {/* Filtros */}
         <div className="row mb-4">

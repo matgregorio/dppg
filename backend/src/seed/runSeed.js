@@ -9,7 +9,6 @@ const Participant = require('../models/Participant');
 const Simposio = require('../models/Simposio');
 const InscricaoSimposio = require('../models/InscricaoSimposio');
 const AreaAtuacao = require('../models/AreaAtuacao');
-const AreaAtuacao = require('../models/AreaAtuacao');
 const Subarea = require('../models/Subarea');
 const PaginasEstaticas = require('../models/PaginasEstaticas');
 const Subevento = require('../models/Subevento');
@@ -359,6 +358,21 @@ const runSeed = async () => {
     // Garantir que todos os mesários tenham Participant
     const garantirParticipantsMesarios = require('../utils/garantirParticipantsMesarios');
     await garantirParticipantsMesarios();
+    
+    // Inicializar templates de email
+    console.log('📧 Inicializando templates de email...');
+    const EmailTemplate = require('../models/EmailTemplate');
+    const defaults = EmailTemplate.getDefaults();
+    
+    for (const templateData of defaults) {
+      const exists = await EmailTemplate.findOne({ chave: templateData.chave });
+      if (!exists) {
+        await EmailTemplate.create(templateData);
+        console.log(`   ✓ Template criado: ${templateData.nome}`);
+      } else {
+        console.log(`   → Template já existe: ${templateData.nome}`);
+      }
+    }
     
     console.log('\n✅ Seed concluído com sucesso!\n');
     

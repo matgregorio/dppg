@@ -26,7 +26,6 @@ import Acervo from './pages/Acervo';
 // Participant Pages
 import MeusTrabalhos from './pages/MeusTrabalhos';
 import SubmeterTrabalho from './pages/SubmeterTrabalho';
-import SubmeterTrabalhoNovo from './pages/SubmeterTrabalhoNovo';
 import MinhasInscricoes from './pages/MinhasInscricoes';
 import MeusCertificados from './pages/MeusCertificados';
 
@@ -55,6 +54,7 @@ import AdminPaginas from './pages/AdminPaginas';
 import AvaliacoesExternas from './pages/AvaliacoesExternas';
 import FuncoesAdministrativas from './pages/FuncoesAdministrativas';
 import AdminCertificados from './pages/AdminCertificados';
+import AdminEmailTemplates from './pages/AdminEmailTemplates';
 
 // Mesario Pages
 import MesarioSubeventos from './pages/MesarioSubeventos';
@@ -87,6 +87,9 @@ function App() {
           console.error('Erro ao carregar usuário:', error);
           // Limpa autenticação se houver erro
           dispatch(clearAuth());
+        } finally {
+          // Finaliza inicialização após carregar (com sucesso ou erro)
+          dispatch(setInitializing(false));
         }
       } else {
         // Sem token, finaliza inicialização
@@ -158,17 +161,6 @@ function App() {
           <RequireAuth>
             <RequireRoles roles={['USER', 'MESARIO']}>
               <SubmeterTrabalho />
-            </RequireRoles>
-          </RequireAuth>
-        }
-      />
-      
-      <Route
-        path="/submeter-trabalho-novo"
-        element={
-          <RequireAuth>
-            <RequireRoles roles={['USER', 'MESARIO']}>
-              <SubmeterTrabalhoNovo />
             </RequireRoles>
           </RequireAuth>
         }
@@ -401,6 +393,17 @@ function App() {
           <RequireAuth>
             <RequireRoles roles={['ADMIN', 'SUBADMIN']}>
               <AdminCertificados />
+            </RequireRoles>
+          </RequireAuth>
+        }
+      />
+      
+      <Route
+        path="/admin/email-templates"
+        element={
+          <RequireAuth>
+            <RequireRoles roles={['ADMIN', 'SUBADMIN']}>
+              <AdminEmailTemplates />
             </RequireRoles>
           </RequireAuth>
         }

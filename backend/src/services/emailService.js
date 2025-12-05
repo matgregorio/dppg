@@ -375,8 +375,64 @@ const enviarParecerOrientador = async (emailAluno, nomeAluno, tituloTrabalho, ap
   });
 };
 
+/**
+ * Renderiza um template com variáveis
+ * Substitui {{variavel}} pelos valores fornecidos
+ */
+const renderTemplate = (template, variables) => {
+  let rendered = template;
+  
+  for (const [key, value] of Object.entries(variables)) {
+    const regex = new RegExp(`{{${key}}}`, 'g');
+    rendered = rendered.replace(regex, value || '');
+  }
+  
+  return rendered;
+};
+
+/**
+ * Envia email usando template do banco de dados
+ */
+const enviarEmail = async (chaveTemplate, emailDestino, variaveis = {}) => {
+  try {
+    const EmailTemplate = require('../models/EmailTemplate');
+    
+    // Buscar template
+    const template = await EmailTemplate.findOne({ chave: chaveTemplate, ativo: true });
+    
+    if (!template) {
+      console.error(`❌ Template '${chaveTemplate}' não encontrado ou inativo`);
+      return { success: false, message: 'Template de email não encontrado' };
+    }
+    
+    // Adicionar variáveis padrão
+    const variaveisCompletas = {
+      ...variaveis,
+      ano_atual: new Date().getFullYear(),
+      data_atual: new Date().toLocaleDateString('pt-BR'),
+      url_sistema: process.env.FRONTEND_URL || 'http://localhost:5173',
+    };
+    
+    // Renderizar assunto e corpo
+    const assunto = renderTemplate(template.assunto, variaveisCompletas);
+    const corpo = renderTemplate(template.corpo, variaveisCompletas);
+    
+    // Enviar email
+    return await sendEmail({
+      to: emailDestino,
+      subject: assunto,
+      html: corpo,
+    });
+  } catch (error) {
+    console.error('❌ Erro ao enviar email com template:', error);
+    return { success: false, message: error.message };
+  }
+};
+
 module.exports = {
   sendEmail,
+  enviarEmail,
+  renderTemplate,
   enviarConfirmacaoSubmissao,
   enviarAtribuicaoAvaliacao,
   enviarResultadoAvaliacao,

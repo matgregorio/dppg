@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import MainLayout from '../layouts/MainLayout';
@@ -9,7 +9,11 @@ import api from '../services/api';
 const trabalhoSchema = z.object({
   titulo: z.string().min(10, 'Título deve ter no mínimo 10 caracteres'),
   resumo: z.string().min(100, 'Resumo deve ter no mínimo 100 caracteres'),
-  autores: z.string().min(1, 'Informe ao menos um autor'),
+  outrosAutores: z.array(z.object({
+    nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
+    email: z.string().email('Email inválido'),
+    cpf: z.string().min(11, 'CPF inválido').max(11, 'CPF inválido'),
+  })).optional(),
   palavras_chave: z.string().min(1, 'Informe ao menos uma palavra-chave'),
   tipoProjeto: z.enum(['PESQUISA', 'EXTENSAO', 'ENSINO'], {
     errorMap: () => ({ message: 'Selecione o tipo de projeto' })
@@ -40,9 +44,18 @@ const SubmeterTrabalho = () => {
     handleSubmit,
     watch,
     setValue,
+    control,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(trabalhoSchema),
+    defaultValues: {
+      outrosAutores: [],
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'outrosAutores',
   });
 
   const areaAtuacaoSelecionada = watch('areaAtuacao');
@@ -113,18 +126,24 @@ const SubmeterTrabalho = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
   
+  const addAutor = () => {
+    if (fields.length >= 5) {
+      setError('Máximo de 6 autores no total (você + 5 outros)');
+      return;
+    }
+    append({ nome: '', email: '', cpf: '' });
+  };
+
   const onSubmit = async (formData) => {
     try {
       setError('');
       setSuccess('');
       
-      // Converter autores e palavras-chave de string para array
-      const autoresArray = formData.autores.split('\n')
-        .filter(a => a.trim())
-        .map(linha => {
-          const [nome, email, cpf] = linha.split(',').map(s => s.trim());
-          return { nome, email, cpf };
-        });
+      // Validar máximo de autores
+      if (formData.outrosAutores && formData.outrosAutores.length > 5) {
+        setError('Máximo de 6 autores (você + 5 outros autores)');
+        return;
+      }
       
       const palavrasChaveArray = formData.palavras_chave.split(',').map(p => p.trim());
       
@@ -132,7 +151,7 @@ const SubmeterTrabalho = () => {
       const data = new FormData();
       data.append('titulo', formData.titulo);
       data.append('resumo', formData.resumo);
-      data.append('autores', JSON.stringify(autoresArray));
+      data.append('autores', JSON.stringify(formData.outrosAutores || []));
       data.append('palavras_chave', JSON.stringify(palavrasChaveArray));
       data.append('tipoProjeto', formData.tipoProjeto);
       data.append('orientador', formData.orientador);
@@ -230,31 +249,90 @@ const SubmeterTrabalho = () => {
                   placeholder="Descreva o resumo do seu trabalho..."
                   className={errors.resumo ? 'danger' : ''}
                 />
-                {errors.resumo && (
-                  <span className="feedback danger" role="alert">
-                    <i className="fas fa-times-circle" aria-hidden="true"></i>
-                    {errors.resumo.message}
-                  </span>
-                )}
               </div>
               
-              <div className="br-textarea mb-3">
-                <label htmlFor="autores">
-                  Autores <span className="text-danger">*</span>
-                  <span className="text-down-01 ml-2">(um por linha: Nome, Email, CPF)</span>
+              <div className="mb-4">
+                <label className="text-weight-bold mb-2">
+                  Outros Autores <span className="text-down-01 ml-2">(opcional - máx. 5)</span>
                 </label>
-                <textarea
-                  {...register('autores')}
-                  id="autores"
-                  rows="4"
-                  placeholder="João Silva, joao@email.com, 12345678900"
-                  className={errors.autores ? 'danger' : ''}
-                />
-                {errors.autores && (
-                  <span className="feedback danger" role="alert">
-                    <i className="fas fa-times-circle" aria-hidden="true"></i>
-                    {errors.autores.message}
-                  </span>
+                {fields.map((field, index) => (
+                  <div key={field.id} className="row mb-2 align-items-end">
+                    <div className="col-md-4">
+                      <div className="br-input">
+                        <label htmlFor={`outrosAutores.${index}.nome`}>Nome</label>
+                        <input
+                          {...register(`outrosAutores.${index}.nome`)}
+                          id={`outrosAutores.${index}.nome`}
+                          type="text"
+                          placeholder="Nome completo"
+                          className={errors.outrosAutores?.[index]?.nome ? 'danger' : ''}
+                        />
+                        {errors.outrosAutores?.[index]?.nome && (
+                          <span className="feedback danger" role="alert">
+                            <i className="fas fa-times-circle" aria-hidden="true"></i>
+                            {errors.outrosAutores[index].nome.message}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="col-md-4">
+                      <div className="br-input">
+                        <label htmlFor={`outrosAutores.${index}.email`}>Email</label>
+                        <input
+                          {...register(`outrosAutores.${index}.email`)}
+                          id={`outrosAutores.${index}.email`}
+                          type="email"
+                          placeholder="email@exemplo.com"
+                          className={errors.outrosAutores?.[index]?.email ? 'danger' : ''}
+                        />
+                        {errors.outrosAutores?.[index]?.email && (
+                          <span className="feedback danger" role="alert">
+                            <i className="fas fa-times-circle" aria-hidden="true"></i>
+                            {errors.outrosAutores[index].email.message}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="col-md-3">
+                      <div className="br-input">
+                        <label htmlFor={`outrosAutores.${index}.cpf`}>CPF</label>
+                        <input
+                          {...register(`outrosAutores.${index}.cpf`)}
+                          id={`outrosAutores.${index}.cpf`}
+                          type="text"
+                          placeholder="00000000000"
+                          maxLength="11"
+                          className={errors.outrosAutores?.[index]?.cpf ? 'danger' : ''}
+                        />
+                        {errors.outrosAutores?.[index]?.cpf && (
+                          <span className="feedback danger" role="alert">
+                            <i className="fas fa-times-circle" aria-hidden="true"></i>
+                            {errors.outrosAutores[index].cpf.message}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="col-md-1 mb-3">
+                      <button
+                        type="button"
+                        className="br-button secondary circle"
+                        onClick={() => remove(index)}
+                        title="Remover autor"
+                      >
+                        <i className="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {fields.length < 5 && (
+                  <button
+                    type="button"
+                    className="br-button secondary"
+                    onClick={addAutor}
+                  >
+                    <i className="fas fa-plus mr-2"></i>
+                    Adicionar Autor
+                  </button>
                 )}
               </div>
               
@@ -458,6 +536,7 @@ const SubmeterTrabalho = () => {
                   </label>
                   <select
                     id="subarea"
+                    disabled={!areaAtuacaoSelecionada || subareasFiltradas.length === 0}
                     style={{
                       height: '40px',
                       padding: '8px 12px',
@@ -469,7 +548,6 @@ const SubmeterTrabalho = () => {
                       width: '100%'
                     }}
                     {...register('subarea')}
-                    disabled={!areaAtuacaoSelecionada || subareasFiltradas.length === 0}
                   >
                     <option value="">
                       {!areaAtuacaoSelecionada 

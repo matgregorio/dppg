@@ -209,46 +209,44 @@ export default function AdminEmailTemplates() {
                 <div className="card-header">
                   <div className="d-flex justify-content-between align-items-center">
                     <h5 className="mb-0">{templateSelecionado.nome}</h5>
-                    <div className="d-flex gap-2">
-                      {!modoEdicao ? (
+                    {!modoEdicao ? (
+                      <button
+                        className="br-button primary"
+                        type="button"
+                        onClick={() => setModoEdicao(true)}
+                      >
+                        <i className="fas fa-edit me-1"></i>
+                        Editar
+                      </button>
+                    ) : (
+                      <div className="d-flex gap-2">
+                        <button
+                          className="br-button secondary"
+                          type="button"
+                          onClick={() => {
+                            setModoEdicao(false);
+                            carregarTemplates();
+                          }}
+                        >
+                          Cancelar
+                        </button>
                         <button
                           className="br-button primary"
                           type="button"
-                          onClick={() => setModoEdicao(true)}
+                          onClick={salvarTemplate}
+                          disabled={salvando}
                         >
-                          <i className="fas fa-edit me-1"></i>
-                          Editar
+                          {salvando ? 'Salvando...' : 'Salvar'}
                         </button>
-                      ) : (
-                        <>
-                          <button
-                            className="br-button secondary"
-                            type="button"
-                            onClick={() => {
-                              setModoEdicao(false);
-                              carregarTemplates();
-                            }}
-                          >
-                            Cancelar
-                          </button>
-                          <button
-                            className="br-button primary"
-                            type="button"
-                            onClick={salvarTemplate}
-                            disabled={salvando}
-                          >
-                            {salvando ? 'Salvando...' : 'Salvar'}
-                          </button>
-                          <button
-                            className="br-button"
-                            type="button"
-                            onClick={restaurarPadrao}
-                          >
-                            Restaurar Padrão
-                          </button>
-                        </>
-                      )}
-                    </div>
+                        <button
+                          className="br-button"
+                          type="button"
+                          onClick={restaurarPadrao}
+                        >
+                          Restaurar Padrão
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 

@@ -537,6 +537,39 @@ body {
 }
 
 /* Responsividade do QR Scanner */
+/* Modo Alto Contraste */
+body.high-contrast {
+  filter: contrast(1.5) brightness(1.1);
+  background-color: #000 !important;
+  color: #fff !important;
+}
+
+body.high-contrast .br-card,
+body.high-contrast .card,
+body.high-contrast .br-modal {
+  background-color: #1a1a1a !important;
+  color: #fff !important;
+  border-color: #fff !important;
+}
+
+body.high-contrast .br-button.primary {
+  background-color: #ffff00 !important;
+  color: #000 !important;
+}
+
+body.high-contrast .br-button.secondary {
+  background-color: #fff !important;
+  color: #000 !important;
+}
+
+body.high-contrast a {
+  color: #ffff00 !important;
+}
+
+body.high-contrast .text-muted {
+  color: #ccc !important;
+}
+
 @media (max-width: 768px) {
   .br-modal-dialog {
     margin: 10px;

@@ -73,7 +73,7 @@ const LoginModal = ({ isOpen, onClose, onOpenRegister }) => {
     <>
       <div className="br-scrim fundo-modal" onClick={handleClose}></div>
       <div className="br-modal medium modal-centralizado">
-        <div className="br-modal-header">
+        <div className="br-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div className="br-modal-title">
             <i className="fas fa-sign-in-alt mr-2"></i>
             Entrar no Sistema

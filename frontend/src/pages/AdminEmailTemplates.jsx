@@ -185,7 +185,10 @@ export default function AdminEmailTemplates() {
                     >
                       <div className="row align-items-center">
                         <div className="col">
-                          <span className={templateSelecionado?._id === template._id ? 'text-primary-default fw-medium' : ''}>
+                          <span style={{ 
+                            fontWeight: templateSelecionado?._id === template._id ? '600' : '400',
+                            color: templateSelecionado?._id === template._id ? '#fff' : 'inherit'
+                          }}>
                             {template.nome}
                           </span>
                         </div>

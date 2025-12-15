@@ -429,6 +429,157 @@ const enviarEmail = async (chaveTemplate, emailDestino, variaveis = {}) => {
   }
 };
 
+/**
+ * Template: Anúncio de Novo Simpósio
+ */
+const enviarNovoSimposio = async (user, dadosSimposio) => {
+  const { ano, tema, dataInicio, dataFim, dataInicioSubmissoes, dataFimSubmissoes, dataInicioInscricoes, dataFimInscricoes } = dadosSimposio;
+  
+  const formatarData = (data) => {
+    if (!data) return null;
+    return new Date(data).toLocaleDateString('pt-BR', { 
+      day: '2-digit', 
+      month: 'long', 
+      year: 'numeric' 
+    });
+  };
+
+  const formatarDataCurta = (data) => {
+    if (!data) return null;
+    return new Date(data).toLocaleDateString('pt-BR');
+  };
+
+  const subject = `🎉 Novo Simpósio ${ano} - ${tema}`;
+  
+  const html = `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 650px; margin: 0 auto; background: #ffffff;">
+      <!-- Header com gradiente -->
+      <div style="background: linear-gradient(135deg, #1351B4 0%, #071D41 100%); padding: 40px 30px; text-align: center; border-radius: 8px 8px 0 0;">
+        <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+          🎓 Novo Simpósio ${ano}
+        </h1>
+        <div style="background: rgba(255,255,255,0.2); height: 3px; width: 80px; margin: 15px auto 0; border-radius: 2px;"></div>
+      </div>
+      
+      <!-- Corpo do email -->
+      <div style="padding: 40px 30px; background: #ffffff;">
+        <p style="font-size: 16px; color: #333; margin: 0 0 25px 0; line-height: 1.6;">
+          Olá, <strong style="color: #1351B4;">${user.nome || user.email}</strong>! 👋
+        </p>
+        
+        <p style="font-size: 16px; color: #333; margin: 0 0 25px 0; line-height: 1.6;">
+          Temos o prazer de anunciar a abertura das atividades do <strong>Simpósio ${ano}</strong>!
+        </p>
+        
+        <!-- Card do Tema -->
+        <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 25px; border-radius: 8px; margin: 30px 0; border-left: 4px solid #1351B4; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+          <div style="display: flex; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 24px; margin-right: 12px;">🎯</span>
+            <h3 style="margin: 0; color: #1351B4; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Tema do Simpósio</h3>
+          </div>
+          <p style="font-size: 20px; color: #071D41; margin: 10px 0 0 0; font-weight: 500; line-height: 1.4;">
+            "${tema}"
+          </p>
+        </div>
+        
+        <!-- Datas Importantes -->
+        <div style="background: #ffffff; border: 2px solid #e9ecef; border-radius: 8px; padding: 25px; margin: 30px 0;">
+          <div style="display: flex; align-items: center; margin-bottom: 20px;">
+            <span style="font-size: 24px; margin-right: 12px;">📅</span>
+            <h3 style="margin: 0; color: #1351B4; font-size: 18px; font-weight: 600;">Datas Importantes</h3>
+          </div>
+          
+          <!-- Data do Evento -->
+          <div style="padding: 15px; margin-bottom: 15px; background: linear-gradient(to right, #1351B4, #155BCB); border-radius: 6px;">
+            <div style="display: flex; align-items: center;">
+              <span style="font-size: 28px; margin-right: 15px;">🎪</span>
+              <div>
+                <p style="margin: 0; color: rgba(255,255,255,0.9); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Período do Evento</p>
+                <p style="margin: 5px 0 0 0; color: #ffffff; font-size: 18px; font-weight: 600;">
+                  ${formatarDataCurta(dataInicio)} a ${formatarDataCurta(dataFim)}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          ${dataInicioSubmissoes && dataFimSubmissoes ? `
+          <!-- Submissões -->
+          <div style="padding: 15px; margin-bottom: 15px; background: #f0f7ff; border-radius: 6px; border-left: 3px solid #0068D1;">
+            <div style="display: flex; align-items: center;">
+              <span style="font-size: 24px; margin-right: 15px;">📝</span>
+              <div>
+                <p style="margin: 0; color: #071D41; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Submissão de Trabalhos</p>
+                <p style="margin: 5px 0 0 0; color: #1351B4; font-size: 16px; font-weight: 500;">
+                  ${formatarDataCurta(dataInicioSubmissoes)} a ${formatarDataCurta(dataFimSubmissoes)}
+                </p>
+              </div>
+            </div>
+          </div>
+          ` : ''}
+          
+          ${dataInicioInscricoes && dataFimInscricoes ? `
+          <!-- Inscrições -->
+          <div style="padding: 15px; background: #f0fff4; border-radius: 6px; border-left: 3px solid #168821;">
+            <div style="display: flex; align-items: center;">
+              <span style="font-size: 24px; margin-right: 15px;">✍️</span>
+              <div>
+                <p style="margin: 0; color: #071D41; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Período de Inscrições</p>
+                <p style="margin: 5px 0 0 0; color: #168821; font-size: 16px; font-weight: 500;">
+                  ${formatarDataCurta(dataInicioInscricoes)} a ${formatarDataCurta(dataFimInscricoes)}
+                </p>
+              </div>
+            </div>
+          </div>
+          ` : ''}
+        </div>
+        
+        <!-- Call to Action -->
+        <div style="text-align: center; margin: 40px 0 30px 0;">
+          <p style="font-size: 16px; color: #333; margin: 0 0 20px 0; line-height: 1.6;">
+            Acesse o sistema para mais informações e para realizar sua inscrição:
+          </p>
+          <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}" 
+             style="display: inline-block; background: linear-gradient(135deg, #1351B4 0%, #0c3e8a 100%); color: #ffffff; padding: 16px 40px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(19, 81, 180, 0.3); transition: all 0.3s;">
+            🚀 Acessar Sistema
+          </a>
+        </div>
+        
+        <!-- Mensagem de encerramento -->
+        <div style="background: #fff8e1; border-left: 4px solid #ffc107; padding: 20px; border-radius: 6px; margin: 30px 0;">
+          <p style="margin: 0; color: #856404; font-size: 14px; line-height: 1.6;">
+            <strong>💡 Dica:</strong> Não perca os prazos! Adicione essas datas ao seu calendário e fique atento às próximas comunicações sobre o evento.
+          </p>
+        </div>
+        
+        <p style="font-size: 16px; color: #333; margin: 30px 0 0 0; line-height: 1.6;">
+          Esperamos contar com sua participação! 🎉
+        </p>
+        
+        <p style="font-size: 16px; color: #333; margin: 15px 0 0 0; line-height: 1.6;">
+          Atenciosamente,<br>
+          <strong style="color: #1351B4;">Equipe Organizadora do Simpósio</strong>
+        </p>
+      </div>
+      
+      <!-- Footer -->
+      <div style="background: #f8f9fa; padding: 25px 30px; border-radius: 0 0 8px 8px; border-top: 3px solid #1351B4;">
+        <p style="font-size: 12px; color: #6c757d; margin: 0 0 8px 0; text-align: center;">
+          📧 Esta é uma mensagem automática. Por favor, não responda este email.
+        </p>
+        <p style="font-size: 11px; color: #adb5bd; margin: 0; text-align: center;">
+          © ${new Date().getFullYear()} Sistema de Gerenciamento de Simpósios. Todos os direitos reservados.
+        </p>
+      </div>
+    </div>
+  `;
+  
+  return await sendEmail({
+    to: user.email,
+    subject,
+    html,
+  });
+};
+
 module.exports = {
   sendEmail,
   enviarEmail,
@@ -439,4 +590,5 @@ module.exports = {
   enviarRecuperacaoSenha,
   enviarNotificacaoOrientador,
   enviarParecerOrientador,
+  enviarNovoSimposio,
 };

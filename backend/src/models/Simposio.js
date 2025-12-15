@@ -14,6 +14,8 @@ const mongoose = require('mongoose');
  *           type: number
  *         nome:
  *           type: string
+ *         tema:
+ *           type: string
  *         descricao:
  *           type: string
  *         local:
@@ -21,6 +23,29 @@ const mongoose = require('mongoose');
  *         status:
  *           type: string
  *           enum: [INICIALIZADO, FINALIZADO]
+ *         finalizado:
+ *           type: boolean
+ *         dataInicio:
+ *           type: string
+ *           format: date
+ *         dataFim:
+ *           type: string
+ *           format: date
+ *         dataInicioSubmissoes:
+ *           type: string
+ *           format: date
+ *         dataFimSubmissoes:
+ *           type: string
+ *           format: date
+ *         dataInicioInscricoes:
+ *           type: string
+ *           format: date
+ *         dataFimInscricoes:
+ *           type: string
+ *           format: date
+ *         dataFinalizacao:
+ *           type: string
+ *           format: date-time
  *         datasConfig:
  *           type: object
  */
@@ -33,6 +58,10 @@ const simposioSchema = new mongoose.Schema({
   nome: {
     type: String,
     required: [true, 'O nome do simpósio é obrigatório'],
+    trim: true,
+  },
+  tema: {
+    type: String,
     trim: true,
   },
   descricao: {
@@ -48,22 +77,47 @@ const simposioSchema = new mongoose.Schema({
     enum: ['INICIALIZADO', 'FINALIZADO'],
     default: 'INICIALIZADO',
   },
+  finalizado: {
+    type: Boolean,
+    default: false,
+  },
+  dataInicio: {
+    type: Date,
+  },
+  dataFim: {
+    type: Date,
+  },
+  dataInicioSubmissoes: {
+    type: Date,
+  },
+  dataFimSubmissoes: {
+    type: Date,
+  },
+  dataInicioInscricoes: {
+    type: Date,
+  },
+  dataFimInscricoes: {
+    type: Date,
+  },
+  dataFinalizacao: {
+    type: Date,
+  },
   datasConfig: {
     inscricaoParticipante: {
-      inicio: { type: Date, required: true },
-      fim: { type: Date, required: true },
+      inicio: { type: Date },
+      fim: { type: Date },
     },
     submissaoTrabalhos: {
-      inicio: { type: Date, required: true },
-      fim: { type: Date, required: true },
+      inicio: { type: Date },
+      fim: { type: Date },
     },
     prazoAvaliacao: {
-      inicio: { type: Date, required: true },
-      fim: { type: Date, required: true },
+      inicio: { type: Date },
+      fim: { type: Date },
     },
     notasAvaliacaoExterna: {
-      inicio: { type: Date, required: true },
-      fim: { type: Date, required: true },
+      inicio: { type: Date },
+      fim: { type: Date },
     },
   },
   deleted_at: {

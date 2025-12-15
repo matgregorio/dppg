@@ -8,7 +8,9 @@ const docenteController = require('../controllers/docenteController');
 const instituicaoController = require('../controllers/instituicaoController');
 const apoioController = require('../controllers/apoioController');
 const emailTemplateController = require('../controllers/emailTemplateController');
-const { uploadAcervo, uploadPagina } = require('../utils/storageService');
+const simposioController = require('../controllers/simposioController');
+const certificadoConfigController = require('../controllers/certificadoConfigController');
+const { uploadAcervo, uploadPagina, uploadCertificadoImagem } = require('../utils/storageService');
 
 /**
  * @swagger
@@ -1996,12 +1998,16 @@ const adminController = {
  *         description: Trabalho não encontrado
  */
 
-// Simpósio
+// Simpósio - Novas rotas para ciclo de vida
+router.post('/simposios', auth, requireRoles(['ADMIN', 'SUBADMIN']), simposioController.criarSimposio);
+router.post('/simposios/:id/finalizar', auth, requireRoles(['ADMIN', 'SUBADMIN']), simposioController.finalizarSimposio);
+router.get('/simposios/:ano', auth, requireRoles(['ADMIN', 'SUBADMIN']), simposioController.getSimposioPorAno);
+router.put('/simposios/:ano', auth, requireRoles(['ADMIN', 'SUBADMIN']), simposioController.atualizarSimposio);
+
+// Simpósio - Rotas antigas (manter compatibilidade)
 router.get('/simposios', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.listarSimposios);
-router.get('/simposios/:ano', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.getSimposio);
 router.post('/simposio/inicializar', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.inicializarSimposio);
 router.post('/simposio/finalizar', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.finalizarSimposio);
-router.put('/simposios/:ano', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.atualizarSimposio);
 router.put('/simposios/:ano/datas', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.atualizarDatasSimposio);
 
 // Trabalhos
@@ -2101,6 +2107,13 @@ router.put('/certificados/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), admin
 router.delete('/certificados/:id', auth, requireRoles(['ADMIN']), adminController.excluirCertificado);
 router.post('/certificados/:id/enviar', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.enviarCertificado);
 router.post('/certificados/:id/regenerar', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.regenerarCertificado);
+
+// Configurações de Certificados
+router.get('/simposios/:simposioId/certificados/configuracoes', auth, requireRoles(['ADMIN', 'SUBADMIN']), certificadoConfigController.getConfiguracoes);
+router.put('/simposios/:simposioId/certificados/configuracoes', auth, requireRoles(['ADMIN', 'SUBADMIN']), certificadoConfigController.atualizarConfiguracoes);
+router.post('/simposios/:simposioId/certificados/upload-imagem', auth, requireRoles(['ADMIN', 'SUBADMIN']), uploadCertificadoImagem.single('imagem'), certificadoConfigController.uploadImagem);
+router.delete('/simposios/:simposioId/certificados/remover-imagem', auth, requireRoles(['ADMIN', 'SUBADMIN']), certificadoConfigController.removerImagem);
+router.post('/simposios/:simposioId/certificados/regenerar-todos', auth, requireRoles(['ADMIN']), certificadoConfigController.regenerarCertificados);
 
 // Templates de Email
 router.get('/email-templates', auth, requireRoles(['ADMIN', 'SUBADMIN']), emailTemplateController.listarTemplates);

@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const acervoController = require('../controllers/acervoController');
+const simposioController = require('../controllers/simposioController');
+const certificadoConfigController = require('../controllers/certificadoConfigController');
 const optionalAuth = require('../middlewares/optionalAuth');
 
 // Placeholder controllers - serão implementados
@@ -240,7 +242,8 @@ publicController.getDocentes = async (req, res) => {
   }
 };
 
-router.get('/simposios', publicController.getSimposios);
+// Simpósios - usar controller dedicado
+router.get('/simposios', simposioController.listarSimposios);
 router.get('/simposios/:ano', publicController.getSimposioPorAno);
 router.get('/simposios/:simposioId/subeventos', optionalAuth, publicController.getSubeventos);
 router.get('/paginas/:slug', publicController.getPagina);
@@ -255,5 +258,8 @@ router.get('/areas-atuacao', publicController.getAreasAtuacao);
 router.get('/subareas', publicController.getSubareas);
 router.get('/apoios', publicController.getApoios);
 router.get('/docentes', publicController.getDocentes);
+
+// Validação pública de certificados
+router.get('/validar-certificado/:hash', certificadoConfigController.validarCertificado);
 
 module.exports = router;

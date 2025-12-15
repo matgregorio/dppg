@@ -39,6 +39,8 @@ import AvaliarTrabalhoOrientador from './pages/AvaliarTrabalhoOrientador';
 
 // Admin Pages
 import AdminSimposio from './pages/AdminSimposio';
+import AdminCicloSimposio from './pages/AdminCicloSimposio';
+import AdminCertificadosConfig from './pages/AdminCertificadosConfig';
 import ConfigurarDatas from './pages/ConfigurarDatas';
 import AdminTrabalhos from './pages/AdminTrabalhos';
 import AdminAreas from './pages/AdminAreas';
@@ -129,6 +131,7 @@ function App() {
       <Route path="/normas-publicacao" element={<NormasPublicacao />} />
       <Route path="/programacao" element={<Programacao />} />
       <Route path="/modelo-poster" element={<ModeloPoster />} />
+      <Route path="/validar-certificado/:hash" element={<ValidarCertificado />} />
       <Route path="/validar-certificado" element={<ValidarCertificado />} />
       <Route path="/acervo" element={<Acervo />} />
       
@@ -228,6 +231,17 @@ function App() {
           <RequireAuth>
             <RequireRoles roles={['ADMIN', 'SUBADMIN']}>
               <DashboardAdmin />
+            </RequireRoles>
+          </RequireAuth>
+        }
+      />
+      
+      <Route
+        path="/admin/ciclo-simposio"
+        element={
+          <RequireAuth>
+            <RequireRoles roles={['ADMIN', 'SUBADMIN']}>
+              <AdminCicloSimposio />
             </RequireRoles>
           </RequireAuth>
         }

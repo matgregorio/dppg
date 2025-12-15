@@ -150,6 +150,13 @@ const Menu = () => {
                     <span className="content">Dashboard</span>
                   </Link>
                   <Link 
+                    className={`menu-item ${isActive('/admin/ciclo-simposio')}`} 
+                    to="/admin/ciclo-simposio"
+                    onClick={handleLinkClick}
+                  >
+                    <span className="content">Ciclo de Vida</span>
+                  </Link>
+                  <Link 
                     className={`menu-item ${isActive(`/admin/simposios/${new Date().getFullYear()}`)}`} 
                     to={`/admin/simposios/${new Date().getFullYear()}`}
                     onClick={handleLinkClick}

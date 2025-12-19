@@ -64,9 +64,9 @@ const Login = () => {
   
   return (
     <MainLayout>
-      <div className="container-fluid d-flex align-items-center justify-content-center" style={{ minHeight: 'calc(100vh - 200px)' }}>
-        <div className="row w-100">
-          <div className="col-12 col-md-6 col-lg-4 mx-auto">
+      <div className="container-fluid d-flex align-items-center justify-content-center py-4" style={{ minHeight: 'calc(100vh - 200px)' }}>
+        <div className="row w-100 justify-content-center">
+          <div className="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">
             <div className="br-card">
               <div className="card-header">
                 <div className="d-flex align-items-center">
@@ -79,7 +79,7 @@ const Login = () => {
                   </div>
                 </div>
               </div>
-              <div className="card-content">
+              <div className="card-content p-3 p-sm-4">
                 <form onSubmit={handleSubmit(onSubmit)}>
                   {error && (
                     <div className="br-message danger mb-3" role="alert">

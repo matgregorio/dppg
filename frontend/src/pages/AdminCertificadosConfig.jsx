@@ -129,9 +129,7 @@ const AdminCertificadosConfig = () => {
     }
   };
 
-  const handleReg
-
-enerarTodos = async () => {
+  const handleRegenerarTodos = async () => {
     if (!confirm('Deseja regenerar TODOS os certificados? Esta ação pode demorar alguns minutos.')) return;
 
     try {

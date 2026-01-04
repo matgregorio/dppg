@@ -116,7 +116,7 @@ const Header = () => {
             <Link to="/">
               <img src="/logo-govbr.png" alt="logo" onError={(e) => e.target.style.display = 'none'} />
               <span className="br-divider vertical mx-half mx-sm-1"></span>
-              <span>Sistema de Simpósio</span>
+              <span>DPPG - Departamento de Pesquisa e Pós-Graduação</span>
             </Link>
           </div>
           <div className="header-actions">
@@ -225,7 +225,7 @@ const Header = () => {
                   onClick={() => setShowLoginModal(true)} 
                   className="br-button primary small"
                 >
-                  <i className="fas fa-sign-in-alt mr-1"></i>
+                  <i className="fas fa-user mr-1" aria-hidden="true"></i>
                   Entrar
                 </button>
               </div>

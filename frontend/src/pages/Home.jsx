@@ -102,13 +102,30 @@ const Home = () => {
         </ul>
       </div>
       
-      <div className="my-4">
-        <h1 className="text-up-03 text-weight-bold mb-3">
-          {loadingSimposio ? `Simpósio Anual ${currentYear}` : simposio?.nome || `Simpósio Anual ${currentYear}`}
-        </h1>
-        <p className="text-up-01">
-          Bem-vindo ao Sistema de Gerenciamento do Simpósio Anual
-        </p>
+      {/* Banner do Simpósio */}
+      <div className="mb-4" style={{ 
+        borderRadius: '8px',
+        overflow: 'hidden',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+      }}>
+        <img 
+          src="/banner-simposio.jpg" 
+          alt="Banner do Simpósio - IF Sudeste MG Campus Rio Pomba" 
+          style={{ 
+            width: '100%', 
+            height: 'auto',
+            display: 'block'
+          }}
+          onError={(e) => {
+            // Tenta PNG caso JPG não exista
+            if (e.target.src.endsWith('.jpg')) {
+              e.target.src = '/banner-simposio.png';
+            } else {
+              // Fallback final: esconde a imagem
+              e.target.style.display = 'none';
+            }
+          }}
+        />
       </div>
       
       {/* Botão de Inscrição no Simpósio */}

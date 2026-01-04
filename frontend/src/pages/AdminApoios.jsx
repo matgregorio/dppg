@@ -119,8 +119,10 @@ const AdminApoios = () => {
             </Link>
           </li>
           <li className="crumb">
-            <i className="icon fas fa-chevron-right"></i>
-            <span>Apoios</span>
+            <i className="icon fas fa-chevron-right"></i>            <Link to="/area-administrativa">Área Administrativa</Link>
+          </li>
+          <li className="crumb">
+            <i className="icon fas fa-chevron-right"></i>            <span>Apoios</span>
           </li>
         </ul>
       </div>

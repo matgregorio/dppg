@@ -192,6 +192,36 @@ const uploadCertificadoImagem = multer({
   }
 });
 
+// Configuração do Multer para upload de banner do simpósio
+const storageBanner = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const frontendPublicDir = path.join(__dirname, '../../../frontend/public');
+    if (!fs.existsSync(frontendPublicDir)) {
+      fs.mkdirSync(frontendPublicDir, { recursive: true });
+    }
+    cb(null, frontendPublicDir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, `banner-simposio${ext}`);
+  }
+});
+
+const uploadBanner = multer({
+  storage: storageBanner,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (extname && mimetype) {
+      return cb(null, true);
+    }
+    cb(new Error('Apenas imagens (JPEG, JPG, PNG) são permitidas'));
+  }
+});
+
 module.exports = {
   saveFile,
   deleteFile,
@@ -201,4 +231,5 @@ module.exports = {
   uploadTrabalho,
   uploadPagina,
   uploadCertificadoImagem,
+  uploadBanner,
 };

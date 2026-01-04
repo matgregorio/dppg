@@ -146,6 +146,11 @@ const Menu = () => {
                 <>
                   <div className="br-divider my-3"></div>
                   <div className="menu-title">Administração</div>
+                  {location.pathname !== '/area-administrativa' && (
+                    <Link className={`menu-item ${isActive('/area-administrativa')}`} to="/area-administrativa" onClick={handleLinkClick}>
+                      <span className="content">Área Administrativa</span>
+                    </Link>
+                  )}
                   <Link className={`menu-item ${isActive('/admin/dashboard')}`} to="/admin/dashboard" onClick={handleLinkClick}>
                     <span className="content">Dashboard</span>
                   </Link>

@@ -163,6 +163,10 @@ const AdminTrabalhos = () => {
           </li>
           <li className="crumb">
             <i className="icon fas fa-chevron-right"></i>
+            <Link to="/area-administrativa">Área Administrativa</Link>
+          </li>
+          <li className="crumb">
+            <i className="icon fas fa-chevron-right"></i>
             <span>Gerenciar Trabalhos</span>
           </li>
         </ul>

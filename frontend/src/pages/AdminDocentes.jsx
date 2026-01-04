@@ -160,8 +160,10 @@ const AdminDocentes = () => {
             </Link>
           </li>
           <li className="crumb">
-            <i className="icon fas fa-chevron-right"></i>
-            <span>Docentes</span>
+            <i className="icon fas fa-chevron-right"></i>            <Link to="/area-administrativa">Área Administrativa</Link>
+          </li>
+          <li className="crumb">
+            <i className="icon fas fa-chevron-right"></i>            <span>Docentes</span>
           </li>
         </ul>
       </div>

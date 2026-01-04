@@ -1,0 +1,250 @@
+/* Área Administrativa - Estilos Simplificados */
+
+.admin-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem;
+  border-radius: 12px;
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.admin-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.admin-subtitle {
+  font-size: 1.1rem;
+  opacity: 0.95;
+  margin: 0;
+}
+
+/* Barra de Busca */
+.admin-search {
+  width: 100%;
+  padding: 1rem 1rem 1rem 3rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 50px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  font-style: normal;
+}
+
+.admin-search::placeholder {
+  font-style: normal;
+}
+
+.admin-search:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  outline: none;
+}
+
+.br-input {
+  position: relative;
+}
+
+.br-input i.fa-search {
+  position: absolute;
+  left: 1.2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  font-size: 1.1rem;
+}
+
+/* Links dos Cards */
+.admin-card-link {
+  text-decoration: none;
+  display: block;
+  height: 100%;
+}
+
+/* Cards Simples */
+.admin-card-simple {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-top: 5px solid transparent;
+  cursor: pointer;
+}
+
+.admin-card-simple:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-8px);
+}
+
+.admin-card-simple-header {
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
+}
+
+.admin-card-simple-icon {
+  font-size: 4rem;
+  opacity: 0.9;
+  color: #333;
+}
+
+.admin-card-simple-body {
+  padding: 1.5rem;
+  background: white;
+  text-align: center;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.admin-card-simple-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  color: #333;
+  line-height: 1.4;
+  min-height: 2.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsividade */
+@media (max-width: 1200px) {
+  .admin-title {
+    font-size: 2rem;
+  }
+  
+  .admin-card-simple-icon {
+    font-size: 3.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-header {
+    padding: 1.5rem;
+  }
+
+  .admin-title {
+    font-size: 1.75rem;
+  }
+
+  .admin-subtitle {
+    font-size: 1rem;
+  }
+
+  .admin-card-simple-header {
+    padding: 2rem 1rem;
+    min-height: 120px;
+  }
+
+  .admin-card-simple-icon {
+    font-size: 3rem;
+  }
+
+  .admin-card-simple-title {
+    font-size: 1rem;
+    min-height: auto;
+  }
+}
+
+@media (max-width: 576px) {
+  .admin-title {
+    font-size: 1.5rem;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .admin-title i {
+    margin-bottom: 0.5rem;
+  }
+
+  .admin-search {
+    font-size: 0.9rem;
+    padding: 0.9rem 0.9rem 0.9rem 2.5rem;
+  }
+
+  .br-input i.fa-search {
+    left: 1rem;
+    font-size: 1rem;
+  }
+
+  .admin-card-simple-header {
+    padding: 1.5rem 1rem;
+    min-height: 100px;
+  }
+
+  .admin-card-simple-icon {
+    font-size: 2.5rem;
+  }
+}
+
+/* Animações */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.admin-card-simple {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Grid responsivo */
+.g-4 {
+  --bs-gutter-x: 1.5rem;
+  --bs-gutter-y: 1.5rem;
+}
+
+/* Alertas personalizados */
+.alert {
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+}
+
+/* Breadcrumb customizado */
+.br-breadcrumb {
+  margin-bottom: 1rem;
+}
+
+.crumb-list {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.crumb {
+  margin-right: 0.5rem;
+}
+
+.crumb a {
+  color: #667eea;
+  text-decoration: none;
+}
+
+.crumb a:hover {
+  text-decoration: underline;
+}
+
+.crumb[data-active="active"] span {
+  color: #666;
+}
+
+/* Scroll suave */
+html {
+  scroll-behavior: smooth;
+}

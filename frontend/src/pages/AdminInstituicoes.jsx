@@ -109,8 +109,10 @@ const AdminInstituicoes = () => {
             </Link>
           </li>
           <li className="crumb">
-            <i className="icon fas fa-chevron-right"></i>
-            <span>Instituições</span>
+            <i className="icon fas fa-chevron-right"></i>            <Link to="/area-administrativa">Área Administrativa</Link>
+          </li>
+          <li className="crumb">
+            <i className="icon fas fa-chevron-right"></i>            <span>Instituições</span>
           </li>
         </ul>
       </div>

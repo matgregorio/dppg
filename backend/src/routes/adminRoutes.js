@@ -10,7 +10,7 @@ const apoioController = require('../controllers/apoioController');
 const emailTemplateController = require('../controllers/emailTemplateController');
 const simposioController = require('../controllers/simposioController');
 const certificadoConfigController = require('../controllers/certificadoConfigController');
-const { uploadAcervo, uploadPagina, uploadCertificadoImagem } = require('../utils/storageService');
+const { uploadAcervo, uploadPagina, uploadCertificadoImagem, uploadBanner } = require('../utils/storageService');
 
 /**
  * @swagger
@@ -2122,5 +2122,23 @@ router.put('/email-templates/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), em
 router.post('/email-templates/:id/restaurar', auth, requireRoles(['ADMIN', 'SUBADMIN']), emailTemplateController.restaurarTemplatePadrao);
 router.post('/email-templates/inicializar', auth, requireRoles(['ADMIN']), emailTemplateController.inicializarTemplates);
 router.post('/email-templates/:id/testar', auth, requireRoles(['ADMIN', 'SUBADMIN']), emailTemplateController.testarTemplate);
+
+// Upload de Banner
+router.post('/upload-banner', auth, requireRoles(['ADMIN', 'SUBADMIN']), uploadBanner.single('banner'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Nenhum arquivo foi enviado' });
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'Banner atualizado com sucesso',
+      filename: req.file.filename
+    });
+  } catch (error) {
+    console.error('Erro ao fazer upload do banner:', error);
+    res.status(500).json({ success: false, message: 'Erro ao fazer upload do banner' });
+  }
+});
 
 module.exports = router;

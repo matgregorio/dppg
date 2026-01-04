@@ -13,7 +13,8 @@ const DashboardAdmin = () => {
   const [loading, setLoading] = useState(true);
   const [simposioFiltro, setSimposioFiltro] = useState('');
   const [simposios, setSimposios] = useState([]);
-  const { showError } = useNotification();
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+  const { showError, showSuccess } = useNotification();
 
   const COLORS = {
     'EM_ANALISE': '#FFC107',
@@ -64,6 +65,46 @@ const DashboardAdmin = () => {
       showError(err.response?.data?.message || 'Erro ao carregar estatísticas');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUploadBanner = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validar tipo de arquivo
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!validTypes.includes(file.type)) {
+      showError('Formato inválido. Use JPG ou PNG.');
+      return;
+    }
+
+    // Validar tamanho (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showError('Arquivo muito grande. Tamanho máximo: 5MB.');
+      return;
+    }
+
+    try {
+      setUploadingBanner(true);
+      const formData = new FormData();
+      formData.append('banner', file);
+
+      const { data } = await api.post('/admin/upload-banner', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (data.success) {
+        showSuccess('Banner atualizado com sucesso! Recarregue a página inicial para ver.');
+        // Limpar input
+        event.target.value = '';
+      }
+    } catch (err) {
+      showError(err.response?.data?.message || 'Erro ao fazer upload do banner');
+    } finally {
+      setUploadingBanner(false);
     }
   };
 
@@ -127,6 +168,60 @@ const DashboardAdmin = () => {
                 <option key={s._id} value={s._id}>{s.ano}</option>
               ))}
             </select>
+          </div>
+        </div>
+
+        {/* Upload de Banner */}
+        <div className="row mb-4">
+          <div className="col-12">
+            <div className="br-card">
+              <div className="card-header" style={{ background: '#1351B4', color: 'white' }}>
+                <h5 className="mb-0">
+                  <i className="fas fa-image mr-2"></i>
+                  Gerenciar Banner da Página Inicial
+                </h5>
+              </div>
+              <div className="card-content p-4">
+                <div className="row align-items-center">
+                  <div className="col-md-8">
+                    <p className="mb-2">
+                      <strong>Atualize o banner principal</strong> que aparece na página inicial do sistema.
+                    </p>
+                    <p className="text-muted mb-0">
+                      <i className="fas fa-info-circle mr-1"></i>
+                      Formatos aceitos: JPG ou PNG | Tamanho máximo: 5MB | Dimensões recomendadas: 1920x400px
+                    </p>
+                  </div>
+                  <div className="col-md-4 text-center">
+                    <label 
+                      htmlFor="banner-upload" 
+                      className="br-button primary"
+                      style={{ cursor: uploadingBanner ? 'not-allowed' : 'pointer', opacity: uploadingBanner ? 0.6 : 1 }}
+                    >
+                      {uploadingBanner ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm mr-2" role="status"></span>
+                          Enviando...
+                        </>
+                      ) : (
+                        <>
+                          <i className="fas fa-upload mr-2"></i>
+                          Escolher Banner
+                        </>
+                      )}
+                    </label>
+                    <input
+                      id="banner-upload"
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png"
+                      onChange={handleUploadBanner}
+                      disabled={uploadingBanner}
+                      style={{ display: 'none' }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

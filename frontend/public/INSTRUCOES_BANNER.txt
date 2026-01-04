@@ -1,0 +1,9 @@
+INSTRUÇÕES PARA ADICIONAR O BANNER DO SIMPÓSIO
+==============================================
+
+Por favor, salve a imagem do banner do simpósio com o nome:
+banner-simposio.png
+
+Nesta pasta: frontend/public/
+
+A imagem será exibida automaticamente na página inicial do sistema.

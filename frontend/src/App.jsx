@@ -57,6 +57,7 @@ import AvaliacoesExternas from './pages/AvaliacoesExternas';
 import FuncoesAdministrativas from './pages/FuncoesAdministrativas';
 import AdminCertificados from './pages/AdminCertificados';
 import AdminEmailTemplates from './pages/AdminEmailTemplates';
+import AreaAdministrativa from './pages/AreaAdministrativa';
 
 // Mesario Pages
 import MesarioSubeventos from './pages/MesarioSubeventos';
@@ -225,6 +226,17 @@ function App() {
       />
       
       {/* Rotas de admin */}
+      <Route
+        path="/area-administrativa"
+        element={
+          <RequireAuth>
+            <RequireRoles roles={['ADMIN', 'SUBADMIN']}>
+              <AreaAdministrativa />
+            </RequireRoles>
+          </RequireAuth>
+        }
+      />
+      
       <Route
         path="/admin/dashboard"
         element={

@@ -60,6 +60,8 @@ exports.criarSimposio = async (req, res) => {
       enviarEmail,
     } = req.body;
 
+    console.log('📝 Dados recebidos para criar simpósio:', { ano, tema, dataInicio, dataFim });
+
     // Validações básicas
     if (!ano || !tema || !dataInicio || !dataFim) {
       return res.status(400).json({
@@ -68,8 +70,8 @@ exports.criarSimposio = async (req, res) => {
       });
     }
 
-    // Verifica se já existe simpósio para este ano
-    const simposioExistente = await Simposio.findOne({ ano });
+    // Verifica se já existe simpósio para este ano (não deletado)
+    const simposioExistente = await Simposio.findOne({ ano, deleted_at: null });
     if (simposioExistente) {
       return res.status(400).json({
         success: false,
@@ -88,9 +90,30 @@ exports.criarSimposio = async (req, res) => {
       });
     }
 
-    // Cria o novo simpósio
+    // Prepara as datas para o formato datasConfig (compatibilidade com sistema antigo)
+    const datasConfig = {
+      inscricaoParticipante: {
+        inicio: dataInicioInscricoes ? new Date(dataInicioInscricoes) : null,
+        fim: dataFimInscricoes ? new Date(dataFimInscricoes) : null,
+      },
+      submissaoTrabalhos: {
+        inicio: dataInicioSubmissoes ? new Date(dataInicioSubmissoes) : null,
+        fim: dataFimSubmissoes ? new Date(dataFimSubmissoes) : null,
+      },
+      prazoAvaliacao: {
+        inicio: inicio,
+        fim: fim,
+      },
+      notasAvaliacaoExterna: {
+        inicio: inicio,
+        fim: fim,
+      },
+    };
+
+    // Cria o novo simpósio com ambos os formatos para compatibilidade
     const novoSimposio = new Simposio({
       ano,
+      nome: tema, // O campo 'nome' é obrigatório no modelo
       tema,
       dataInicio: inicio,
       dataFim: fim,
@@ -98,16 +121,20 @@ exports.criarSimposio = async (req, res) => {
       dataFimSubmissoes: dataFimSubmissoes ? new Date(dataFimSubmissoes) : null,
       dataInicioInscricoes: dataInicioInscricoes ? new Date(dataInicioInscricoes) : null,
       dataFimInscricoes: dataFimInscricoes ? new Date(dataFimInscricoes) : null,
+      datasConfig, // Adiciona o formato antigo para compatibilidade
       finalizado: false,
     });
 
+    console.log('💾 Tentando salvar simpósio...');
     await novoSimposio.save();
+    console.log('✅ Simpósio salvo com sucesso!');
 
     // Envia e-mails de notificação se solicitado
     if (enviarEmail) {
       try {
         // Busca todos os usuários com e-mail verificado
         const usuarios = await User.find({ emailVerified: true }).select('email nome');
+        console.log(`📧 Enviando notificações para ${usuarios.length} usuários...`);
         
         const emailsEnviados = [];
         for (const usuario of usuarios) {
@@ -124,13 +151,13 @@ exports.criarSimposio = async (req, res) => {
             });
             emailsEnviados.push(usuario.email);
           } catch (emailErr) {
-            console.error(`Erro ao enviar e-mail para ${usuario.email}:`, emailErr);
+            console.error(`❌ Erro ao enviar e-mail para ${usuario.email}:`, emailErr);
           }
         }
 
         console.log(`✉️ Notificações enviadas para ${emailsEnviados.length} usuários sobre o novo simpósio ${ano}`);
       } catch (emailErr) {
-        console.error('Erro ao processar envio de e-mails:', emailErr);
+        console.error('❌ Erro ao processar envio de e-mails:', emailErr);
         // Não retorna erro, pois o simpósio foi criado com sucesso
       }
     }
@@ -141,7 +168,8 @@ exports.criarSimposio = async (req, res) => {
       data: novoSimposio,
     });
   } catch (err) {
-    console.error('Erro ao criar simpósio:', err);
+    console.error('❌ Erro ao criar simpósio:', err);
+    console.error('Stack trace:', err.stack);
     res.status(500).json({
       success: false,
       message: 'Erro ao criar simpósio',

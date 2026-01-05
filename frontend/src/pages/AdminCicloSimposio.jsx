@@ -29,6 +29,20 @@ const AdminCicloSimposio = () => {
     fetchSimposios();
   }, []);
 
+  // Scroll para o topo quando o modal abrir
+  useEffect(() => {
+    if (showNovoSimposioModal || showFinalizarModal) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showNovoSimposioModal, showFinalizarModal]);
+
   const fetchSimposios = async () => {
     try {
       setLoading(true);
@@ -285,8 +299,24 @@ const AdminCicloSimposio = () => {
       {/* Modal Novo Simpósio */}
       {showNovoSimposioModal && (
         <>
-          <div className="br-modal active" style={{ display: 'block' }}>
-            <div className="br-modal-dialog" style={{ maxWidth: '800px' }}>
+          <div className="br-modal active" style={{ 
+            display: 'flex',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999
+          }}>
+            <div className="br-modal-dialog" style={{ 
+              maxWidth: '800px',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+              margin: '20px'
+            }}>
               <div className="br-modal-content">
                 <div className="br-modal-header">
                   <div className="br-modal-title">
@@ -301,7 +331,10 @@ const AdminCicloSimposio = () => {
                   </button>
                 </div>
                 <form onSubmit={handleCriarSimposio}>
-                  <div className="br-modal-body">
+                  <div className="br-modal-body" style={{ 
+                    overflowY: 'auto',
+                    maxHeight: 'calc(90vh - 150px)'
+                  }}>
                     <div className="br-message info mb-4">
                       <div className="icon">
                         <i className="fas fa-lightbulb"></i>
@@ -491,14 +524,32 @@ const AdminCicloSimposio = () => {
               </div>
             </div>
           </div>
-          <div className="br-scrim active" onClick={() => setShowNovoSimposioModal(false)}></div>
+          <div className="br-scrim active" style={{ 
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 9998
+          }} onClick={() => setShowNovoSimposioModal(false)}></div>
         </>
       )}
 
       {/* Modal Finalizar Simpósio */}
       {showFinalizarModal && simposioParaFinalizar && (
         <>
-          <div className="br-modal active" style={{ display: 'block' }}>
+          <div className="br-modal active" style={{ 
+            display: 'flex',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999
+          }}>
             <div className="br-modal-dialog">
               <div className="br-modal-content">
                 <div className="br-modal-header">
@@ -574,7 +625,15 @@ const AdminCicloSimposio = () => {
               </div>
             </div>
           </div>
-          <div className="br-scrim active" onClick={() => setShowFinalizarModal(false)}></div>
+          <div className="br-scrim active" style={{ 
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 9998
+          }} onClick={() => setShowFinalizarModal(false)}></div>
         </>
       )}
     </MainLayout>

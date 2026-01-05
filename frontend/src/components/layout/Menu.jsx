@@ -146,11 +146,9 @@ const Menu = () => {
                 <>
                   <div className="br-divider my-3"></div>
                   <div className="menu-title">Administração</div>
-                  {location.pathname !== '/area-administrativa' && (
-                    <Link className={`menu-item ${isActive('/area-administrativa')}`} to="/area-administrativa" onClick={handleLinkClick}>
-                      <span className="content">Área Administrativa</span>
-                    </Link>
-                  )}
+                  <Link className={`menu-item ${isActive('/area-administrativa')}`} to="/area-administrativa" onClick={handleLinkClick}>
+                    <span className="content">Área Administrativa</span>
+                  </Link>
                   <Link className={`menu-item ${isActive('/admin/dashboard')}`} to="/admin/dashboard" onClick={handleLinkClick}>
                     <span className="content">Dashboard</span>
                   </Link>
@@ -160,49 +158,6 @@ const Menu = () => {
                     onClick={handleLinkClick}
                   >
                     <span className="content">Ciclo de Vida</span>
-                  </Link>
-                  <Link 
-                    className={`menu-item ${isActive(`/admin/simposios/${new Date().getFullYear()}`)}`} 
-                    to={`/admin/simposios/${new Date().getFullYear()}`}
-                    onClick={handleLinkClick}
-                  >
-                    <span className="content">Gerenciar Simpósio</span>
-                  </Link>
-                  <Link className={`menu-item ${isActive('/admin/trabalhos')}`} to="/admin/trabalhos" onClick={handleLinkClick}>
-                    <span className="content">Trabalhos</span>
-                  </Link>
-                  <Link className={`menu-item ${isActive('/admin/areas')}`} to="/admin/areas" onClick={handleLinkClick}>
-                    <span className="content">Áreas de Conhecimento</span>
-                  </Link>
-                  <Link className={`menu-item ${isActive('/admin/instituicoes')}`} to="/admin/instituicoes" onClick={handleLinkClick}>
-                    <span className="content">Instituições</span>
-                  </Link>
-                  <Link className={`menu-item ${isActive('/admin/docentes')}`} to="/admin/docentes" onClick={handleLinkClick}>
-                    <span className="content">Docentes</span>
-                  </Link>
-                  <Link className={`menu-item ${isActive('/admin/apoios')}`} to="/admin/apoios" onClick={handleLinkClick}>
-                    <span className="content">Apoios</span>
-                  </Link>
-                  <Link className={`menu-item ${isActive('/admin/participantes')}`} to="/admin/participantes" onClick={handleLinkClick}>
-                    <span className="content">Participantes</span>
-                  </Link>
-                  <Link className={`menu-item ${isActive('/admin/avaliadores')}`} to="/admin/avaliadores" onClick={handleLinkClick}>
-                    <span className="content">Avaliadores</span>
-                  </Link>
-                  <Link className={`menu-item ${isActive('/admin/subeventos')}`} to="/admin/subeventos" onClick={handleLinkClick}>
-                    <span className="content">Subeventos</span>
-                  </Link>
-                  <Link className={`menu-item ${isActive('/admin/avaliacoes-externas')}`} to="/admin/avaliacoes-externas" onClick={handleLinkClick}>
-                    <span className="content">Avaliações Externas</span>
-                  </Link>
-                  <Link className={`menu-item ${isActive('/admin/acervo')}`} to="/admin/acervo" onClick={handleLinkClick}>
-                    <span className="content">Acervo</span>
-                  </Link>
-                  <Link className={`menu-item ${isActive('/admin/paginas')}`} to="/admin/paginas" onClick={handleLinkClick}>
-                    <span className="content">Páginas Estáticas</span>
-                  </Link>
-                  <Link className={`menu-item ${isActive('/admin/email-templates')}`} to="/admin/email-templates" onClick={handleLinkClick}>
-                    <span className="content">Templates de Email</span>
                   </Link>
                 </>
               )}

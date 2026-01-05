@@ -38,6 +38,20 @@ const AdminDocentes = () => {
     fetchFormData();
   }, []);
   
+  // Scroll para o topo e bloqueia scroll quando modal abrir
+  useEffect(() => {
+    if (showModal) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showModal]);
+  
   useEffect(() => {
     if (watchAreaAtuacao) {
       const filtered = subareas.filter(s => 
@@ -258,30 +272,68 @@ const AdminDocentes = () => {
       {/* Modal */}
       {showModal && (
         <>
-          <div className="br-scrim" onClick={() => setShowModal(false)}></div>
-          <div className="br-modal large" style={{ display: 'block' }}>
-            <div className="br-modal-header">
-              <h4>{editingItem ? 'Editar' : 'Novo'} Docente</h4>
+          <div className="br-scrim active" style={{ 
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 9998
+          }} onClick={() => setShowModal(false)}></div>
+          
+          <div style={{ 
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 9999,
+            width: '90%',
+            maxWidth: '600px',
+            maxHeight: '85vh',
+            backgroundColor: '#fff',
+            borderRadius: '8px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden'
+          }}>
+            <div className="br-modal-header" style={{ 
+              padding: '1.5rem 2rem',
+              borderBottom: '1px solid #ddd',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <h4 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600 }}>
+                {editingItem ? 'Editar' : 'Novo'} Docente
+              </h4>
+              <button
+                className="br-button circle"
+                onClick={() => setShowModal(false)}
+                type="button"
+                style={{ flexShrink: 0 }}
+              >
+                <i className="fas fa-times"></i>
+              </button>
             </div>
             <FormProvider {...methods}>
-              <form onSubmit={methods.handleSubmit(onSubmit)}>
-                <div className="br-modal-body">
-                  <div className="row">
-                    <div className="col-md-8">
-                      <FormInput name="nome" label="Nome Completo" required />
-                    </div>
-                    <div className="col-md-4">
-                      <FormInput name="cpf" label="CPF" required placeholder="000.000.000-00" />
-                    </div>
+              <form onSubmit={methods.handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <div style={{ 
+                  overflowY: 'auto', 
+                  flex: 1,
+                  padding: '2rem'
+                }}>
+                  <FormInput name="nome" label="Nome Completo" required placeholder="Digite o nome completo" />
+                  
+                  <div style={{ maxWidth: '250px' }}>
+                    <FormInput name="cpf" label="CPF" required placeholder="000.000.000-00" />
                   </div>
                   
-                  <div className="row">
-                    <div className="col-md-8">
-                      <FormInput name="email" label="Email" type="email" required />
-                    </div>
-                    <div className="col-md-4">
-                      <FormInput name="telefone" label="Telefone" placeholder="(00) 00000-0000" />
-                    </div>
+                  <FormInput name="email" label="Email" type="email" required placeholder="exemplo@email.com" />
+                  
+                  <div style={{ maxWidth: '250px' }}>
+                    <FormInput name="telefone" label="Telefone" placeholder="(00) 00000-0000" />
                   </div>
                   
                   <div className="mb-3">
@@ -319,13 +371,11 @@ const AdminDocentes = () => {
                     </div>
                   </div>
                   
-                  <div className="row">
-                    <div className="col-md-6">
-                      <div className="mb-3">
-                        <div className={`br-input ${methods.formState.errors.areaAtuacao ? 'danger' : ''}`}>
-                          <label htmlFor="areaAtuacao">
-                            Área de Atuação <span className="text-danger">*</span>
-                          </label>
+                  <div className="mb-3">
+                    <div className={`br-input ${methods.formState.errors.areaAtuacao ? 'danger' : ''}`}>
+                      <label htmlFor="areaAtuacao">
+                        Área de Atuação <span className="text-danger">*</span>
+                      </label>
                           <select
                             id="areaAtuacao"
                             style={{
@@ -355,13 +405,12 @@ const AdminDocentes = () => {
                           )}
                         </div>
                       </div>
-                    </div>
-                    <div className="col-md-6">
-                      <div className="mb-3">
-                        <div className={`br-input ${methods.formState.errors.subarea ? 'danger' : ''}`}>
-                          <label htmlFor="subarea">
-                            Subárea <span className="text-danger">*</span>
-                          </label>
+                  
+                  <div className="mb-3">
+                    <div className={`br-input ${methods.formState.errors.subarea ? 'danger' : ''}`}>
+                      <label htmlFor="subarea">
+                        Subárea <span className="text-danger">*</span>
+                      </label>
                           <select
                             id="subarea"
                             style={{
@@ -394,8 +443,6 @@ const AdminDocentes = () => {
                           )}
                         </div>
                       </div>
-                    </div>
-                  </div>
                   
                   <div className="br-checkbox">
                     <input
@@ -406,7 +453,15 @@ const AdminDocentes = () => {
                     <label htmlFor="visitante">Docente Visitante</label>
                   </div>
                 </div>
-                <div className="br-modal-footer">
+                <div style={{ 
+                  padding: '1.5rem 2rem',
+                  borderTop: '1px solid #ddd',
+                  display: 'flex',
+                  gap: '1rem',
+                  justifyContent: 'flex-end',
+                  flexShrink: 0,
+                  backgroundColor: '#f8f9fa'
+                }}>
                   <button 
                     type="button" 
                     className="br-button secondary" 

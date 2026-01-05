@@ -1,39 +1,28 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import './AreaAdministrativa.css';
 
 const AreaAdministrativa = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-
   const adminOptions = [
-    { title: 'Área de Atuação', icon: 'fas fa-book-reader', link: '/admin/areas', color: '#90EE90' },
-    { title: 'Subeventos', icon: 'fas fa-calendar-alt', link: '/admin/subeventos', color: '#90EE90' },
-    { title: 'Grande Área', icon: 'fas fa-layer-group', link: '/admin/areas', color: '#90EE90' },
-    { title: 'Acervo', icon: 'fas fa-archive', link: '/admin/acervo', color: '#90EE90' },
-    { title: 'Configurar Datas', icon: 'fas fa-clock', link: '/configurar-datas', color: '#90EE90' },
-    { title: 'Participantes', icon: 'fas fa-users', link: '/admin/participantes', color: '#90EE90' },
-    { title: 'Avaliadores', icon: 'fas fa-user-check', link: '/admin/avaliadores', color: '#90EE90' },
-    { title: 'Avaliações Externas', icon: 'fas fa-star-half-alt', link: '/admin/avaliacoes-externas', color: '#90EE90' },
-    { title: 'Páginas Estáticas', icon: 'fas fa-file-alt', link: '/admin/paginas', color: '#90EE90' },
-    { title: 'Templates de Email', icon: 'fas fa-envelope', link: '/admin/email-templates', color: '#90EE90' },
-    { title: 'Configuração de Certificados', icon: 'fas fa-award', link: '/admin/certificados-config', color: '#90EE90' },
-    { title: 'Gerar Certificados', icon: 'fas fa-certificate', link: '/admin/certificados', color: '#90EE90' },
-    { title: 'Trabalhos', icon: 'fas fa-file-upload', link: '/admin/trabalhos', color: '#90EE90' },
-    { title: 'Simpósio', icon: 'fas fa-chalkboard-teacher', link: '/admin/simposio', color: '#90EE90' },
-    { title: 'Ciclo do Simpósio', icon: 'fas fa-sync-alt', link: '/admin/ciclo-simposio', color: '#90EE90' },
-    { title: 'Instituições', icon: 'fas fa-university', link: '/admin/instituicoes', color: '#90EE90' },
-    { title: 'Docentes', icon: 'fas fa-user-graduate', link: '/admin/docentes', color: '#90EE90' },
-    { title: 'Apoios', icon: 'fas fa-hands-helping', link: '/admin/apoios', color: '#90EE90' },
-    { title: 'Funções Administrativas', icon: 'fas fa-user-shield', link: '/funcoes-administrativas', color: '#90EE90' },
-    { title: 'Dashboard', icon: 'fas fa-chart-bar', link: '/admin/dashboard', color: '#90EE90' },
-    { title: 'Validar Certificado', icon: 'fas fa-check-circle', link: '/validar-certificado', color: '#90EE90' }
+    { title: 'Gerenciar Simpósio', icon: 'fas fa-chalkboard-teacher', link: `/admin/simposios/${new Date().getFullYear()}`, color: '#1351B4' },
+    { title: 'Trabalhos', icon: 'fas fa-file-upload', link: '/admin/trabalhos', color: '#1351B4' },
+    { title: 'Áreas de Conhecimento', icon: 'fas fa-book-reader', link: '/admin/areas', color: '#1351B4' },
+    { title: 'Instituições', icon: 'fas fa-university', link: '/admin/instituicoes', color: '#1351B4' },
+    { title: 'Docentes', icon: 'fas fa-user-graduate', link: '/admin/docentes', color: '#1351B4' },
+    { title: 'Apoios', icon: 'fas fa-hands-helping', link: '/admin/apoios', color: '#1351B4' },
+    { title: 'Participantes', icon: 'fas fa-users', link: '/admin/participantes', color: '#1351B4' },
+    { title: 'Avaliadores', icon: 'fas fa-user-check', link: '/admin/avaliadores', color: '#1351B4' },
+    { title: 'Subeventos', icon: 'fas fa-calendar-alt', link: '/admin/subeventos', color: '#1351B4' },
+    { title: 'Avaliações Externas', icon: 'fas fa-star-half-alt', link: '/admin/avaliacoes-externas', color: '#1351B4' },
+    { title: 'Acervo', icon: 'fas fa-archive', link: '/admin/acervo', color: '#1351B4' },
+    { title: 'Páginas Estáticas', icon: 'fas fa-file-alt', link: '/admin/paginas', color: '#1351B4' },
+    { title: 'Templates de Email', icon: 'fas fa-envelope', link: '/admin/email-templates', color: '#1351B4' },
+    { title: 'Configuração de Certificados', icon: 'fas fa-award', link: '/admin/certificados-config', color: '#1351B4' },
+    { title: 'Gerar Certificados', icon: 'fas fa-certificate', link: '/admin/certificados', color: '#1351B4' },
+    { title: 'Configurar Datas', icon: 'fas fa-clock', link: '/configurar-datas', color: '#1351B4' },
+    { title: 'Funções Administrativas', icon: 'fas fa-user-shield', link: '/funcoes-administrativas', color: '#1351B4' }
   ];
-
-  // Filtrar opções baseado na busca
-  const filteredOptions = adminOptions.filter(option =>
-    option.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <MainLayout>
@@ -65,51 +54,27 @@ const AreaAdministrativa = () => {
           </div>
         </div>
 
-        {/* Barra de Busca */}
-        <div className="row mb-4">
-          <div className="col-lg-6 offset-lg-3">
-            <div className="br-input">
-              <input
-                type="text"
-                placeholder="Buscar funcionalidade..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="admin-search"
-              />
-              <i className="fas fa-search"></i>
-            </div>
-          </div>
-        </div>
-
         {/* Grid de Cards */}
         <div className="row g-4">
-          {filteredOptions.map((option, index) => (
+          {adminOptions.map((option, index) => (
             <div key={index} className="col-xl-3 col-lg-4 col-md-6 col-sm-12">
               <Link to={option.link} className="admin-card-link">
-                <div className="admin-card-simple" style={{ borderTopColor: option.color }}>
-                  <div className="admin-card-simple-header" style={{ backgroundColor: option.color }}>
-                    <i className={`${option.icon} admin-card-simple-icon`}></i>
+                <div className="br-card admin-card-govbr">
+                  <div className="card-header" style={{ backgroundColor: '#1351B4', color: 'white' }}>
+                    <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '60px' }}>
+                      <i className={`${option.icon}`} style={{ fontSize: '1.75rem' }}></i>
+                    </div>
                   </div>
-                  <div className="admin-card-simple-body">
-                    <h3 className="admin-card-simple-title">{option.title}</h3>
+                  <div className="card-content">
+                    <div className="text-center py-2">
+                      <h6 className="text-weight-semi-bold mb-0" style={{ color: '#1351B4', fontSize: '0.9rem' }}>{option.title}</h6>
+                    </div>
                   </div>
                 </div>
               </Link>
             </div>
           ))}
         </div>
-
-        {/* Mensagem quando não há resultados */}
-        {filteredOptions.length === 0 && (
-          <div className="row mt-5">
-            <div className="col-12 text-center">
-              <div className="alert alert-warning" role="alert">
-                <i className="fas fa-search mr-2"></i>
-                Nenhuma funcionalidade encontrada para "{searchTerm}"
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </MainLayout>
   );

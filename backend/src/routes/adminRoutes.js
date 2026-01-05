@@ -35,20 +35,24 @@ const adminController = {
   inicializarSimposio: async (req, res) => {
     try {
       const Simposio = require('../models/Simposio');
-      const { ano, nome, descricao, local, datasConfig } = req.body;
+      const { ano, nome, tema, descricao, local, datasConfig } = req.body;
       
-      if (!nome) {
-        return res.status(400).json({ success: false, message: 'O nome do simpósio é obrigatório' });
+      // Aceita 'tema' ou 'nome', usando tema como prioridade se ambos existirem
+      const nomeSimposio = tema || nome;
+      
+      if (!nomeSimposio) {
+        return res.status(400).json({ success: false, message: 'O nome ou tema do simpósio é obrigatório' });
       }
       
-      const exists = await Simposio.findOne({ ano });
+      const exists = await Simposio.findOne({ ano, deleted_at: null });
       if (exists) {
         return res.status(400).json({ success: false, message: 'Simpósio já existe para este ano' });
       }
       
       const simposio = await Simposio.create({ 
         ano, 
-        nome, 
+        nome: nomeSimposio,
+        tema: tema || nomeSimposio,
         descricao, 
         local, 
         status: 'INICIALIZADO', 
@@ -56,7 +60,7 @@ const adminController = {
       });
       
       const { logAudit } = require('../utils/auditLogger');
-      logAudit('SIMPOSIO_INICIALIZADO', req.user.id, { ano, nome });
+      logAudit('SIMPOSIO_INICIALIZADO', req.user.id, { ano, nome: nomeSimposio });
       
       res.status(201).json({ success: true, data: simposio });
     } catch (error) {
@@ -1700,11 +1704,21 @@ const adminController = {
  *             type: object
  *             required:
  *               - ano
- *               - datasConfig
+ *               - tema
  *             properties:
  *               ano:
  *                 type: number
  *                 example: 2025
+ *               tema:
+ *                 type: string
+ *                 example: Inovação e Tecnologia na Educação
+ *               nome:
+ *                 type: string
+ *                 example: Simpósio 2025
+ *               descricao:
+ *                 type: string
+ *               local:
+ *                 type: string
  *               datasConfig:
  *                 type: object
  *                 properties:

@@ -1,7 +1,7 @@
 /* Área Administrativa - Estilos Simplificados */
 
 .admin-header {
-  background: linear-gradient(135deg, #1351B4 0%, #071D41 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 2rem;
   border-radius: 12px;
   color: white;
@@ -15,14 +15,12 @@
   margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
-  color: #ffffff !important;
 }
 
 .admin-subtitle {
   font-size: 1.1rem;
   opacity: 0.95;
   margin: 0;
-  color: #ffffff !important;
 }
 
 /* Barra de Busca */
@@ -66,33 +64,57 @@
   height: 100%;
 }
 
-.admin-card-link:hover {
-  text-decoration: none;
-}
-
-/* Cards GOV.BR - Ajustes */
-.admin-card-govbr {
-  height: 100%;
-  transition: all 0.3s ease;
-  border-radius: 8px;
+/* Cards Simples */
+.admin-card-simple {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   overflow: hidden;
+  transition: all 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-top: 5px solid transparent;
   cursor: pointer;
 }
 
-.admin-card-govbr:hover {
-  box-shadow: 0 8px 20px rgba(19, 81, 180, 0.25);
-  transform: translateY(-4px);
+.admin-card-simple:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-8px);
 }
 
-.admin-card-govbr .card-header {
-  border: none;
-  border-radius: 8px 8px 0 0;
-  padding: 0;
+.admin-card-simple-header {
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
 }
 
-.admin-card-govbr .card-content {
-  background: #ffffff;
-  border-top: 1px solid #e9ecef;
+.admin-card-simple-icon {
+  font-size: 4rem;
+  opacity: 0.9;
+  color: white;
+}
+
+.admin-card-simple-body {
+  padding: 1.5rem;
+  background: white;
+  text-align: center;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.admin-card-simple-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  color: #333;
+  line-height: 1.4;
+  min-height: 2.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Responsividade */

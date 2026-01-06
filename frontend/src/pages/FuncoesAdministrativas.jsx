@@ -91,20 +91,31 @@ const FuncoesAdministrativas = () => {
   return (
     <MainLayout>
       <div className="container-lg my-4">
-        <div className="row mb-4">
-          <div className="col">
-            <nav className="br-breadcrumb" aria-label="Breadcrumbs">
-              <ol className="crumb-list" role="list">
-                <li className="crumb home"><Link to="/">Início</Link></li>
-                <li className="crumb" data-active="active"><span>Funções Administrativas</span></li>
-              </ol>
-            </nav>
-          </div>
+        <div className="br-breadcrumb mb-4">
+          <ul className="crumb-list">
+            <li className="crumb home">
+              <Link className="br-button circle" to="/">
+                <span className="sr-only">Página inicial</span>
+                <i className="fas fa-home"></i>
+              </Link>
+            </li>
+            <li className="crumb">
+              <i className="icon fas fa-chevron-right"></i>
+              <Link to="/area-administrativa">Área Administrativa</Link>
+            </li>
+            <li className="crumb">
+              <i className="icon fas fa-chevron-right"></i>
+              <span>Funções Administrativas</span>
+            </li>
+          </ul>
         </div>
 
         <div className="row mb-4">
           <div className="col">
-            <h1 className="mb-4">Funções Administrativas</h1>
+            <h1 className="mb-4">
+              <i className="fas fa-user-shield mr-2"></i>
+              Funções Administrativas
+            </h1>
           </div>
         </div>
 

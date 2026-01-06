@@ -300,8 +300,8 @@ const AdminAreas = () => {
       {/* Modal Área Atuação */}
       {showModal === 'areaAtuacao' && (
         <>
-          <div className="br-scrim" onClick={() => setShowModal(false)}></div>
-          <div className="br-modal medium" style={{ display: 'block' }}>
+          <div className="br-scrim-util foco" onClick={() => setShowModal(false)} style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9998, display: 'block' }}></div>
+          <div className="br-modal large" style={{ display: 'block', position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999, maxWidth: '600px', width: '90%' }}>
             <div className="br-modal-header">
               <h4>{editingItem ? 'Editar' : 'Nova'} Área de Atuação</h4>
             </div>
@@ -327,8 +327,8 @@ const AdminAreas = () => {
       {/* Modal Subárea */}
       {showModal === 'subarea' && (
         <>
-          <div className="br-scrim" onClick={() => setShowModal(false)}></div>
-          <div className="br-modal medium" style={{ display: 'block' }}>
+          <div className="br-scrim-util foco" onClick={() => setShowModal(false)} style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9998, display: 'block' }}></div>
+          <div className="br-modal large" style={{ display: 'block', position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999, maxWidth: '600px', width: '90%' }}>
             <div className="br-modal-header">
               <h4>{editingItem ? 'Editar' : 'Nova'} Subárea</h4>
             </div>

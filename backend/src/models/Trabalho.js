@@ -98,6 +98,12 @@ const trabalhoSchema = new mongoose.Schema({
     enum: ['POSTER', 'ORAL', 'NAO_DEFINIDO'],
     default: 'NAO_DEFINIDO',
   },
+  apresentacao: {
+    data: { type: Date },
+    horarioInicio: { type: String },
+    duracao: { type: Number }, // em minutos
+    local: { type: String },
+  },
   atribuicoes: [{
     avaliador: {
       type: mongoose.Schema.Types.ObjectId,

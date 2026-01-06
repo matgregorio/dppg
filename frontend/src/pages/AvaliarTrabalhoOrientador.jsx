@@ -7,7 +7,15 @@ import MainLayout from '../layouts/MainLayout';
 import api from '../services/api';
 
 const avaliacaoSchema = z.object({
-  aprovado: z.boolean(),
+  aprovado: z.preprocess(
+    (val) => {
+      if (typeof val === 'string') {
+        return val === 'true';
+      }
+      return val;
+    },
+    z.boolean()
+  ),
   comentarios: z.string().min(10, 'O comentário deve ter no mínimo 10 caracteres'),
 });
 
@@ -23,6 +31,7 @@ const AvaliarTrabalhoOrientador = () => {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(avaliacaoSchema),
@@ -37,6 +46,13 @@ const AvaliarTrabalhoOrientador = () => {
   useEffect(() => {
     carregarTrabalho();
   }, [id]);
+
+  // Debug: log dos erros de validação
+  useEffect(() => {
+    if (Object.keys(errors).length > 0) {
+      console.log('Erros de validação:', errors);
+    }
+  }, [errors]);
 
   const carregarTrabalho = async () => {
     try {
@@ -58,26 +74,44 @@ const AvaliarTrabalhoOrientador = () => {
 
   const onSubmit = async (data) => {
     try {
+      console.log('=== INÍCIO DA AVALIAÇÃO ===');
+      console.log('onSubmit foi chamado!');
+      console.log('Dados do formulário:', data);
+      console.log('Tipo de aprovado:', typeof data.aprovado);
+      console.log('ID do trabalho:', id);
+      
       setError('');
       setSuccess('');
 
-      const res = await api.post(`/orientador/trabalhos/${id}/avaliar`, data);
+      const res = await api.post(`/orientador/trabalhos/${id}/avaliar`, {
+        aprovado: data.aprovado,
+        comentarios: data.comentarios
+      });
+      
+      console.log('Resposta da API:', res.data);
 
       if (res.data.success) {
         setSuccess(`Trabalho ${data.aprovado ? 'aprovado' : 'reprovado'} com sucesso!`);
         setTimeout(() => {
           navigate('/orientador/trabalhos');
         }, 2000);
+      } else {
+        setError(res.data.message || 'Erro ao avaliar trabalho');
       }
     } catch (err) {
-      console.error('Erro ao avaliar trabalho:', err);
+      console.error('=== ERRO NA AVALIAÇÃO ===');
+      console.error('Erro completo:', err);
+      console.error('Resposta do servidor:', err.response?.data);
+      console.error('Status do erro:', err.response?.status);
       setError(err.response?.data?.message || 'Erro ao avaliar trabalho');
     }
   };
 
   const downloadArquivo = () => {
     if (trabalho?.arquivo) {
-      window.open(`${api.defaults.baseURL}/uploads/${trabalho.arquivo}`, '_blank');
+      // Remove /uploads do início se já estiver presente
+      const arquivoPath = trabalho.arquivo.startsWith('trabalhos/') ? trabalho.arquivo : `trabalhos/${trabalho.arquivo}`;
+      window.open(`${api.defaults.baseURL}/uploads/${arquivoPath}`, '_blank');
     }
   };
 
@@ -224,7 +258,7 @@ const AvaliarTrabalhoOrientador = () => {
 
               <div className="mb-3">
                 <p className="text-weight-bold mb-1">Resumo:</p>
-                <p style={{ textAlign: 'justify' }}>{trabalho.resumo}</p>
+                <p style={{ textAlign: 'justify', wordWrap: 'break-word', overflowWrap: 'break-word' }}>{trabalho.resumo}</p>
               </div>
 
               <div className="mb-3">
@@ -285,11 +319,20 @@ const AvaliarTrabalhoOrientador = () => {
             )}
 
             {/* Formulário de Avaliação */}
-            {trabalho.status === 'AGUARDANDO_ORIENTADOR' && (
-              <div className="br-card" style={{ padding: '24px' }}>
-                <h3 className="text-up-02 text-weight-bold mb-3">
-                  Avaliação do Orientador
-                </h3>
+            <div className="br-card" style={{ padding: '24px' }}>
+              <h3 className="text-up-02 text-weight-bold mb-3">
+                {trabalho.parecerOrientador ? 'Reavaliar Trabalho' : 'Avaliação do Orientador'}
+              </h3>
+              {trabalho.parecerOrientador && (
+                <div className="br-message warning mb-3" role="alert">
+                  <div className="icon">
+                    <i className="fas fa-exclamation-triangle fa-lg"></i>
+                  </div>
+                  <div className="content">
+                    Este trabalho já foi avaliado. Você pode modificar sua avaliação abaixo.
+                  </div>
+                </div>
+              )}
 
                 <form onSubmit={handleSubmit(onSubmit)}>
                   <div className="mb-4">
@@ -322,6 +365,12 @@ const AvaliarTrabalhoOrientador = () => {
                         Reprovar trabalho
                       </label>
                     </div>
+                    {errors.aprovado && (
+                      <span className="feedback danger mt-1" role="alert">
+                        <i className="fas fa-times-circle" aria-hidden="true"></i>
+                        {errors.aprovado.message}
+                      </span>
+                    )}
                   </div>
 
                   <div className="mb-4">
@@ -348,6 +397,12 @@ const AvaliarTrabalhoOrientador = () => {
                     <button
                       type="submit"
                       disabled={isSubmitting}
+                      onClick={(e) => {
+                        console.log('Botão clicado!');
+                        console.log('Valor de aprovado (watch):', aprovado);
+                        console.log('Tipo de aprovado:', typeof aprovado);
+                        console.log('Erros atuais:', errors);
+                      }}
                       className={`br-button ${aprovado ? 'primary' : 'danger'}`}
                     >
                       {isSubmitting ? (
@@ -365,18 +420,6 @@ const AvaliarTrabalhoOrientador = () => {
                   </div>
                 </form>
               </div>
-            )}
-
-            {trabalho.status !== 'AGUARDANDO_ORIENTADOR' && (
-              <div className="br-message info" role="alert">
-                <div className="icon">
-                  <i className="fas fa-info-circle fa-lg"></i>
-                </div>
-                <div className="content">
-                  Este trabalho já foi avaliado e não pode mais ser modificado.
-                </div>
-              </div>
-            )}
           </>
         )}
       </div>

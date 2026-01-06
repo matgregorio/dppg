@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import api from '../services/api';
 import useNotification from '../hooks/useNotification';
@@ -17,6 +18,7 @@ const AvaliacoesExternas = () => {
   });
   const [editando, setEditando] = useState(null);
   const [notaTemp, setNotaTemp] = useState('');
+  const [trabalhoDetalhes, setTrabalhoDetalhes] = useState(null);
   const { showSuccess, showError } = useNotification();
 
   useEffect(() => {
@@ -135,6 +137,25 @@ const AvaliacoesExternas = () => {
   return (
     <MainLayout>
       <div className="container-fluid py-4">
+        <div className="br-breadcrumb mb-4">
+          <ul className="crumb-list">
+            <li className="crumb home">
+              <Link className="br-button circle" to="/">
+                <span className="sr-only">Página inicial</span>
+                <i className="fas fa-home"></i>
+              </Link>
+            </li>
+            <li className="crumb">
+              <i className="icon fas fa-chevron-right"></i>
+              <Link to="/area-administrativa">Área Administrativa</Link>
+            </li>
+            <li className="crumb">
+              <i className="icon fas fa-chevron-right"></i>
+              <span>Avaliações Externas</span>
+            </li>
+          </ul>
+        </div>
+
         <div className="row mb-4">
           <div className="col-md-12">
             <h2 className="text-primary">Avaliações Externas</h2>
@@ -147,25 +168,32 @@ const AvaliacoesExternas = () => {
         {/* Filtros */}
         <div className="row mb-4">
           <div className="col-md-4">
-            <div className="br-input">
-              <label htmlFor="simposio">Simpósio</label>
-              <select
-                id="simposio"
-                className="form-control"
-                value={simposioSelecionado}
-                onChange={(e) => {
-                  setSimposioSelecionado(e.target.value);
-                  setPagination(prev => ({ ...prev, page: 1 }));
-                }}
-              >
-                <option value="">Selecione...</option>
-                {simposios.map(s => (
-                  <option key={s._id} value={s._id}>
-                    {s.ano} - {s.status}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <label htmlFor="simposio" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+              Simpósio
+            </label>
+            <select
+              id="simposio"
+              value={simposioSelecionado}
+              onChange={(e) => {
+                setSimposioSelecionado(e.target.value);
+                setPagination(prev => ({ ...prev, page: 1 }));
+              }}
+              style={{
+                width: '100%',
+                padding: '0.5rem 0.75rem',
+                border: '1px solid #888',
+                borderRadius: '8px',
+                fontSize: '1rem',
+                backgroundColor: '#fff'
+              }}
+            >
+              <option value="">Selecione...</option>
+              {simposios.map(s => (
+                <option key={s._id} value={s._id}>
+                  {s.ano} - {s.status}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="col-md-8">
             <form onSubmit={handleBuscar}>
@@ -230,7 +258,11 @@ const AvaliacoesExternas = () => {
                 </thead>
                 <tbody>
                   {trabalhos.map(trabalho => (
-                    <tr key={trabalho._id}>
+                    <tr 
+                      key={trabalho._id} 
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => setTrabalhoDetalhes(trabalho)}
+                    >
                       <td>
                         <strong>{trabalho.titulo}</strong>
                         <br />
@@ -284,14 +316,20 @@ const AvaliacoesExternas = () => {
                           <div className="d-flex gap-2">
                             <button
                               className="br-button primary small"
-                              onClick={() => salvarNota(trabalho._id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                salvarNota(trabalho._id);
+                              }}
                               title="Salvar nota"
                             >
                               <i className="fas fa-check"></i> Salvar
                             </button>
                             <button
                               className="br-button secondary small"
-                              onClick={cancelarEdicao}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                cancelarEdicao();
+                              }}
                               title="Cancelar"
                             >
                               <i className="fas fa-times"></i> Cancelar
@@ -301,7 +339,10 @@ const AvaliacoesExternas = () => {
                           <div className="d-flex gap-2">
                             <button
                               className="br-button primary small"
-                              onClick={() => iniciarEdicao(trabalho)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                iniciarEdicao(trabalho);
+                              }}
                               title={trabalho.notaExterna !== null ? 'Editar nota' : 'Lançar nota'}
                             >
                               <i className={trabalho.notaExterna !== null ? 'fas fa-edit' : 'fas fa-plus'}></i>
@@ -310,7 +351,10 @@ const AvaliacoesExternas = () => {
                             {trabalho.notaExterna !== null && (
                               <button
                                 className="br-button danger small"
-                                onClick={() => removerNota(trabalho._id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removerNota(trabalho._id);
+                                }}
                                 title="Remover nota"
                               >
                                 <i className="fas fa-trash"></i>
@@ -359,6 +403,170 @@ const AvaliacoesExternas = () => {
                 </div>
               </div>
             )}
+          </>
+        )}
+
+        {/* Modal de Detalhes do Trabalho */}
+        {trabalhoDetalhes && (
+          <>
+            <div 
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                zIndex: 9998
+              }}
+              onClick={() => setTrabalhoDetalhes(null)}
+            />
+            <div 
+              className="br-modal"
+              style={{
+                position: 'fixed',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                maxWidth: '800px',
+                width: '90%',
+                maxHeight: '90vh',
+                overflow: 'auto',
+                zIndex: 9999,
+                backgroundColor: '#fff',
+                borderRadius: '8px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+              }}
+            >
+              <div className="br-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', borderBottom: '1px solid #ddd' }}>
+                <div className="br-modal-title" style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1351b4' }}>
+                  Detalhes do Trabalho
+                </div>
+                <button
+                  className="br-button circle small"
+                  onClick={() => setTrabalhoDetalhes(null)}
+                  style={{ background: 'transparent', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}
+                >
+                  ×
+                </button>
+              </div>
+              <div className="br-modal-body" style={{ padding: '1.5rem' }}>
+                <h5 style={{ color: '#1351b4', marginBottom: '1rem' }}>{trabalhoDetalhes.titulo}</h5>
+                
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <strong>Autores:</strong>
+                  <p style={{ marginTop: '0.5rem' }}>
+                    {trabalhoDetalhes.autores?.map(a => a.nome).join(', ')}
+                  </p>
+                </div>
+
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <strong>Área de Atuação:</strong>
+                  <p style={{ marginTop: '0.5rem' }}>
+                    {trabalhoDetalhes.areaAtuacao?.nome || '-'}
+                  </p>
+                </div>
+
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <strong>Tipo de Apresentação:</strong>
+                  <p style={{ marginTop: '0.5rem' }}>
+                    {trabalhoDetalhes.tipoApresentacao === 'ORAL' && 'Apresentação Oral'}
+                    {trabalhoDetalhes.tipoApresentacao === 'POSTER' && 'Pôster'}
+                    {trabalhoDetalhes.tipoApresentacao === 'NAO_DEFINIDO' && 'Não Definido'}
+                  </p>
+                </div>
+
+                <hr style={{ margin: '1.5rem 0' }} />
+
+                <h6 style={{ color: '#1351b4', marginBottom: '1rem' }}>Avaliações Internas</h6>
+                {trabalhoDetalhes.avaliacoes && trabalhoDetalhes.avaliacoes.length > 0 ? (
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    {trabalhoDetalhes.avaliacoes.map((av, index) => (
+                      <div key={index} style={{ 
+                        padding: '1rem', 
+                        backgroundColor: '#f8f9fa', 
+                        borderRadius: '8px', 
+                        marginBottom: '1rem',
+                        border: '1px solid #e0e0e0'
+                      }}>
+                        <div style={{ marginBottom: '0.5rem' }}>
+                          <strong>Avaliador:</strong> {av.avaliador?.nome || 'Não identificado'}
+                        </div>
+                        {av.competencias && (
+                          <div style={{ marginBottom: '0.5rem' }}>
+                            <strong>Competências:</strong>
+                            <ul style={{ marginTop: '0.5rem', marginLeft: '1.5rem' }}>
+                              {av.competencias.relevancia && <li>Relevância: {av.competencias.relevancia.toFixed(1)}</li>}
+                              {av.competencias.metodologia && <li>Metodologia: {av.competencias.metodologia.toFixed(1)}</li>}
+                              {av.competencias.clareza && <li>Clareza: {av.competencias.clareza.toFixed(1)}</li>}
+                              {av.competencias.fundamentacao && <li>Fundamentação: {av.competencias.fundamentacao.toFixed(1)}</li>}
+                              {av.competencias.contribuicao && <li>Contribuição: {av.competencias.contribuicao.toFixed(1)}</li>}
+                            </ul>
+                          </div>
+                        )}
+                        <div style={{ marginBottom: '0.5rem' }}>
+                          <strong>Nota Final:</strong> 
+                          <span style={{ 
+                            marginLeft: '0.5rem', 
+                            padding: '0.25rem 0.75rem', 
+                            backgroundColor: '#28a745', 
+                            color: '#fff', 
+                            borderRadius: '4px',
+                            fontWeight: 'bold'
+                          }}>
+                            {(av.notaFinal || av.nota)?.toFixed(2) || '-'}
+                          </span>
+                        </div>
+                        {av.parecer && (
+                          <div>
+                            <strong>Parecer:</strong>
+                            <p style={{ marginTop: '0.5rem', fontStyle: 'italic' }}>{av.parecer}</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    <div style={{ 
+                      padding: '1rem', 
+                      backgroundColor: '#e8f5e9', 
+                      borderRadius: '8px',
+                      border: '1px solid #4caf50'
+                    }}>
+                      <strong>Média das Avaliações Internas:</strong> 
+                      <span style={{ 
+                        marginLeft: '0.5rem', 
+                        fontSize: '1.25rem',
+                        color: '#2e7d32',
+                        fontWeight: 'bold'
+                      }}>
+                        {trabalhoDetalhes.media !== null ? trabalhoDetalhes.media.toFixed(2) : '-'}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <p style={{ color: '#666', marginBottom: '1.5rem' }}>Nenhuma avaliação interna registrada.</p>
+                )}
+
+                <hr style={{ margin: '1.5rem 0' }} />
+
+                <h6 style={{ color: '#1351b4', marginBottom: '1rem' }}>Avaliação Externa</h6>
+                <div style={{ 
+                  padding: '1rem', 
+                  backgroundColor: trabalhoDetalhes.notaExterna !== null ? '#e3f2fd' : '#fff3cd', 
+                  borderRadius: '8px',
+                  border: `1px solid ${trabalhoDetalhes.notaExterna !== null ? '#2196f3' : '#ffc107'}`
+                }}>
+                  <strong>Nota Externa:</strong> 
+                  <span style={{ 
+                    marginLeft: '0.5rem', 
+                    fontSize: '1.25rem',
+                    color: trabalhoDetalhes.notaExterna !== null ? '#1565c0' : '#666',
+                    fontWeight: 'bold'
+                  }}>
+                    {trabalhoDetalhes.notaExterna !== null ? trabalhoDetalhes.notaExterna.toFixed(2) : 'Não lançada'}
+                  </span>
+                </div>
+              </div>
+            </div>
           </>
         )}
       </div>

@@ -8,37 +8,61 @@ const dayjs = require('dayjs');
 const enforceWindow = (windowKey) => {
   return async (req, res, next) => {
     try {
-      // Obtém o ano do simpósio do body ou query
-      const ano = req.body.ano || req.query.ano || process.env.DEFAULT_SIMPOSIO_ANO || new Date().getFullYear();
+      // Obtém o ano do simpósio do body ou query (aceita 'ano' ou 'simposioAno')
+      const ano = req.body.ano || req.body.simposioAno || req.query.ano || req.query.simposioAno;
       
-      const simposio = await Simposio.findOne({ ano: parseInt(ano) });
+      console.log('enforceWindow - windowKey:', windowKey);
+      console.log('enforceWindow - ano recebido:', ano);
+      console.log('enforceWindow - req.body:', req.body);
+      
+      let simposio;
+      
+      if (ano) {
+        // Se o ano foi fornecido, busca o simpósio específico
+        simposio = await Simposio.findOne({ ano: parseInt(ano) });
+      } else {
+        // Se não foi fornecido, busca o simpósio mais recente
+        const simposios = await Simposio.find().sort({ ano: -1 }).limit(1);
+        simposio = simposios[0];
+      }
+      
+      console.log('enforceWindow - simposio encontrado:', simposio ? `${simposio.ano} - ${simposio.nome}` : 'null');
       
       if (!simposio) {
         return res.status(404).json({
           success: false,
-          message: `Simpósio ${ano} não encontrado`,
+          message: ano ? `Simpósio ${ano} não encontrado` : 'Nenhum simpósio encontrado',
         });
       }
       
       if (simposio.status === 'FINALIZADO') {
         return res.status(400).json({
           success: false,
-          message: `Simpósio ${ano} já foi finalizado`,
+          message: `Simpósio ${simposio.ano} já foi finalizado`,
         });
       }
       
       const window = simposio.datasConfig[windowKey];
       
+      console.log('enforceWindow - window encontrada:', window);
+      console.log('enforceWindow - datasConfig completo:', simposio.datasConfig);
+      
       if (!window || !window.inicio || !window.fim) {
         return res.status(400).json({
           success: false,
-          message: `Janela de tempo '${windowKey}' não configurada para o simpósio ${ano}`,
+          message: `Janela de tempo '${windowKey}' não configurada para o simpósio ${simposio.ano}`,
         });
       }
       
       const now = dayjs();
       const inicio = dayjs(window.inicio);
       const fim = dayjs(window.fim);
+      
+      console.log('enforceWindow - now:', now.format('DD/MM/YYYY HH:mm'));
+      console.log('enforceWindow - inicio:', inicio.format('DD/MM/YYYY HH:mm'));
+      console.log('enforceWindow - fim:', fim.format('DD/MM/YYYY HH:mm'));
+      console.log('enforceWindow - isBefore:', now.isBefore(inicio));
+      console.log('enforceWindow - isAfter:', now.isAfter(fim));
       
       if (now.isBefore(inicio)) {
         return res.status(400).json({

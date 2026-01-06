@@ -23,8 +23,7 @@ exports.listarTrabalhosOrientador = async (req, res) => {
     const { status, page = 1, limit = 20 } = req.query;
     
     const query = { 
-      orientador: docente._id,
-      deleted_at: null 
+      orientador: docente._id
     };
     
     if (status) {
@@ -32,20 +31,58 @@ exports.listarTrabalhosOrientador = async (req, res) => {
     }
     
     const skip = (page - 1) * limit;
-    const total = await Trabalho.countDocuments(query);
     
+    console.log('Query trabalhos:', JSON.stringify(query));
+    
+    const total = await Trabalho.countDocuments(query);
+    console.log('Total trabalhos:', total);
+    
+    // Buscar trabalhos sem populate primeiro para debug
     const trabalhos = await Trabalho.find(query)
-      .populate('autor', 'nome email cpf')
-      .populate('subarea', 'nome')
-      .populate('apoios', 'nome sigla')
-      .populate('simposio', 'ano nome status')
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(parseInt(limit));
+      .limit(parseInt(limit))
+      .lean();
+    
+    console.log('Trabalhos encontrados (sem populate):', trabalhos.length);
+    
+    // Fazer populate manual para cada trabalho
+    const trabalhosList = [];
+    for (const trabalho of trabalhos) {
+      try {
+        // Populate autor se existir
+        if (trabalho.autor) {
+          const autor = await Participant.findById(trabalho.autor).select('nome email cpf').lean();
+          trabalho.autor = autor;
+        }
+        
+        // Populate subarea se existir
+        if (trabalho.subarea) {
+          const Subarea = require('../models/Subarea');
+          const subarea = await Subarea.findById(trabalho.subarea).select('nome').lean();
+          trabalho.subarea = subarea;
+        }
+        
+        // Populate simposio se existir
+        if (trabalho.simposio) {
+          const Simposio = require('../models/Simposio');
+          const simposio = await Simposio.findById(trabalho.simposio).select('ano nome status').lean();
+          trabalho.simposio = simposio;
+        }
+        
+        trabalhosList.push(trabalho);
+      } catch (populateError) {
+        console.error('Erro ao popular trabalho:', trabalho._id, populateError.message);
+        // Adiciona o trabalho mesmo com erro no populate
+        trabalhosList.push(trabalho);
+      }
+    }
+    
+    console.log('Trabalhos com populate:', trabalhosList.length);
     
     res.json({
       success: true,
-      data: trabalhos,
+      data: trabalhosList,
       pagination: {
         total,
         page: parseInt(page),
@@ -54,6 +91,8 @@ exports.listarTrabalhosOrientador = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error('Erro ao listar trabalhos do orientador:', error);
+    console.error('Stack trace:', error.stack);
     res.status(500).json({
       success: false,
       message: 'Erro ao listar trabalhos',
@@ -80,7 +119,6 @@ exports.buscarTrabalhoOrientador = async (req, res) => {
       .populate('autor', 'nome email cpf telefone')
       .populate('orientador')
       .populate('subarea', 'nome')
-      .populate('apoios', 'nome sigla tipo')
       .populate('simposio', 'ano nome status');
     
     if (!trabalho) {
@@ -153,11 +191,15 @@ exports.avaliarTrabalho = async (req, res) => {
       });
     }
     
-    // Verifica se o trabalho está aguardando avaliação do orientador
-    if (trabalho.status !== 'AGUARDANDO_ORIENTADOR') {
-      return res.status(400).json({
-        success: false,
-        message: 'Este trabalho não está aguardando avaliação do orientador',
+    // Permite reavaliação - não bloqueia se já foi avaliado
+    // Salva o parecer anterior no histórico se existir
+    if (trabalho.parecerOrientador && trabalho.parecerOrientador.data) {
+      if (!trabalho.historicoPareceres) {
+        trabalho.historicoPareceres = [];
+      }
+      trabalho.historicoPareceres.push({
+        ...trabalho.parecerOrientador.toObject ? trabalho.parecerOrientador.toObject() : trabalho.parecerOrientador,
+        dataModificacao: new Date()
       });
     }
     

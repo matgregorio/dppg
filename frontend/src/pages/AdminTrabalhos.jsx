@@ -109,6 +109,27 @@ const AdminTrabalhos = () => {
       showError(err.response?.data?.message || 'Erro ao atribuir avaliador');
     }
   };
+  
+  const confirmAtribuicao = async () => {
+    if (!selectedAvaliadorId || !selectedTrabalho) return;
+    
+    try {
+      const { data } = await api.post(
+        `/admin/trabalhos/${selectedTrabalho._id}/atribuir-avaliador`,
+        { avaliadorId: selectedAvaliadorId }
+      );
+      
+      if (data.success) {
+        showSuccess('Avaliador atribuído com sucesso!');
+        fetchTrabalhos();
+        setShowModal(false);
+        setSelectedTrabalho(null);
+        setSelectedAvaliadorId('');
+      }
+    } catch (err) {
+      showError(err.response?.data?.message || 'Erro ao atribuir avaliador');
+    }
+  };
 
   const handleFiltroChange = (campo, valor) => {
     setFiltros(prev => ({ ...prev, [campo]: valor }));
@@ -400,8 +421,8 @@ const AdminTrabalhos = () => {
       
       {showModal && selectedTrabalho && (
         <>
-          <div className="br-scrim" onClick={() => setShowModal(false)}></div>
-          <div className="br-modal medium" style={{ display: 'block' }}>
+          <div className="br-scrim" onClick={() => setShowModal(false)} style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 9998 }}></div>
+          <div className="br-modal medium" style={{ display: 'block', position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999 }}>
             <div className="br-modal-header">
               <h4>Atribuir Avaliador</h4>
             </div>

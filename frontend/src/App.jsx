@@ -271,6 +271,17 @@ function App() {
       />
       
       <Route
+        path="/admin/configurar-datas"
+        element={
+          <RequireAuth>
+            <RequireRoles roles={['ADMIN', 'SUBADMIN']}>
+              <ConfigurarDatas />
+            </RequireRoles>
+          </RequireAuth>
+        }
+      />
+      
+      <Route
         path="/admin/simposios/:ano/datas"
         element={
           <RequireAuth>
@@ -419,6 +430,17 @@ function App() {
           <RequireAuth>
             <RequireRoles roles={['ADMIN', 'SUBADMIN']}>
               <AdminCertificados />
+            </RequireRoles>
+          </RequireAuth>
+        }
+      />
+      
+      <Route
+        path="/admin/certificados-config"
+        element={
+          <RequireAuth>
+            <RequireRoles roles={['ADMIN', 'SUBADMIN']}>
+              <AdminCertificadosConfig />
             </RequireRoles>
           </RequireAuth>
         }

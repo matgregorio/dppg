@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import SelectGovBR from '../SelectGovBR';
 
 const EditarTrabalhoModal = ({ trabalho, isOpen, onClose, onSave }) => {
   const [formData, setFormData] = useState({
@@ -35,9 +34,8 @@ const EditarTrabalhoModal = ({ trabalho, isOpen, onClose, onSave }) => {
 
   return (
     <>
-      <div className="br-modal active" style={{ display: 'block' }}>
-        <div className="br-modal-dialog" style={{ maxWidth: '600px' }}>
-          <div className="br-modal-content">
+      <div className="br-modal active" style={{ display: 'block', position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999, maxWidth: '750px', width: '90%' }}>
+        <div className="br-modal-content">
             <div className="br-modal-header">
               <div className="br-modal-title">
                 <i className="fas fa-edit mr-2"></i>
@@ -68,18 +66,29 @@ const EditarTrabalhoModal = ({ trabalho, isOpen, onClose, onSave }) => {
                         <i className="fas fa-flag mr-2"></i>
                         Status *
                       </label>
-                      <SelectGovBR
+                      <select
                         id="status"
                         value={formData.status}
                         onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                        options={[
-                          { value: 'SUBMETIDO', label: 'Submetido' },
-                          { value: 'EM_AVALIACAO', label: 'Em Avaliação' },
-                          { value: 'ACEITO', label: 'Aceito' },
-                          { value: 'REJEITADO', label: 'Rejeitado' },
-                          { value: 'PUBLICADO', label: 'Publicado' },
-                        ]}
-                      />
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '0.5rem 0.75rem',
+                          border: '1px solid #888',
+                          borderRadius: '8px',
+                          fontSize: '1rem',
+                          fontFamily: 'Rawline, sans-serif',
+                          backgroundColor: 'white',
+                          cursor: 'pointer',
+                          outline: 'none'
+                        }}
+                      >
+                        <option value="SUBMETIDO">Submetido</option>
+                        <option value="EM_AVALIACAO">Em Avaliação</option>
+                        <option value="ACEITO">Aceito</option>
+                        <option value="REJEITADO">Rejeitado</option>
+                        <option value="PUBLICADO">Publicado</option>
+                      </select>
                     </div>
                   </div>
                   
@@ -89,16 +98,26 @@ const EditarTrabalhoModal = ({ trabalho, isOpen, onClose, onSave }) => {
                         <i className="fas fa-presentation mr-2"></i>
                         Tipo de Apresentação
                       </label>
-                      <SelectGovBR
+                      <select
                         id="tipoApresentacao"
                         value={formData.tipoApresentacao}
                         onChange={(e) => setFormData({ ...formData, tipoApresentacao: e.target.value })}
-                        options={[
-                          { value: 'NAO_DEFINIDO', label: 'Não Definido' },
-                          { value: 'POSTER', label: 'Poster' },
-                          { value: 'ORAL', label: 'Oral' },
-                        ]}
-                      />
+                        style={{
+                          width: '100%',
+                          padding: '0.5rem 0.75rem',
+                          border: '1px solid #888',
+                          borderRadius: '8px',
+                          fontSize: '1rem',
+                          fontFamily: 'Rawline, sans-serif',
+                          backgroundColor: 'white',
+                          cursor: 'pointer',
+                          outline: 'none'
+                        }}
+                      >
+                        <option value="NAO_DEFINIDO">Não Definido</option>
+                        <option value="POSTER">Poster</option>
+                        <option value="ORAL">Oral</option>
+                      </select>
                     </div>
                   </div>
                 </div>
@@ -155,10 +174,9 @@ const EditarTrabalhoModal = ({ trabalho, isOpen, onClose, onSave }) => {
                 </div>
               </form>
             </div>
-          </div>
         </div>
       </div>
-      <div className="br-modal-backdrop active" onClick={onClose}></div>
+      <div className="br-modal-backdrop active" onClick={onClose} style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 9998 }}></div>
     </>
   );
 };

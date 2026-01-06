@@ -1,16 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 
 /**
- * Componente Select simples seguindo padrão GOV.BR Design System
- * Para uso em filtros e controles sem React Hook Form
- * 
- * @param {string} id - ID do select
- * @param {string} label - Label do select
- * @param {string} value - Valor atual
- * @param {function} onChange - Callback de mudança
- * @param {array} options - Array de opções [{ value, label }]
- * @param {string} placeholder - Placeholder
- * @param {boolean} disabled - Se está desabilitado
+ * Select simples seguindo GOV.BR DS (core BRSelect)
  */
 const SelectGovBR = ({
   id,
@@ -18,113 +9,83 @@ const SelectGovBR = ({
   value,
   onChange,
   options = [],
-  placeholder = 'Selecione...',
+  placeholder = 'Selecione o item',
   disabled = false,
   className = '',
 }) => {
   const selectRef = useRef(null);
   const brSelectInstance = useRef(null);
 
-  // Inicializa o BRSelect
+  // Instancia o BRSelect (conforme docs: new core.BRSelect('br-select', element))
   useEffect(() => {
-    if (selectRef.current && window.core && window.core.BRSelect) {
-      try {
-        const notFoundElement = `
-          <div class="br-item not-found">
-            <div class="container">
-              <div class="row">
-                <div class="col">
-                  <p><strong>Ops!</strong> Não encontramos o que você está procurando!</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        `;
-        
-        brSelectInstance.current = new window.core.BRSelect(
-          'br-select',
-          selectRef.current,
-          notFoundElement
-        );
+    const el = selectRef.current;
+    if (!el) return;
 
-        // Listener para onChange
-        selectRef.current.addEventListener('onChange', () => {
-          if (brSelectInstance.current && onChange) {
-            const selectedValue = brSelectInstance.current.selectedValue || '';
-            onChange({ target: { value: selectedValue } });
-          }
-        });
-      } catch (error) {
-        console.warn('Erro ao inicializar SelectGovBR:', error);
-      }
+    if (!window.core?.BRSelect) {
+      console.warn(
+        '[SelectGovBR] window.core.BRSelect não encontrado. Verifique se @govbr-ds/core (core.min.js) foi carregado.'
+      );
+      return;
     }
 
-    return () => {
-      if (brSelectInstance.current) {
-        brSelectInstance.current = null;
-      }
+    // Evita dupla inicialização (React StrictMode em dev)
+    if (!brSelectInstance.current) {
+      brSelectInstance.current = new window.core.BRSelect('br-select', el);
+    }
+
+    // Captura mudança pelo change dos radios
+    const handleChange = () => {
+      const checked = el.querySelector('input[type="radio"]:checked');
+      const newValue = checked?.value ?? '';
+      onChange?.({ target: { value: newValue } });
     };
+
+    el.addEventListener('change', handleChange);
+    return () => el.removeEventListener('change', handleChange);
   }, [onChange]);
 
-  // Atualiza quando as opções mudam
+  // Mantém o "checked" sincronizado quando value muda por fora
   useEffect(() => {
-    if (brSelectInstance.current && selectRef.current) {
-      try {
-        brSelectInstance.current.resetOptionsList();
-      } catch (error) {
-        console.warn('Erro ao resetar options:', error);
-      }
-    }
-  }, [options]);
-  
+    const el = selectRef.current;
+    if (!el) return;
+
+    el.querySelectorAll('input[type="radio"]').forEach((r) => {
+      r.checked = r.value === value;
+    });
+  }, [value, options]);
+
   return (
-    <div 
-      ref={selectRef}
-      className={`br-select ${className}`}
-    >
+    <div ref={selectRef} className={`br-select ${className}`}>
       <div className="br-input">
-        {label && (
-          <label htmlFor={`${id}-input`}>
-            {label}
-          </label>
-        )}
-        <input
-          id={`${id}-input`}
-          type="text"
-          placeholder={placeholder}
-          disabled={disabled}
-          readOnly
-        />
+        {label && <label htmlFor={id}>{label}</label>}
+
+        {/* no DS é um input texto normal (não readOnly), o core controla */}
+        <input id={id} type="text" placeholder={placeholder} disabled={disabled} />
+
         <button
           className="br-button"
           type="button"
           aria-label="Exibir lista"
-          tabIndex="-1"
+          tabIndex={-1}
           data-trigger="data-trigger"
           disabled={disabled}
         >
           <i className="fas fa-angle-down" aria-hidden="true"></i>
         </button>
       </div>
-      
-      <div className="br-list" tabIndex="0">
-        {options.map((option, index) => (
-          <div 
-            key={option.value || index} 
-            className={`br-item ${value === option.value ? 'selected' : ''}`}
-            tabIndex="-1"
-          >
+
+      <div className="br-list" tabIndex={0}>
+        {options.map((opt, idx) => (
+          <div key={opt.value ?? idx} className="br-item" tabIndex={-1}>
             <div className="br-radio">
               <input
-                id={`${id}-${option.value || index}`}
+                id={`${id}-opt-${idx}`}
                 type="radio"
                 name={`${id}-radio`}
-                value={option.value}
-                defaultChecked={value === option.value}
+                value={opt.value}
+                defaultChecked={opt.value === value}
               />
-              <label htmlFor={`${id}-${option.value || index}`}>
-                {option.label}
-              </label>
+              <label htmlFor={`${id}-opt-${idx}`}>{opt.label}</label>
             </div>
           </div>
         ))}

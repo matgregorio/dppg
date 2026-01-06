@@ -131,11 +131,22 @@ const userController = {
   
   submeterTrabalho: async (req, res) => {
     try {
-      const { titulo, autores, palavras_chave, areaAtuacao, subarea } = req.body;
+      const { titulo, autores, palavras_chave, areaAtuacao, subarea, resumo, tipoProjeto, orientador, concordanciaNormas } = req.body;
       const Trabalho = require('../models/Trabalho');
       const InscricaoSimposio = require('../models/InscricaoSimposio');
       const Participant = require('../models/Participant');
       const { saveFile } = require('../utils/storageService');
+      
+      // Validações básicas
+      if (!resumo) {
+        return res.status(400).json({ success: false, message: 'O resumo é obrigatório' });
+      }
+      if (!tipoProjeto) {
+        return res.status(400).json({ success: false, message: 'O tipo de projeto é obrigatório' });
+      }
+      if (!orientador) {
+        return res.status(400).json({ success: false, message: 'O orientador é obrigatório' });
+      }
       
       // Verifica inscrição ativa
       const participant = await Participant.findOne({ user: req.user.id });
@@ -166,9 +177,13 @@ const userController = {
         palavras_chave: JSON.parse(palavras_chave || '[]'),
         areaAtuacao,
         subarea,
+        resumo,
+        tipoProjeto,
+        orientador,
+        concordanciaNormas: concordanciaNormas === 'true' || concordanciaNormas === true || true, // Default true se não enviado
         arquivo: arquivoPath,
         simposio: req.simposio._id,
-        status: 'SUBMETIDO',
+        status: 'AGUARDANDO_ORIENTADOR',
       });
       
       const { logAudit } = require('../utils/auditLogger');
@@ -176,6 +191,7 @@ const userController = {
       
       // Enviar email de confirmação de submissão
       const emailService = require('../services/emailService');
+      const User = require('../models/User');
       const user = await User.findById(req.user.id);
       emailService.enviarEmail('TRABALHO_ENVIADO', user.email, {
         usuario_nome: user.nome,

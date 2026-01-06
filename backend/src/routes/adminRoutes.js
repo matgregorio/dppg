@@ -35,24 +35,20 @@ const adminController = {
   inicializarSimposio: async (req, res) => {
     try {
       const Simposio = require('../models/Simposio');
-      const { ano, nome, tema, descricao, local, datasConfig } = req.body;
+      const { ano, nome, descricao, local, datasConfig } = req.body;
       
-      // Aceita 'tema' ou 'nome', usando tema como prioridade se ambos existirem
-      const nomeSimposio = tema || nome;
-      
-      if (!nomeSimposio) {
-        return res.status(400).json({ success: false, message: 'O nome ou tema do simpósio é obrigatório' });
+      if (!nome) {
+        return res.status(400).json({ success: false, message: 'O nome do simpósio é obrigatório' });
       }
       
-      const exists = await Simposio.findOne({ ano, deleted_at: null });
+      const exists = await Simposio.findOne({ ano });
       if (exists) {
         return res.status(400).json({ success: false, message: 'Simpósio já existe para este ano' });
       }
       
       const simposio = await Simposio.create({ 
         ano, 
-        nome: nomeSimposio,
-        tema: tema || nomeSimposio,
+        nome, 
         descricao, 
         local, 
         status: 'INICIALIZADO', 
@@ -60,7 +56,7 @@ const adminController = {
       });
       
       const { logAudit } = require('../utils/auditLogger');
-      logAudit('SIMPOSIO_INICIALIZADO', req.user.id, { ano, nome: nomeSimposio });
+      logAudit('SIMPOSIO_INICIALIZADO', req.user.id, { ano, nome });
       
       res.status(201).json({ success: true, data: simposio });
     } catch (error) {
@@ -489,12 +485,124 @@ const adminController = {
     }
   },
 
+  // Listar trabalhos aprovados (ACEITO ou PUBLICADO) com tipo de apresentação definido
+  listarTrabalhosAprovados: async (req, res) => {
+    try {
+      const Trabalho = require('../models/Trabalho');
+      const Simposio = require('../models/Simposio');
+      const Subarea = require('../models/Subarea');
+      
+      const { simposioId, page = 1, limit = 50, tipo } = req.query;
+      
+      if (!simposioId) {
+        return res.status(400).json({ success: false, message: 'Simpósio é obrigatório' });
+      }
+      
+      const simposio = await Simposio.findById(simposioId);
+      if (!simposio) {
+        return res.status(404).json({ success: false, message: 'Simpósio não encontrado' });
+      }
+      
+      const query = {
+        simposio: simposio._id,
+        status: { $in: ['ACEITO', 'PUBLICADO'] },
+        tipoApresentacao: { $in: ['POSTER', 'ORAL'] },
+        deleted_at: null
+      };
+      
+      if (tipo && tipo !== 'TODOS') {
+        query.tipoApresentacao = tipo;
+      }
+      
+      const skip = (page - 1) * limit;
+      const total = await Trabalho.countDocuments(query);
+      
+      const trabalhos = await Trabalho.find(query)
+        .populate('simposio', 'ano status')
+        .populate('areaAtuacao', 'nome')
+        .populate('subarea', 'nome')
+        .populate('autor', 'nome email')
+        .sort({ 'apresentacao.data': 1, titulo: 1 })
+        .skip(skip)
+        .limit(parseInt(limit));
+      
+      res.json({
+        success: true,
+        data: trabalhos,
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          totalPages: Math.ceil(total / limit),
+        },
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
+  // Atualizar informações de apresentação de um trabalho
+  atualizarApresentacao: async (req, res) => {
+    try {
+      const Trabalho = require('../models/Trabalho');
+      const Subarea = require('../models/Subarea');
+      const { data, horarioInicio, duracao, local } = req.body;
+      
+      const trabalho = await Trabalho.findById(req.params.id);
+      
+      if (!trabalho) {
+        return res.status(404).json({ success: false, message: 'Trabalho não encontrado' });
+      }
+      
+      if (!['ACEITO', 'PUBLICADO'].includes(trabalho.status)) {
+        return res.status(400).json({ success: false, message: 'Trabalho deve estar ACEITO ou PUBLICADO' });
+      }
+      
+      if (!['POSTER', 'ORAL'].includes(trabalho.tipoApresentacao)) {
+        return res.status(400).json({ success: false, message: 'Trabalho deve ter tipo de apresentação definido (POSTER ou ORAL)' });
+      }
+      
+      // Construir objeto de apresentação
+      const apresentacaoData = {
+        data: data ? new Date(data) : trabalho.apresentacao?.data,
+        horarioInicio: horarioInicio || trabalho.apresentacao?.horarioInicio,
+        duracao: duracao ? parseInt(duracao) : trabalho.apresentacao?.duracao,
+        local: local || trabalho.apresentacao?.local,
+      };
+      
+      // Usar updateOne para evitar validação de campos não modificados
+      await Trabalho.updateOne(
+        { _id: req.params.id },
+        { $set: { apresentacao: apresentacaoData } },
+        { runValidators: false }
+      );
+      
+      const { logAudit } = require('../utils/auditLogger');
+      logAudit('APRESENTACAO_ATUALIZADA', req.user.id, {
+        trabalhoId: trabalho._id,
+        apresentacao: apresentacaoData,
+      });
+      
+      // Buscar trabalho atualizado com populate
+      const trabalhoAtualizado = await Trabalho.findById(trabalho._id)
+        .populate('simposio', 'ano status')
+        .populate('areaAtuacao', 'nome')
+        .populate('subarea', 'nome')
+        .populate('autor', 'nome email');
+      
+      res.json({ success: true, data: trabalhoAtualizado, message: 'Apresentação atualizada com sucesso' });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
   // Listagem de Trabalhos
   listarTrabalhos: async (req, res) => {
     try {
       const Trabalho = require('../models/Trabalho');
       const Simposio = require('../models/Simposio');
       const AreaAtuacao = require('../models/AreaAtuacao');
+      const Subarea = require('../models/Subarea');
       const User = require('../models/User');
       
       const { ano, page = 1, limit = 20, status, busca } = req.query;
@@ -558,6 +666,7 @@ const adminController = {
   buscarTrabalho: async (req, res) => {
     try {
       const Trabalho = require('../models/Trabalho');
+      const Subarea = require('../models/Subarea');
       
       const trabalho = await Trabalho.findById(req.params.id)
         .populate('simposio', 'ano status')
@@ -580,6 +689,7 @@ const adminController = {
   atualizarTrabalho: async (req, res) => {
     try {
       const Trabalho = require('../models/Trabalho');
+      const Subarea = require('../models/Subarea'); // Registrar modelo Subarea
       const { status, tipoApresentacao, notaExterna } = req.body;
       
       const trabalho = await Trabalho.findById(req.params.id);
@@ -588,19 +698,29 @@ const adminController = {
         return res.status(404).json({ success: false, message: 'Trabalho não encontrado' });
       }
       
+      // Construir objeto de atualização apenas com os campos enviados
+      const updateData = {};
       if (status) {
-        trabalho.status = status;
+        updateData.status = status;
       }
       
       if (tipoApresentacao) {
-        trabalho.tipoApresentacao = tipoApresentacao;
+        updateData.tipoApresentacao = tipoApresentacao;
       }
       
       if (notaExterna !== undefined) {
-        trabalho.notaExterna = notaExterna;
+        updateData.notaExterna = notaExterna;
       }
       
-      await trabalho.save();
+      // Usar updateOne para evitar validação de campos não modificados
+      await Trabalho.updateOne(
+        { _id: req.params.id },
+        { $set: updateData },
+        { runValidators: false }
+      );
+      
+      // Buscar trabalho atualizado
+      const trabalhoAtualizado = await Trabalho.findById(req.params.id);
       
       const { logAudit } = require('../utils/auditLogger');
       logAudit('TRABALHO_ATUALIZADO', req.user.id, {
@@ -627,7 +747,7 @@ const adminController = {
         }
       }
       
-      res.json({ success: true, data: trabalho, message: 'Trabalho atualizado com sucesso' });
+      res.json({ success: true, data: trabalhoAtualizado, message: 'Trabalho atualizado com sucesso' });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
     }
@@ -1704,21 +1824,11 @@ const adminController = {
  *             type: object
  *             required:
  *               - ano
- *               - tema
+ *               - datasConfig
  *             properties:
  *               ano:
  *                 type: number
  *                 example: 2025
- *               tema:
- *                 type: string
- *                 example: Inovação e Tecnologia na Educação
- *               nome:
- *                 type: string
- *                 example: Simpósio 2025
- *               descricao:
- *                 type: string
- *               local:
- *                 type: string
  *               datasConfig:
  *                 type: object
  *                 properties:
@@ -2088,6 +2198,10 @@ router.delete('/paginas/:slug/remover-pdf', auth, requireRoles(['ADMIN', 'SUBADM
 router.get('/avaliacoes-externas', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.listarTrabalhosParaAvaliacaoExterna);
 router.post('/avaliacoes-externas/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.lancarNotaExterna);
 router.delete('/avaliacoes-externas/:id', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.removerNotaExterna);
+
+// Trabalhos Aprovados (para configurar apresentações)
+router.get('/trabalhos-aprovados', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.listarTrabalhosAprovados);
+router.put('/trabalhos-aprovados/:id/apresentacao', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.atualizarApresentacao);
 
 // Funções Administrativas
 router.post('/usuarios/:id/promover', auth, requireRoles(['ADMIN']), adminController.promoverUsuario);

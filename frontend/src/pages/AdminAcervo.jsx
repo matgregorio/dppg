@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
-import SelectGovBR from '../components/SelectGovBR';
 import api from '../services/api';
 import useNotification from '../hooks/useNotification';
 
@@ -55,10 +54,10 @@ const AdminAcervo = () => {
 
   const carregarSimposios = async () => {
     try {
-      const response = await api.get('/admin/simposios', { 
-        params: { limit: 100 } // Buscar todos os simpósios
-      });
-      setSimposios(response.data.simposios || []);
+      const response = await api.get('/public/simposios');
+      if (response.data.success) {
+        setSimposios(response.data.data || []);
+      }
     } catch (error) {
       console.error('Erro ao carregar simpósios:', error);
       showError('Erro ao carregar simpósios');
@@ -322,8 +321,16 @@ const AdminAcervo = () => {
         <>
           <div className="br-scrim fundo-modal" onClick={() => setShowModal(false)}></div>
           <div className="br-modal medium modal-centralizado">
-            <div className="br-modal-header">
+            <div className="br-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div className="br-modal-title">{editingId ? 'Editar' : 'Novo'} Item do Acervo</div>
+              <button
+                className="br-button circle small"
+                onClick={() => setShowModal(false)}
+                type="button"
+                aria-label="Fechar"
+              >
+                <i className="fas fa-times"></i>
+              </button>
             </div>
             <div className="br-modal-body">
               <form onSubmit={handleSubmit}>
@@ -336,26 +343,40 @@ const AdminAcervo = () => {
                         type="text"
                         value={formData.titulo}
                         onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
+                        placeholder="Digite o título do item"
                         required
                       />
                     </div>
                   </div>
                   
                   <div className="col-md-6 mb-3">
-                    <SelectGovBR
-                      id="anoEvento"
-                      label="Ano do Evento (Simpósio) *"
-                      value={formData.anoEvento}
-                      onChange={(e) => setFormData({ ...formData, anoEvento: e.target.value })}
-                      placeholder="Selecione o ano..."
-                      options={[
-                        { value: '', label: 'Selecione o ano...' },
-                        ...simposios.map((simposio) => ({
-                          value: simposio.ano,
-                          label: `${simposio.ano} - ${simposio.titulo}`
-                        }))
-                      ]}
-                    />
+                    <div className="br-input">
+                      <label htmlFor="anoEvento">Ano do Evento (Simpósio) *</label>
+                      <select
+                        id="anoEvento"
+                        value={formData.anoEvento}
+                        onChange={(e) => setFormData({ ...formData, anoEvento: e.target.value })}
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '0.5rem 0.75rem',
+                          border: '1px solid #888',
+                          borderRadius: '8px',
+                          fontSize: '1rem',
+                          fontFamily: 'Rawline, sans-serif',
+                          backgroundColor: 'white',
+                          cursor: 'pointer',
+                          outline: 'none'
+                        }}
+                      >
+                        <option value="">Selecione o ano...</option>
+                        {simposios.map((simposio) => (
+                          <option key={simposio._id} value={simposio.ano}>
+                            {simposio.ano} - {simposio.titulo || simposio.nome}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                   
                   <div className="col-md-6 mb-3">

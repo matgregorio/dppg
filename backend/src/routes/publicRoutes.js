@@ -58,6 +58,8 @@ const publicController = {
   getProgramacao: async (req, res) => {
     try {
       const Subevento = require('../models/Subevento');
+      const Trabalho = require('../models/Trabalho');
+      const Subarea = require('../models/Subarea');
       const Simposio = require('../models/Simposio');
       
       const ano = req.query.ano || process.env.DEFAULT_SIMPOSIO_ANO || new Date().getFullYear();
@@ -69,7 +71,23 @@ const publicController = {
       
       const subeventos = await Subevento.find({ simposio: simposio._id }).sort({ data: 1, horarioInicio: 1 });
       
-      res.json({ success: true, data: { simposio, subeventos } });
+      // Buscar trabalhos aprovados que têm apresentação completamente configurada
+      const trabalhos = await Trabalho.find({
+        simposio: simposio._id,
+        status: { $in: ['ACEITO', 'PUBLICADO'] },
+        tipoApresentacao: { $in: ['POSTER', 'ORAL'] },
+        'apresentacao.data': { $exists: true, $ne: null },
+        'apresentacao.horarioInicio': { $exists: true, $ne: null, $ne: '' },
+        'apresentacao.duracao': { $exists: true, $ne: null },
+        'apresentacao.local': { $exists: true, $ne: null, $ne: '' },
+        deleted_at: null
+      })
+      .populate('autor', 'nome')
+      .populate('areaAtuacao', 'nome')
+      .populate('subarea', 'nome')
+      .sort({ 'apresentacao.data': 1, 'apresentacao.horarioInicio': 1, titulo: 1 });
+      
+      res.json({ success: true, data: { simposio, subeventos, trabalhos } });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
     }

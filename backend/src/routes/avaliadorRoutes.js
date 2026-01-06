@@ -33,8 +33,20 @@ const avaliadorController = {
       const { nota, parecer } = req.body;
       const Trabalho = require('../models/Trabalho');
       
-      const trabalho = await Trabalho.findById(req.params.id);
+      console.log('=== BUSCAR TRABALHO PARA AVALIAR ===');
+      console.log('ID do trabalho:', req.params.id);
+      console.log('ID do avaliador:', req.user.id);
+      
+      // Buscar trabalho ignorando o filtro de deleted_at
+      const trabalho = await Trabalho.findOne({ 
+        _id: req.params.id,
+        deleted_at: null 
+      });
+      
+      console.log('Trabalho encontrado:', trabalho ? 'SIM' : 'NÃO');
+      
       if (!trabalho) {
+        console.log('Trabalho não encontrado - ID:', req.params.id);
         return res.status(404).json({ success: false, message: 'Trabalho não encontrado' });
       }
       
@@ -100,9 +112,100 @@ const avaliadorController = {
       res.status(500).json({ success: false, message: error.message });
     }
   },
+  
+  getTrabalho: async (req, res) => {
+    try {
+      const Trabalho = require('../models/Trabalho');
+      const Participant = require('../models/Participant');
+      const Docente = require('../models/Docente');
+      const Subarea = require('../models/Subarea');
+      const AreaAtuacao = require('../models/AreaAtuacao');
+      const Simposio = require('../models/Simposio');
+      
+      console.log('=== BUSCAR TRABALHO ESPECÍFICO ===');
+      console.log('ID do trabalho:', req.params.id);
+      console.log('ID do avaliador:', req.user.id);
+      
+      // Buscar trabalho sem populate
+      const trabalho = await Trabalho.findOne({
+        _id: req.params.id,
+        deleted_at: null
+      }).lean();
+      
+      console.log('Trabalho encontrado:', trabalho ? 'SIM' : 'NÃO');
+      
+      if (!trabalho) {
+        console.log('Trabalho não encontrado - ID:', req.params.id);
+        return res.status(404).json({ success: false, message: 'Trabalho não encontrado' });
+      }
+      
+      // Verifica se está atribuído ao avaliador
+      const atribuicao = trabalho.atribuicoes?.find(
+        a => a.avaliador.toString() === req.user.id && !a.revogado_em
+      );
+      
+      if (!atribuicao) {
+        console.log('Trabalho não atribuído ao avaliador');
+        return res.status(403).json({ success: false, message: 'Trabalho não atribuído a você' });
+      }
+      
+      // Populate manual
+      if (trabalho.autor) {
+        try {
+          const autor = await Participant.findById(trabalho.autor).select('nome email cpf telefone').lean();
+          trabalho.autor = autor;
+        } catch (err) {
+          console.error('Erro ao popular autor:', err);
+        }
+      }
+      
+      if (trabalho.orientador) {
+        try {
+          const orientador = await Docente.findById(trabalho.orientador).select('nome email').lean();
+          trabalho.orientador = orientador;
+        } catch (err) {
+          console.error('Erro ao popular orientador:', err);
+        }
+      }
+      
+      if (trabalho.subarea) {
+        try {
+          const subarea = await Subarea.findById(trabalho.subarea).select('nome').lean();
+          trabalho.subarea = subarea;
+        } catch (err) {
+          console.error('Erro ao popular subarea:', err);
+        }
+      }
+      
+      if (trabalho.areaAtuacao) {
+        try {
+          const areaAtuacao = await AreaAtuacao.findById(trabalho.areaAtuacao).select('nome').lean();
+          trabalho.areaAtuacao = areaAtuacao;
+        } catch (err) {
+          console.error('Erro ao popular areaAtuacao:', err);
+        }
+      }
+      
+      if (trabalho.simposio) {
+        try {
+          const simposio = await Simposio.findById(trabalho.simposio).select('ano nome status').lean();
+          trabalho.simposio = simposio;
+        } catch (err) {
+          console.error('Erro ao popular simposio:', err);
+        }
+      }
+      
+      console.log('Trabalho retornado com sucesso');
+      res.json({ success: true, data: trabalho });
+    } catch (error) {
+      console.error('Erro ao buscar trabalho:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
 };
 
 router.get('/trabalhos', auth, requireRoles(['AVALIADOR']), avaliadorController.getTrabalhos);
+router.get('/trabalhos/:id', auth, requireRoles(['AVALIADOR']), avaliadorController.getTrabalho);
 router.post('/trabalhos/:id/avaliar', auth, requireRoles(['AVALIADOR']), enforceWindow('prazoAvaliacao'), avaliadorController.avaliarTrabalho);
 
 module.exports = router;

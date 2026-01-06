@@ -7,6 +7,7 @@ import useNotification from '../hooks/useNotification';
 const AdminParticipantes = () => {
   const [participantes, setParticipantes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [simposioAtual, setSimposioAtual] = useState(null);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 20,
@@ -20,8 +21,25 @@ const AdminParticipantes = () => {
   const { showError, showSuccess } = useNotification();
   
   useEffect(() => {
-    fetchParticipantes();
-  }, [pagination.page, filtros]);
+    fetchSimposioAtual();
+  }, []);
+  
+  useEffect(() => {
+    if (simposioAtual) {
+      fetchParticipantes();
+    }
+  }, [pagination.page, filtros, simposioAtual]);
+  
+  const fetchSimposioAtual = async () => {
+    try {
+      const { data } = await api.get('/public/simposios');
+      if (data.success && data.data.length > 0) {
+        setSimposioAtual(data.data[0]);
+      }
+    } catch (err) {
+      showError('Erro ao carregar simpósio atual');
+    }
+  };
   
   const fetchParticipantes = async () => {
     try {
@@ -32,6 +50,7 @@ const AdminParticipantes = () => {
           limit: pagination.limit,
           busca: filtros.busca,
           tipo: filtros.tipo,
+          simposio: simposioAtual?._id,
         },
       });
       if (data.success) {
@@ -100,7 +119,9 @@ const AdminParticipantes = () => {
       
       <div className="my-4">
         <div className="d-flex justify-content-between align-items-center mb-4">
-          <h1 className="text-up-03 text-weight-bold">Participantes</h1>
+          <h1 className="text-up-03 text-weight-bold">
+            Participantes{simposioAtual ? ` do Simpósio ${simposioAtual.ano}` : ''}
+          </h1>
           <div className="d-flex gap-2 align-items-center">
             <span className="br-tag info large">{pagination.total} Total</span>
           </div>
@@ -113,9 +134,19 @@ const AdminParticipantes = () => {
               <label htmlFor="tipo">Tipo de Participante</label>
               <select
                 id="tipo"
-                className="form-control"
                 value={filtros.tipo}
                 onChange={(e) => handleFiltroChange('tipo', e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.5rem 0.75rem',
+                  border: '1px solid #888',
+                  borderRadius: '8px',
+                  fontSize: '1rem',
+                  fontFamily: 'Rawline, sans-serif',
+                  backgroundColor: 'white',
+                  cursor: 'pointer',
+                  outline: 'none'
+                }}
               >
                 <option value="">Todos</option>
                 <option value="SERVIDOR">Servidor</option>
@@ -177,8 +208,8 @@ const AdminParticipantes = () => {
                       <td>{p.email}</td>
                       <td>{p.telefone || '-'}</td>
                       <td>
-                        <span className={`br-tag ${getTipoBadge(p.tipo)}`}>
-                          {getTipoParticipante(p.tipo)}
+                        <span className={`br-tag ${getTipoBadge(p.tipo || p.tipoParticipante)}`}>
+                          {getTipoParticipante(p.tipo || p.tipoParticipante) || '-'}
                         </span>
                       </td>
                     </tr>

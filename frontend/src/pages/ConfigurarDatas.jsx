@@ -23,6 +23,7 @@ const ConfigurarDatas = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [anoAtual, setAnoAtual] = useState(ano);
   
   const {
     register,
@@ -37,7 +38,23 @@ const ConfigurarDatas = () => {
     const fetchSimposio = async () => {
       try {
         setLoading(true);
-        const { data } = await api.get(`/admin/simposios/${ano}`);
+        
+        // Se não tiver ano na URL, busca o simpósio ativo
+        let anoParaBuscar = ano;
+        if (!ano) {
+          const { data: simposiosData } = await api.get('/public/simposios');
+          if (simposiosData.success && simposiosData.data.length > 0) {
+            // Pega o primeiro simpósio (mais recente)
+            anoParaBuscar = simposiosData.data[0].ano;
+            setAnoAtual(anoParaBuscar);
+          } else {
+            setError('Nenhum simpósio encontrado');
+            setLoading(false);
+            return;
+          }
+        }
+        
+        const { data } = await api.get(`/admin/simposios/${anoParaBuscar}`);
         if (data.success && data.data.datasConfig) {
           const cfg = data.data.datasConfig;
           
@@ -78,7 +95,7 @@ const ConfigurarDatas = () => {
     };
     
     fetchSimposio();
-  }, [ano, setValue]);
+  }, [ano, anoAtual, setValue]);
   
   const onSubmit = async (formData) => {
     try {
@@ -104,11 +121,11 @@ const ConfigurarDatas = () => {
         },
       };
       
-      const { data } = await api.put(`/admin/simposios/${ano}/datas`, { datasConfig });
+      const { data } = await api.put(`/admin/simposios/${anoAtual}/datas`, { datasConfig });
       
       if (data.success) {
         setSuccess('Datas configuradas com sucesso!');
-        setTimeout(() => navigate(`/admin/simposios/${ano}`), 2000);
+        setTimeout(() => navigate(`/admin/simposios/${anoAtual}`), 2000);
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Erro ao salvar configurações');
@@ -127,7 +144,7 @@ const ConfigurarDatas = () => {
           </li>
           <li className="crumb">
             <i className="icon fas fa-chevron-right"></i>
-            <Link to={`/admin/simposios/${ano}`}>Gerenciar Simpósio</Link>
+            <Link to={`/admin/simposios/${anoAtual}`}>Gerenciar Simpósio</Link>
           </li>
           <li className="crumb">
             <i className="icon fas fa-chevron-right"></i>
@@ -137,7 +154,7 @@ const ConfigurarDatas = () => {
       </div>
       
       <div className="my-4">
-        <h1 className="text-up-03 text-weight-bold mb-4">Configurar Datas - Simpósio {ano}</h1>
+        <h1 className="text-up-03 text-weight-bold mb-4">Configurar Datas - Simpósio {anoAtual}</h1>
         
         {error && (
           <div className="br-message danger mb-3" role="alert">

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
-import SelectGovBR from '../components/SelectGovBR';
 import api from '../services/api';
 import useNotification from '../hooks/useNotification';
 
@@ -140,15 +139,27 @@ function AdminCertificados() {
   return (
     <MainLayout>
       <div className="container-lg mt-4 mb-5">
+        <div className="br-breadcrumb mb-4">
+          <ul className="crumb-list">
+            <li className="crumb home">
+              <Link className="br-button circle" to="/">
+                <span className="sr-only">Página inicial</span>
+                <i className="fas fa-home"></i>
+              </Link>
+            </li>
+            <li className="crumb">
+              <i className="icon fas fa-chevron-right"></i>
+              <Link to="/area-administrativa">Área Administrativa</Link>
+            </li>
+            <li className="crumb">
+              <i className="icon fas fa-chevron-right"></i>
+              <span>Gerenciar Certificados</span>
+            </li>
+          </ul>
+        </div>
+
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h1>Gerenciar Certificados</h1>
-          <button
-            className="br-button secondary"
-            onClick={() => navigate('/admin/funcoes')}
-          >
-            <i className="fas fa-arrow-left mr-2"></i>
-            Voltar
-          </button>
         </div>
 
         {/* Filtros */}
@@ -156,33 +167,35 @@ function AdminCertificados() {
           <div className="card-content p-3">
             <div className="row g-3">
               <div className="col-md-4">
-                <SelectGovBR
-                  id="filtroTipo"
-                  label="Tipo"
-                  value={filtros.tipo}
-                  onChange={(e) => setFiltros({ ...filtros, tipo: e.target.value, page: 1 })}
-                  options={[
-                    { value: '', label: 'Todos' },
-                    { value: 'PARTICIPANTE', label: 'Participante' },
-                    { value: 'ORIENTADOR', label: 'Orientador' },
-                    { value: 'AVALIADOR', label: 'Avaliador' },
-                    { value: 'MESARIO', label: 'Mesário' },
-                    { value: 'ORGANIZADOR', label: 'Organizador' },
-                  ]}
-                />
+                <div className="br-select">
+                  <label htmlFor="filtroTipo">Tipo</label>
+                  <select
+                    id="filtroTipo"
+                    value={filtros.tipo}
+                    onChange={(e) => setFiltros({ ...filtros, tipo: e.target.value, page: 1 })}
+                  >
+                    <option value="">Todos</option>
+                    <option value="PARTICIPANTE">Participante</option>
+                    <option value="ORIENTADOR">Orientador</option>
+                    <option value="AVALIADOR">Avaliador</option>
+                    <option value="MESARIO">Mesário</option>
+                    <option value="ORGANIZADOR">Organizador</option>
+                  </select>
+                </div>
               </div>
               <div className="col-md-4">
-                <SelectGovBR
-                  id="filtroEnviado"
-                  label="Status de Envio"
-                  value={filtros.enviadoEmail}
-                  onChange={(e) => setFiltros({ ...filtros, enviadoEmail: e.target.value, page: 1 })}
-                  options={[
-                    { value: '', label: 'Todos' },
-                    { value: 'true', label: 'Enviado' },
-                    { value: 'false', label: 'Não Enviado' },
-                  ]}
-                />
+                <div className="br-select">
+                  <label htmlFor="filtroEnviado">Status de Envio</label>
+                  <select
+                    id="filtroEnviado"
+                    value={filtros.enviadoEmail}
+                    onChange={(e) => setFiltros({ ...filtros, enviadoEmail: e.target.value, page: 1 })}
+                  >
+                    <option value="">Todos</option>
+                    <option value="true">Enviado</option>
+                    <option value="false">Não Enviado</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>

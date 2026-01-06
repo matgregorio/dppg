@@ -21,20 +21,26 @@ const Home = () => {
   
   useEffect(() => {
     buscarSimposio();
-    if (isAuthenticated) {
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated && simposio) {
       verificarInscricao();
     } else {
       setLoadingInscricao(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, simposio]);
   
   const buscarSimposio = async () => {
     try {
       setLoadingSimposio(true);
-      const { data } = await api.get(`/public/simposios/${currentYear}`);
+      // Busca todos os simpósios e pega o mais recente
+      const { data } = await api.get('/public/simposios');
       
-      if (data.success) {
-        setSimposio(data.data);
+      if (data.success && data.data.length > 0) {
+        // Ordena por ano decrescente e pega o primeiro (mais recente)
+        const simposioMaisRecente = data.data.sort((a, b) => b.ano - a.ano)[0];
+        setSimposio(simposioMaisRecente);
       }
     } catch (err) {
       console.error('Erro ao buscar simpósio:', err);
@@ -49,11 +55,11 @@ const Home = () => {
       const { data } = await api.get('/user/inscricoes');
       
       if (data.success) {
-        // Verifica se existe inscrição ativa no ano atual
-        const inscricaoAnoAtual = data.data.find(
-          insc => insc.simposio?.ano === currentYear && insc.status === 'ATIVA'
+        // Verifica se existe inscrição ativa no simpósio mais recente
+        const inscricaoSimposioAtual = data.data.find(
+          insc => insc.simposio?._id === simposio?._id && insc.status === 'ATIVA'
         );
-        setInscricaoAtual(inscricaoAnoAtual || null);
+        setInscricaoAtual(inscricaoSimposioAtual || null);
       }
     } catch (err) {
       console.error('Erro ao verificar inscrição:', err);
@@ -68,10 +74,15 @@ const Home = () => {
       return;
     }
     
+    if (!simposio) {
+      showError('Nenhum simpósio disponível para inscrição');
+      return;
+    }
+    
     try {
       setInscrevendo(true);
       const { data } = await api.post('/user/inscricoes/simposio', {
-        simposioAno: currentYear
+        simposioAno: simposio.ano
       });
       
       if (data.success) {
@@ -148,7 +159,7 @@ const Home = () => {
                     <i className="fas fa-clipboard-check fa-3x mr-3"></i>
                     <div>
                       <h3 className="text-weight-bold mb-1" style={{ color: 'white' }}>
-                        Inscreva-se no {simposio?.nome || `Simpósio ${currentYear}`}
+                        Inscreva-se no {simposio?.nome || 'Simpósio'}
                       </h3>
                       <p className="mb-0" style={{ color: 'rgba(255,255,255,0.9)' }}>
                         {!isAuthenticated 
@@ -230,7 +241,7 @@ const Home = () => {
             <i className="fas fa-check-circle fa-lg"></i>
           </div>
           <div className="content">
-            <span className="message-title">Você já está inscrito no {simposio?.nome || `Simpósio ${currentYear}`}!</span>
+            <span className="message-title">Você já está inscrito no {simposio?.nome || 'Simpósio'}!</span>
             <span className="message-body">
               Sua inscrição está ativa. Você pode submeter trabalhos e participar do evento.
             </span>
@@ -247,7 +258,7 @@ const Home = () => {
             <div className="card-content">
               <h5 className="text-weight-semi-bold mb-2">Programação</h5>
               <p className="text-down-01">
-                Confira a programação do simpósio {currentYear}
+                Confira a programação do {simposio?.nome || 'simpósio'}
               </p>
               <Link to="/programacao" className="br-button secondary small">
                 Ver programação
@@ -264,7 +275,7 @@ const Home = () => {
             <div className="card-content">
               <h5 className="text-weight-semi-bold mb-2">Submissão</h5>
               <p className="text-down-01">
-                Submeta seu trabalho para o simpósio {currentYear}
+                Submeta seu trabalho para o {simposio?.nome || 'simpósio'}
               </p>
               {isAuthenticated ? (
                 <Link to="/submeter-trabalho" className="br-button secondary small">

@@ -16,20 +16,22 @@ const AdminAvaliadores = () => {
     totalPages: 0,
   });
   const [busca, setBusca] = useState('');
-  const [areasAtuacao, setareasAtuacao] = useState([]);
+  const [grandesAreas, setGrandesAreas] = useState([]);
+  const [subareas, setSubareas] = useState([]);
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
     cpf: '',
     senha: '',
     lattes: '',
-    areasConhecimento: [],
+    grandeArea: '',
+    subarea: '',
   });
   const { showSuccess, showError } = useNotification();
 
   useEffect(() => {
     fetchAvaliadores();
-    fetchareasAtuacao();
+    fetchGrandesAreas();
   }, [pagination.page, busca]);
 
   const fetchAvaliadores = async () => {
@@ -57,16 +59,41 @@ const AdminAvaliadores = () => {
     }
   };
 
-  const fetchareasAtuacao = async () => {
+  const fetchGrandesAreas = async () => {
     try {
       const { data } = await api.get('/admin/grandes-areas');
       if (data.success) {
-        setareasAtuacao(data.data);
+        setGrandesAreas(data.data);
       }
     } catch (err) {
-      console.error('Erro ao carregar áreas:', err);
+      console.error('Erro ao carregar grandes áreas:', err);
     }
   };
+  
+  const fetchSubareas = async (grandeAreaId) => {
+    if (!grandeAreaId) {
+      setSubareas([]);
+      return;
+    }
+    try {
+      const { data } = await api.get(`/admin/grandes-areas/${grandeAreaId}/subareas`);
+      if (data.success) {
+        setSubareas(data.data);
+      }
+    } catch (err) {
+      console.error('Erro ao carregar subáreas:', err);
+      setSubareas([]);
+    }
+  };
+  
+  useEffect(() => {
+    if (formData.grandeArea) {
+      fetchSubareas(formData.grandeArea);
+    } else {
+      setSubareas([]);
+      setFormData(prev => ({ ...prev, subarea: '' }));
+    }
+  }, [formData.grandeArea]);
 
   const handleNovo = () => {
     setFormData({
@@ -75,7 +102,8 @@ const AdminAvaliadores = () => {
       cpf: '',
       senha: '',
       lattes: '',
-      areasConhecimento: [],
+      grandeArea: '',
+      subarea: '',
     });
     setEditando(null);
     setShowModal(true);
@@ -88,7 +116,8 @@ const AdminAvaliadores = () => {
       cpf: avaliador.cpf,
       senha: '',
       lattes: avaliador.lattes || '',
-      areasConhecimento: avaliador.areasConhecimento?.map(a => a._id) || [],
+      grandeArea: avaliador.grandeArea?._id || '',
+      subarea: avaliador.subarea?._id || '',
     });
     setEditando(avaliador);
     setShowModal(true);
@@ -151,15 +180,6 @@ const AdminAvaliadores = () => {
   const handleBusca = (e) => {
     e.preventDefault();
     setPagination(prev => ({ ...prev, page: 1 }));
-  };
-
-  const handleAreaToggle = (areaId) => {
-    setFormData(prev => ({
-      ...prev,
-      areasConhecimento: prev.areasConhecimento.includes(areaId)
-        ? prev.areasConhecimento.filter(id => id !== areaId)
-        : [...prev.areasConhecimento, areaId]
-    }));
   };
 
   return (
@@ -343,12 +363,20 @@ const AdminAvaliadores = () => {
       {/* Modal */}
       {showModal && (
         <>
-          <div className="br-scrim-util foco" onClick={() => setShowModal(false)}></div>
+          <div className="br-scrim-util foco" onClick={() => setShowModal(false)} style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}></div>
           <div className="br-modal large" style={{ display: 'block' }}>
-            <div className="br-modal-header">
+            <div className="br-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div className="br-modal-title">
                 {editando ? 'Editar Avaliador' : 'Novo Avaliador'}
               </div>
+              <button
+                className="br-button circle small"
+                onClick={() => setShowModal(false)}
+                type="button"
+                aria-label="Fechar"
+              >
+                <i className="fas fa-times"></i>
+              </button>
             </div>
             <form onSubmit={handleSubmit}>
               <div className="br-modal-body">
@@ -421,24 +449,62 @@ const AdminAvaliadores = () => {
                   </div>
                 </div>
 
-                <div className="mb-3">
-                  <label className="d-block mb-2">
-                    <strong>Áreas de Conhecimento</strong>
-                  </label>
-                  <div className="row">
-                    {areasAtuacao.map((area) => (
-                      <div key={area._id} className="col-md-4 mb-2">
-                        <div className="br-checkbox">
-                          <input
-                            id={`area-${area._id}`}
-                            type="checkbox"
-                            checked={formData.areasConhecimento.includes(area._id)}
-                            onChange={() => handleAreaToggle(area._id)}
-                          />
-                          <label htmlFor={`area-${area._id}`}>{area.nome}</label>
-                        </div>
-                      </div>
-                    ))}
+                <div className="row">
+                  <div className="col-md-6 mb-3">
+                    <div className="br-input">
+                      <label htmlFor="grandeArea">Área de Atuação *</label>
+                      <select
+                        id="grandeArea"
+                        value={formData.grandeArea}
+                        onChange={(e) => setFormData({ ...formData, grandeArea: e.target.value })}
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '0.5rem 0.75rem',
+                          border: '1px solid #888',
+                          borderRadius: '8px',
+                          fontSize: '1rem',
+                          fontFamily: 'Rawline, sans-serif',
+                          backgroundColor: 'white',
+                          cursor: 'pointer',
+                          outline: 'none'
+                        }}
+                      >
+                        <option value="">Selecione uma área de atuação...</option>
+                        {grandesAreas.map((area) => (
+                          <option key={area._id} value={area._id}>{area.nome}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div className="col-md-6 mb-3">
+                    <div className="br-input">
+                      <label htmlFor="subarea">Subáreas *</label>
+                      <select
+                        id="subarea"
+                        value={formData.subarea}
+                        onChange={(e) => setFormData({ ...formData, subarea: e.target.value })}
+                        required
+                        disabled={!formData.grandeArea}
+                        style={{
+                          width: '100%',
+                          padding: '0.5rem 0.75rem',
+                          border: '1px solid #888',
+                          borderRadius: '8px',
+                          fontSize: '1rem',
+                          fontFamily: 'Rawline, sans-serif',
+                          backgroundColor: formData.grandeArea ? 'white' : '#f0f0f0',
+                          cursor: formData.grandeArea ? 'pointer' : 'not-allowed',
+                          outline: 'none'
+                        }}
+                      >
+                        <option value="">{formData.grandeArea ? 'Selecione uma subárea...' : 'Selecione primeiro uma área de atuação'}</option>
+                        {subareas.map((sub) => (
+                          <option key={sub._id} value={sub._id}>{sub.nome}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
               </div>

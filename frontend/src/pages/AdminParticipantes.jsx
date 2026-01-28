@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
+import { BrSelect } from '@govbr-ds/react-components';
 import api from '../services/api';
 import useNotification from '../hooks/useNotification';
 
@@ -130,30 +131,19 @@ const AdminParticipantes = () => {
         {/* Filtros */}
         <div className="row mb-4">
           <div className="col-md-4">
-            <div className="br-input">
-              <label htmlFor="tipo">Tipo de Participante</label>
-              <select
-                id="tipo"
-                value={filtros.tipo}
-                onChange={(e) => handleFiltroChange('tipo', e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem 0.75rem',
-                  border: '1px solid #888',
-                  borderRadius: '8px',
-                  fontSize: '1rem',
-                  fontFamily: 'Rawline, sans-serif',
-                  backgroundColor: 'white',
-                  cursor: 'pointer',
-                  outline: 'none'
-                }}
-              >
-                <option value="">Todos</option>
-                <option value="SERVIDOR">Servidor</option>
-                <option value="DISCENTE">Discente</option>
-                <option value="EXTERNO">Externo</option>
-              </select>
-            </div>
+            <BrSelect
+              label="Tipo de Participante"
+              placeholder="Selecione o tipo"
+              options={[
+                { label: 'Todos', value: '' },
+                { label: 'Servidor', value: 'SERVIDOR' },
+                { label: 'Discente', value: 'DISCENTE' },
+                { label: 'Externo', value: 'EXTERNO' }
+              ]}
+              onChange={(value) => handleFiltroChange('tipo', value)}
+              value={filtros.tipo}
+              emptyOptionsMessage="Nenhuma opção encontrada"
+            />
           </div>
           <div className="col-md-8">
             <form onSubmit={handleBuscar}>

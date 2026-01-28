@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { BrSelect } from '@govbr-ds/react-components';
 import MainLayout from '../layouts/MainLayout';
 import api from '../services/api';
 
@@ -357,36 +358,32 @@ const SubmeterTrabalho = () => {
               </div>
 
               <div className="mb-3">
-                <div className={`br-input ${errors.tipoProjeto ? 'danger' : ''}`}>
-                  <label htmlFor="tipoProjeto">
-                    Tipo de Projeto <span className="text-danger">*</span>
-                  </label>
-                  <select
-                    id="tipoProjeto"
-                    style={{
-                      height: '40px',
-                      padding: '8px 12px',
-                      fontSize: '16px',
-                      lineHeight: '1.5',
-                      border: '1px solid #888',
-                      borderRadius: '4px',
-                      backgroundColor: '#fff',
-                      width: '100%'
-                    }}
-                    {...register('tipoProjeto')}
-                  >
-                    <option value="">Selecione...</option>
-                    <option value="PESQUISA">Pesquisa</option>
-                    <option value="EXTENSAO">Extensão</option>
-                    <option value="ENSINO">Ensino</option>
-                  </select>
-                  {errors.tipoProjeto && (
-                    <span className="feedback danger" role="alert">
-                      <i className="fas fa-times-circle" aria-hidden="true"></i>
-                      {errors.tipoProjeto.message}
-                    </span>
+                <Controller
+                  name="tipoProjeto"
+                  control={control}
+                  render={({ field, fieldState: { error } }) => (
+                    <>
+                      <BrSelect
+                        label="Tipo de Projeto *"
+                        placeholder="Selecione..."
+                        options={[
+                          { label: 'Pesquisa', value: 'PESQUISA' },
+                          { label: 'Extensão', value: 'EXTENSAO' },
+                          { label: 'Ensino', value: 'ENSINO' }
+                        ]}
+                        onChange={(value) => field.onChange(value)}
+                        value={field.value}
+                        emptyOptionsMessage="Nenhuma opção encontrada"
+                      />
+                      {error && (
+                        <span className="feedback danger" role="alert">
+                          <i className="fas fa-times-circle" aria-hidden="true"></i>
+                          {error.message}
+                        </span>
+                      )}
+                    </>
                   )}
-                </div>
+                />
               </div>
 
               <div className="mb-3" style={{ position: 'relative' }}>
@@ -495,59 +492,53 @@ const SubmeterTrabalho = () => {
               </div>
 
               <div className="mb-3">
-                <div className={`br-input ${errors.areaAtuacao ? 'danger' : ''}`}>
-                  <label htmlFor="areaAtuacao">
-                    Área de Atuação <span className="text-danger">*</span>
-                  </label>
-                  <select
-                    id="areaAtuacao"
-                    style={{
-                      height: '40px',
-                      padding: '8px 12px',
-                      fontSize: '16px',
-                      lineHeight: '1.5',
-                      border: '1px solid #888',
-                      borderRadius: '4px',
-                      backgroundColor: '#fff',
-                      width: '100%'
-                    }}
-                    {...register('areaAtuacao')}
-                  >
-                    <option value="">Selecione...</option>
-                    {areasAtuacao.map((area) => (
-                      <option key={area._id} value={area._id}>
-                        {area.nome}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.areaAtuacao && (
-                    <span className="feedback danger" role="alert">
-                      <i className="fas fa-times-circle" aria-hidden="true"></i>
-                      {errors.areaAtuacao.message}
-                    </span>
+                <Controller
+                  name="areaAtuacao"
+                  control={control}
+                  render={({ field, fieldState: { error } }) => (
+                    <>
+                      <BrSelect
+                        label="Área de Atuação *"
+                        placeholder="Selecione..."
+                        options={areasAtuacao.map(area => ({ label: area.nome, value: area._id }))}
+                        onChange={(value) => field.onChange(value)}
+                        value={field.value}
+                        emptyOptionsMessage="Nenhuma área encontrada"
+                      />
+                      {error && (
+                        <span className="feedback danger" role="alert">
+                          <i className="fas fa-times-circle" aria-hidden="true"></i>
+                          {error.message}
+                        </span>
+                      )}
+                    </>
                   )}
-                </div>
+                />
               </div>
 
               <div className="mb-3">
-                <div className={`br-input ${errors.subarea ? 'danger' : ''}`}>
-                  <label htmlFor="subarea">
-                    Subárea <span className="text-danger">*</span>
-                  </label>
-                  <select
-                    id="subarea"
-                    disabled={!areaAtuacaoSelecionada || subareasFiltradas.length === 0}
-                    style={{
-                      height: '40px',
-                      padding: '8px 12px',
-                      fontSize: '16px',
-                      lineHeight: '1.5',
-                      border: '1px solid #888',
-                      borderRadius: '4px',
-                      backgroundColor: '#fff',
-                      width: '100%'
-                    }}
-                    {...register('subarea')}
+                <Controller
+                  name="subarea"
+                  control={control}
+                  render={({ field, fieldState: { error } }) => (
+                    <>
+                      <BrSelect
+                        label="Subárea *"
+                        placeholder={!areaAtuacaoSelecionada ? "Selecione uma área primeiro..." : "Selecione..."}
+                        options={subareasFiltradas.map(sub => ({ label: sub.nome, value: sub._id }))}
+                        onChange={(value) => field.onChange(value)}
+                        value={field.value}
+                        emptyOptionsMessage={!areaAtuacaoSelecionada ? "Selecione uma área de atuação primeiro" : "Nenhuma subárea encontrada"}
+                      />
+                      {error && (
+                        <span className="feedback danger" role="alert">
+                          <i className="fas fa-times-circle" aria-hidden="true"></i>
+                          {error.message}
+                        </span>
+                      )}
+                    </>
+                  )}
+                />
                   >
                     <option value="">
                       {!areaAtuacaoSelecionada 

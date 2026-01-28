@@ -5,6 +5,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell 
 } from 'recharts';
 import MainLayout from '../layouts/MainLayout';
+import { BrSelect } from '@govbr-ds/react-components';
 import api from '../services/api';
 import useNotification from '../hooks/useNotification';
 
@@ -158,17 +159,20 @@ const DashboardAdmin = () => {
             Dashboard Administrativo
           </h1>
           
-          <div className="br-select" style={{ minWidth: '200px' }}>
-            <select
-              value={simposioFiltro}
-              onChange={(e) => setSimposioFiltro(e.target.value)}
-            >
-              <option value="">Todos os Simpósios</option>
-              {simposios.map(s => (
-                <option key={s._id} value={s._id}>{s.ano}</option>
-              ))}
-            </select>
-          </div>
+          
+          <BrSelect
+            placeholder="Selecione o simpósio"
+            options={[
+              { label: 'Todos os Simpósios', value: '' },
+              ...simposios.map(s => ({ label: s.ano.toString(), value: s._id }))
+            ]}
+            onChange={(value) => setSimposioFiltro(value)}
+            value={simposioFiltro}
+            emptyOptionsMessage="Nenhum simpósio encontrado"
+            type="single"
+            className="" 
+            style={{ minWidth: '200px' }}
+          />
         </div>
 
         {/* Upload de Banner */}

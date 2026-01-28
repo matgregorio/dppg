@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { BrSelect } from '@govbr-ds/react-components';
 import MainLayout from '../layouts/MainLayout';
 import api from '../services/api';
 
@@ -143,29 +144,19 @@ const OrientadorTrabalhos = () => {
 
         {/* Filtros */}
         <div className="mb-3">
-          <div className="br-input">
-            <label htmlFor="filtroStatus">Filtrar por status</label>
-            <select
-              id="filtroStatus"
-              value={filtroStatus}
-              onChange={(e) => setFiltroStatus(e.target.value)}
-              style={{
-                height: '40px',
-                padding: '8px 12px',
-                fontSize: '16px',
-                border: '1px solid #888',
-                borderRadius: '4px',
-                backgroundColor: '#fff',
-                width: '300px',
-              }}
-            >
-              <option value="">Todos os status</option>
-              <option value="AGUARDANDO_ORIENTADOR">Aguardando Avaliação</option>
-              <option value="APROVADO_ORIENTADOR">Aprovados</option>
-              <option value="REPROVADO_ORIENTADOR">Reprovados</option>
-              <option value="EM_AVALIACAO">Em Avaliação</option>
-            </select>
-          </div>
+          <BrSelect
+            label="Filtrar por status"
+            placeholder="Todos os status"
+            options={[
+              { label: 'Aguardando Avaliação', value: 'AGUARDANDO_ORIENTADOR' },
+              { label: 'Aprovados', value: 'APROVADO_ORIENTADOR' },
+              { label: 'Reprovados', value: 'REPROVADO_ORIENTADOR' },
+              { label: 'Em Avaliação', value: 'EM_AVALIACAO' }
+            ]}
+            onChange={(value) => setFiltroStatus(value || '')}
+            value={filtroStatus}
+            emptyOptionsMessage="Nenhum status encontrado"
+          />
         </div>
 
         {/* Lista de Trabalhos */}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
-import SelectGovBR from '../components/SelectGovBR';
+import { BrSelect } from '@govbr-ds/react-components';
 import api from '../services/api';
 import useNotification from '../hooks/useNotification';
 
@@ -476,30 +476,14 @@ const AdminSubeventos = () => {
                 </div>
 
                 <div className="col-md-4">
-                  <div className="br-input">
-                    <label htmlFor="simposioFiltro">Filtrar por Simpósio</label>
-                    <select
-                      id="simposioFiltro"
-                      value={simposioFiltro}
-                      onChange={(e) => setSimposioFiltro(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '0.5rem 0.75rem',
-                        border: '1px solid #888',
-                        borderRadius: '8px',
-                        fontSize: '1rem',
-                        fontFamily: 'Rawline, sans-serif',
-                        backgroundColor: 'white',
-                        cursor: 'pointer',
-                        outline: 'none'
-                      }}
-                    >
-                      <option value="">Todos</option>
-                      {simposios.map((s) => (
-                        <option key={s._id} value={s._id}>{String(s.ano)}</option>
-                      ))}
-                    </select>
-                  </div>
+                  <BrSelect
+                    label="Filtrar por Simpósio"
+                    placeholder="Todos"
+                    options={simposios.map(s => ({ label: String(s.ano), value: s._id }))}
+                    onChange={(value) => setSimposioFiltro(value || '')}
+                    value={simposioFiltro}
+                    emptyOptionsMessage="Nenhum simpósio encontrado"
+                  />
                 </div>
 
                 <div className="col-md-2">
@@ -768,55 +752,34 @@ const AdminSubeventos = () => {
             {/* Aba de Apresentações de Trabalhos */}
             <div className="row mb-4">
               <div className="col-md-4">
-                <label htmlFor="simposioFiltroApresentacao" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-                  Simpósio *
-                </label>
-                <select
-                  id="simposioFiltroApresentacao"
-                  value={simposioFiltro}
-                  onChange={(e) => {
-                    setSimposioFiltro(e.target.value);
+                <BrSelect
+                  label="Simpósio *"
+                  placeholder="Selecione o simpósio..."
+                  options={simposios.map(s => ({ label: String(s.ano), value: s._id }))}
+                  onChange={(value) => {
+                    setSimposioFiltro(value || '');
                     setPagination((prev) => ({ ...prev, page: 1 }));
                   }}
-                  style={{
-                    width: '100%',
-                    padding: '0.5rem 0.75rem',
-                    border: '1px solid #888',
-                    borderRadius: '8px',
-                    fontSize: '1rem',
-                    backgroundColor: '#fff'
-                  }}
-                >
-                  <option value="">Selecione o simpósio...</option>
-                  {simposios.map((s) => (
-                    <option key={s._id} value={s._id}>{String(s.ano)}</option>
-                  ))}
-                </select>
+                  value={simposioFiltro}
+                  emptyOptionsMessage="Nenhum simpósio encontrado"
+                />
               </div>
               <div className="col-md-4">
-                <label htmlFor="tipoFiltro" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-                  Tipo de Apresentação
-                </label>
-                <select
-                  id="tipoFiltro"
-                  value={tipoFiltro}
-                  onChange={(e) => {
-                    setTipoFiltro(e.target.value);
+                <BrSelect
+                  label="Tipo de Apresentação"
+                  placeholder="Todos os tipos"
+                  options={[
+                    { label: 'Banner', value: 'BANNER' },
+                    { label: 'Pôster', value: 'POSTER' },
+                    { label: 'Oral', value: 'ORAL' }
+                  ]}
+                  onChange={(value) => {
+                    setTipoFiltro(value || '');
                     setPagination((prev) => ({ ...prev, page: 1 }));
                   }}
-                  style={{
-                    width: '100%',
-                    padding: '0.5rem 0.75rem',
-                    border: '1px solid #888',
-                    borderRadius: '8px',
-                    fontSize: '1rem',
-                    backgroundColor: '#fff'
-                  }}
-                >
-                  <option value="TODOS">Todos</option>
-                  <option value="ORAL">Oral</option>
-                  <option value="POSTER">Pôster</option>
-                </select>
+                  value={tipoFiltro}
+                  emptyOptionsMessage="Nenhum tipo encontrado"
+                />
               </div>
             </div>
 
@@ -1022,30 +985,14 @@ const AdminSubeventos = () => {
                   </div>
 
                   <div className="col-md-4 mb-3">
-                    <div className="br-input">
-                      <label htmlFor="tipo">Tipo</label>
-                      <select
-                        id="tipo"
-                        value={formData.tipo}
-                        onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
-                        style={{
-                          width: '100%',
-                          padding: '0.5rem 0.75rem',
-                          border: '1px solid #888',
-                          borderRadius: '8px',
-                          fontSize: '1rem',
-                          fontFamily: 'Rawline, sans-serif',
-                          backgroundColor: 'white',
-                          cursor: 'pointer',
-                          outline: 'none'
-                        }}
-                      >
-                        <option value="">Selecione...</option>
-                        {tiposSubevento.map((t) => (
-                          <option key={t} value={t}>{t}</option>
-                        ))}
-                      </select>
-                    </div>
+                    <BrSelect
+                      label="Tipo"
+                      placeholder="Selecione..."
+                      options={tiposSubevento.map(t => ({ label: t, value: t }))}
+                      onChange={(value) => setFormData({ ...formData, tipo: value || '' })}
+                      value={formData.tipo}
+                      emptyOptionsMessage="Nenhum tipo encontrado"
+                    />
                   </div>
                 </div>
 
@@ -1091,23 +1038,15 @@ const AdminSubeventos = () => {
 
                 <div className="row">
                   <div className="col-md-4 mb-3">
-                    <div className="br-input">
-                      <label htmlFor="simposio">Simpósio *</label>
-                      <select
-                        id="simposio"
-                        value={formData.simposio}
-                        onChange={(e) => setFormData({ ...formData, simposio: e.target.value })}
-                        required
-                        style={{
-                          width: '100%',
-                          padding: '0.5rem 0.75rem',
-                          border: '1px solid #888',
-                          borderRadius: '8px',
-                          fontSize: '1rem',
-                          fontFamily: 'Rawline, sans-serif',
-                          backgroundColor: 'white',
-                          cursor: 'pointer',
-                          outline: 'none'
+                    <BrSelect
+                      label="Simpósio *"
+                      placeholder="Selecione..."
+                      options={simposios.map(s => ({ label: String(s.ano), value: s._id }))}
+                      onChange={(value) => setFormData({ ...formData, simposio: value || '' })}
+                      value={formData.simposio}
+                      emptyOptionsMessage="Nenhum simpósio encontrado"
+                    />
+                  </div>
                         }}
                       >
                         <option value="">Selecione...</option>

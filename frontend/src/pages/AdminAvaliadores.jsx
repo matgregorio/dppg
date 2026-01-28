@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
+import { BrSelect } from '@govbr-ds/react-components';
 import api from '../services/api';
 import useNotification from '../hooks/useNotification';
 
@@ -451,60 +452,32 @@ const AdminAvaliadores = () => {
 
                 <div className="row">
                   <div className="col-md-6 mb-3">
-                    <div className="br-input">
-                      <label htmlFor="grandeArea">Área de Atuação *</label>
-                      <select
-                        id="grandeArea"
-                        value={formData.grandeArea}
-                        onChange={(e) => setFormData({ ...formData, grandeArea: e.target.value })}
-                        required
-                        style={{
-                          width: '100%',
-                          padding: '0.5rem 0.75rem',
-                          border: '1px solid #888',
-                          borderRadius: '8px',
-                          fontSize: '1rem',
-                          fontFamily: 'Rawline, sans-serif',
-                          backgroundColor: 'white',
-                          cursor: 'pointer',
-                          outline: 'none'
-                        }}
-                      >
-                        <option value="">Selecione uma área de atuação...</option>
-                        {grandesAreas.map((area) => (
-                          <option key={area._id} value={area._id}>{area.nome}</option>
-                        ))}
-                      </select>
-                    </div>
+                    <BrSelect
+                      label="Área de Atuação *"
+                      placeholder="Selecione uma área de atuação"
+                      options={[
+                        { label: 'Selecione uma área de atuação...', value: '' },
+                        ...grandesAreas.map(area => ({ label: area.nome, value: area._id }))
+                      ]}
+                      onChange={(value) => setFormData({ ...formData, grandeArea: value })}
+                      value={formData.grandeArea}
+                      emptyOptionsMessage="Nenhuma área encontrada"
+                    />
                   </div>
                   
                   <div className="col-md-6 mb-3">
-                    <div className="br-input">
-                      <label htmlFor="subarea">Subáreas *</label>
-                      <select
-                        id="subarea"
-                        value={formData.subarea}
-                        onChange={(e) => setFormData({ ...formData, subarea: e.target.value })}
-                        required
-                        disabled={!formData.grandeArea}
-                        style={{
-                          width: '100%',
-                          padding: '0.5rem 0.75rem',
-                          border: '1px solid #888',
-                          borderRadius: '8px',
-                          fontSize: '1rem',
-                          fontFamily: 'Rawline, sans-serif',
-                          backgroundColor: formData.grandeArea ? 'white' : '#f0f0f0',
-                          cursor: formData.grandeArea ? 'pointer' : 'not-allowed',
-                          outline: 'none'
-                        }}
-                      >
-                        <option value="">{formData.grandeArea ? 'Selecione uma subárea...' : 'Selecione primeiro uma área de atuação'}</option>
-                        {subareas.map((sub) => (
-                          <option key={sub._id} value={sub._id}>{sub.nome}</option>
-                        ))}
-                      </select>
-                    </div>
+                    <BrSelect
+                      label="Subáreas *"
+                      placeholder={formData.grandeArea ? 'Selecione uma subárea' : 'Selecione primeiro uma área de atuação'}
+                      options={[
+                        { label: formData.grandeArea ? 'Selecione uma subárea...' : 'Selecione primeiro uma área de atuação', value: '' },
+                        ...subareas.map(sub => ({ label: sub.nome, value: sub._id }))
+                      ]}
+                      onChange={(value) => setFormData({ ...formData, subarea: value })}
+                      value={formData.subarea}
+                      disabled={!formData.grandeArea}
+                      emptyOptionsMessage="Nenhuma subárea encontrada"
+                    />
                   </div>
                 </div>
               </div>

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useForm, FormProvider } from 'react-hook-form';
+import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { BrSelect } from '@govbr-ds/react-components';
 import MainLayout from '../layouts/MainLayout';
-import { FormInput, FormSelect } from '../components/forms';
+import { FormInput } from '../components/forms';
 import api from '../services/api';
 
 const areaAtuacaoSchema = z.object({
@@ -308,7 +309,7 @@ const AdminAreas = () => {
             <FormProvider {...areaAtuacaoMethods}>
               <form onSubmit={areaAtuacaoMethods.handleSubmit(onSubmitAreaAtuacao)}>
                 <div className="br-modal-body">
-                  <FormInput name="nome" label="Nome" required />
+                  <FormInput name="nome" label="Nome" required placeholder="Ex: Ciências Exatas e da Terra" />
                 </div>
                 <div className="br-modal-footer">
                   <button type="button" className="br-button secondary" onClick={() => setShowModal(false)}>
@@ -325,71 +326,79 @@ const AdminAreas = () => {
       )}
       
       {/* Modal Subárea */}
-      {showModal === 'subarea' && (
-        <>
-          <div className="br-scrim-util foco" onClick={() => setShowModal(false)} style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9998, display: 'block' }}></div>
-          <div className="br-modal large" style={{ display: 'block', position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999, maxWidth: '600px', width: '90%' }}>
-            <div className="br-modal-header">
-              <h4>{editingItem ? 'Editar' : 'Nova'} Subárea</h4>
+      {/* Modal Subárea - CORRIGIDO */}
+{showModal === 'subarea' && (
+  <>
+    <div className="br-scrim-util foco" onClick={() => setShowModal(false)} style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9998, display: 'block' }}></div>
+    <div className="br-modal large" style={{ 
+      display: 'block', 
+      position: 'fixed', 
+      top: '50%', 
+      left: '50%', 
+      transform: 'translate(-50%, -50%)', 
+      zIndex: 9999, 
+      maxWidth: '600px', 
+      width: '90%',
+      maxHeight: '90vh',
+      overflow: 'visible' // MUDANÇA AQUI
+    }}>
+      <div className="br-modal-header">
+        <h4>{editingItem ? 'Editar' : 'Nova'} Subárea</h4>
+      </div>
+      <FormProvider {...subareaMethods}>
+        <form onSubmit={subareaMethods.handleSubmit(onSubmitSubarea)}>
+          <div className="br-modal-body" style={{ 
+            minHeight: '300px', // MUDANÇA AQUI
+            overflow: 'visible', // MUDANÇA AQUI
+            paddingBottom: '20px' // MUDANÇA AQUI
+          }}>
+            <FormInput name="nome" label="Nome" required placeholder="Ex: Matemática, Física, Química" />
+            
+            <div className="mb-3" style={{ position: 'relative', zIndex: 1000 }}> {/* MUDANÇA AQUI */}
+              <Controller
+                name="areaAtuacao"
+                control={subareaMethods.control}
+                rules={{ required: 'Selecione uma Área de Atuação' }}
+                render={({ field, fieldState: { error } }) => (
+                  <>
+                    <BrSelect
+                      label="Área de Atuação *"
+                      placeholder="Selecione uma Área de Atuação"
+                      options={areasAtuacao.map(aa => ({ 
+                        label: aa.nome, 
+                        value: aa._id 
+                      }))}
+                      onChange={(value) => field.onChange(value)}
+                      value={field.value}
+                      emptyOptionsMessage="Nenhuma área encontrada"
+                      type="single"
+                      state={error ? 'danger' : undefined}
+                      required
+                    />
+                    {error && (
+                      <span className="feedback danger" role="alert">
+                        <i className="fas fa-times-circle" aria-hidden="true"></i>
+                        {error.message}
+                      </span>
+                    )}
+                  </>
+                )}
+              />
             </div>
-            <FormProvider {...subareaMethods}>
-              <form onSubmit={subareaMethods.handleSubmit(onSubmitSubarea)}>
-                <div className="br-modal-body">
-                  <FormInput name="nome" label="Nome" required />
-                  
-                  <div className="mb-3">
-                    <div className={`br-input ${subareaMethods.formState.errors.areaAtuacao ? 'danger' : ''}`}>
-                      <label htmlFor="areaAtuacao-select">
-                        Área de Atuação <span className="text-danger">*</span>
-                      </label>
-                      <div className="input-group">
-                        <select
-                          id="areaAtuacao-select"
-                          className="form-select"
-                          style={{
-                            height: '40px',
-                            padding: '8px 12px',
-                            fontSize: '16px',
-                            lineHeight: '1.5',
-                            border: '1px solid #888',
-                            borderRadius: '4px',
-                            backgroundColor: '#fff',
-                            width: '100%'
-                          }}
-                          {...subareaMethods.register('areaAtuacao', {
-                            required: 'Selecione uma Área de Atuação'
-                          })}
-                        >
-                          <option value="">Selecione...</option>
-                          {areasAtuacao.map((aa) => (
-                            <option key={aa._id} value={aa._id}>
-                              {aa.nome}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      {subareaMethods.formState.errors.areaAtuacao && (
-                        <span className="feedback danger" role="alert">
-                          <i className="fas fa-times-circle" aria-hidden="true"></i>
-                          {subareaMethods.formState.errors.areaAtuacao.message}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div className="br-modal-footer">
-                  <button type="button" className="br-button secondary" onClick={() => setShowModal(false)}>
-                    Cancelar
-                  </button>
-                  <button type="submit" className="br-button primary">
-                    Salvar
-                  </button>
-                </div>
-              </form>
-            </FormProvider>
           </div>
-        </>
-      )}
+          <div className="br-modal-footer">
+            <button type="button" className="br-button secondary" onClick={() => setShowModal(false)}>
+              Cancelar
+            </button>
+            <button type="submit" className="br-button primary">
+              Salvar
+            </button>
+          </div>
+        </form>
+      </FormProvider>
+    </div>
+  </>
+)}
     </MainLayout>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
+import { BrSelect } from '@govbr-ds/react-components';
 import api from '../services/api';
 import useNotification from '../hooks/useNotification';
 
@@ -167,35 +168,35 @@ function AdminCertificados() {
           <div className="card-content p-3">
             <div className="row g-3">
               <div className="col-md-4">
-                <div className="br-select">
-                  <label htmlFor="filtroTipo">Tipo</label>
-                  <select
-                    id="filtroTipo"
-                    value={filtros.tipo}
-                    onChange={(e) => setFiltros({ ...filtros, tipo: e.target.value, page: 1 })}
-                  >
-                    <option value="">Todos</option>
-                    <option value="PARTICIPANTE">Participante</option>
-                    <option value="ORIENTADOR">Orientador</option>
-                    <option value="AVALIADOR">Avaliador</option>
-                    <option value="MESARIO">Mesário</option>
-                    <option value="ORGANIZADOR">Organizador</option>
-                  </select>
-                </div>
+                <BrSelect
+                  label="Tipo"
+                  placeholder="Selecione o tipo"
+                  options={[
+                    { label: 'Todos', value: '' },
+                    { label: 'Participante', value: 'PARTICIPANTE' },
+                    { label: 'Orientador', value: 'ORIENTADOR' },
+                    { label: 'Avaliador', value: 'AVALIADOR' },
+                    { label: 'Mesário', value: 'MESARIO' },
+                    { label: 'Organizador', value: 'ORGANIZADOR' }
+                  ]}
+                  onChange={(value) => setFiltros({ ...filtros, tipo: value, page: 1 })}
+                  value={filtros.tipo}
+                  emptyOptionsMessage="Nenhuma opção encontrada"
+                />
               </div>
               <div className="col-md-4">
-                <div className="br-select">
-                  <label htmlFor="filtroEnviado">Status de Envio</label>
-                  <select
-                    id="filtroEnviado"
-                    value={filtros.enviadoEmail}
-                    onChange={(e) => setFiltros({ ...filtros, enviadoEmail: e.target.value, page: 1 })}
-                  >
-                    <option value="">Todos</option>
-                    <option value="true">Enviado</option>
-                    <option value="false">Não Enviado</option>
-                  </select>
-                </div>
+                <BrSelect
+                  label="Status de Envio"
+                  placeholder="Selecione o status"
+                  options={[
+                    { label: 'Todos', value: '' },
+                    { label: 'Enviado', value: 'true' },
+                    { label: 'Não Enviado', value: 'false' }
+                  ]}
+                  onChange={(value) => setFiltros({ ...filtros, enviadoEmail: value, page: 1 })}
+                  value={filtros.enviadoEmail}
+                  emptyOptionsMessage="Nenhuma opção encontrada"
+                />
               </div>
             </div>
           </div>

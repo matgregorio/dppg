@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { BrSelect } from '@govbr-ds/react-components';
 import MainLayout from '../layouts/MainLayout';
 import api from '../services/api';
 import useNotification from '../hooks/useNotification';
@@ -168,32 +169,17 @@ const AvaliacoesExternas = () => {
         {/* Filtros */}
         <div className="row mb-4">
           <div className="col-md-4">
-            <label htmlFor="simposio" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-              Simpósio
-            </label>
-            <select
-              id="simposio"
-              value={simposioSelecionado}
-              onChange={(e) => {
-                setSimposioSelecionado(e.target.value);
+            <BrSelect
+              label="Simpósio"
+              placeholder="Selecione..."
+              options={simposios.map(s => ({ label: `${s.ano} - ${s.status}`, value: s._id }))}
+              onChange={(value) => {
+                setSimposioSelecionado(value || '');
                 setPagination(prev => ({ ...prev, page: 1 }));
               }}
-              style={{
-                width: '100%',
-                padding: '0.5rem 0.75rem',
-                border: '1px solid #888',
-                borderRadius: '8px',
-                fontSize: '1rem',
-                backgroundColor: '#fff'
-              }}
-            >
-              <option value="">Selecione...</option>
-              {simposios.map(s => (
-                <option key={s._id} value={s._id}>
-                  {s.ano} - {s.status}
-                </option>
-              ))}
-            </select>
+              value={simposioSelecionado}
+              emptyOptionsMessage="Nenhum simpósio encontrado"
+            />
           </div>
           <div className="col-md-8">
             <form onSubmit={handleBuscar}>

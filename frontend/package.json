@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@govbr-ds/core": "^3.1.5",
+    "@govbr-ds/react-components": "^2.12.1",
     "@hookform/resolvers": "^3.3.3",
     "@reduxjs/toolkit": "^2.0.1",
     "axios": "^1.6.2",

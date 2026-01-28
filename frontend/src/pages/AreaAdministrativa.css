@@ -1,7 +1,7 @@
 /* Área Administrativa - Estilos Simplificados */
 
 .admin-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1351B4 0%, #0C326F 100%);
   padding: 2rem;
   border-radius: 12px;
   color: white;
@@ -15,12 +15,14 @@
   margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
+  color: white;
 }
 
 .admin-subtitle {
   font-size: 1.1rem;
   opacity: 0.95;
   margin: 0;
+  color: white;
 }
 
 /* Barra de Busca */
@@ -39,8 +41,8 @@
 }
 
 .admin-search:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #1351B4;
+  box-shadow: 0 0 0 3px rgba(19, 81, 180, 0.1);
   outline: none;
 }
 
@@ -232,7 +234,7 @@
 }
 
 .crumb a {
-  color: #667eea;
+  color: #1351B4;
   text-decoration: none;
 }
 

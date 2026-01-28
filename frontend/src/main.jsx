@@ -5,11 +5,11 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { store } from './store';
 
-// Importar CSS e JS do GOVBR-DS
+// Importar CSS do GOVBR-DS
 import '@govbr-ds/core/dist/core.min.css';
-import '@govbr-ds/core/dist/core.min.js';
-
 import './styles/index.css';
+
+// O window.core já está disponível via script tag em index.html
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

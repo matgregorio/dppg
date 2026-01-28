@@ -17,6 +17,8 @@ const Certificado = require('../models/Certificado');
 const Presenca = require('../models/Presenca');
 const Acervo = require('../models/Acervo');
 const Avaliador = require('../models/Avaliador');
+const Instituicao = require('../models/Instituicao');
+const Docente = require('../models/Docente');
 
 const { gerarCPF } = require('../utils/cpfValidator');
 const logger = require('../config/logger');
@@ -64,7 +66,20 @@ const runSeed = async () => {
     }
     console.log(`✅ ${usersCreated.length} usuários criados/verificados\n`);
     
-    // 2. Participants
+    // 2. Instituições
+    console.log('📝 Criando instituições...');
+    const Instituicao = require('../models/Instituicao');
+    let instituicao = await Instituicao.findOne({ nome: 'IFMT - Campus Cuiabá' });
+    if (!instituicao) {
+      instituicao = await Instituicao.create({
+        nome: 'IFMT - Campus Cuiabá',
+        sigla: 'IFMT',
+        tipo: 'PUBLICA',
+      });
+    }
+    console.log(`✅ Instituição criada: ${instituicao.nome}\n`);
+    
+    // 3. Participants
     console.log('📝 Criando participantes...');
     const participants = [];
     // REGRA DE NEGÓCIO: Todo MESARIO é um participante, mas nem todo participante é mesário
@@ -78,7 +93,8 @@ const runSeed = async () => {
           cpf: user.cpf,
           nome: user.nome,
           email: user.email,
-          tipoParticipante: i === 4 ? 'DOCENTE' : (i % 2 === 0 ? 'DISCENTE' : 'DOCENTE'),
+          tipoParticipante: i === 4 ? 'DOCENTE' : (i % 2 === 0 ? 'ALUNO' : 'DOCENTE'),
+          instituicao: instituicao._id,
         });
       }
       participants.push(participant);
@@ -156,12 +172,12 @@ const runSeed = async () => {
     console.log('📝 Criando áreas de atuação e subáreas...');
     let areaAtuacao = await AreaAtuacao.findOne({ nome: 'Ciência da Computação' });
     if (!areaAtuacao) {
-      areaAtuacao = await AreaAtuacao.create({ nome: 'Ciência da Computação', AreaAtuacao: areasCreated[0]._id });
+      areaAtuacao = await AreaAtuacao.create({ nome: 'Ciência da Computação' });
     }
     
-    let subarea = await Subarea.findOne({ nome: 'Algoritmos', AreaAtuacao: areasCreated[0]._id });
+    let subarea = await Subarea.findOne({ nome: 'Algoritmos', areaAtuacao: areaAtuacao._id });
     if (!subarea) {
-      subarea = await Subarea.create({ nome: 'Algoritmos', AreaAtuacao: areasCreated[0]._id });
+      subarea = await Subarea.create({ nome: 'Algoritmos', areaAtuacao: areaAtuacao._id });
     }
     console.log(`✅ Áreas de atuação e subáreas criadas\n`);
     
@@ -243,7 +259,22 @@ const runSeed = async () => {
     }
     console.log(`✅ ${participantesParaAbertura.length} participantes inscritos no subevento Abertura\n`);
     
-    // 9. Trabalhos
+    // 9. Docentes (orientadores)
+    console.log('📝 Criando docentes...');
+    let docente1 = await Docente.findOne({ cpf: usersCreated[0].cpf });
+    if (!docente1) {
+      docente1 = await Docente.create({
+        nome: 'Prof. Dr. José Silva',
+        cpf: gerarCPF(),
+        email: 'prof.silva@ifmt.edu.br',
+        instituicao: instituicao._id,
+        areaAtuacao: areaAtuacao._id,
+        subarea: subarea._id,
+      });
+    }
+    console.log(`✅ Docente criado: ${docente1.nome}\n`);
+    
+    // 10. Trabalhos
     console.log('📝 Criando trabalhos...');
     const avaliador1 = usersCreated[2];
     const avaliador2 = usersCreated[3];
@@ -252,9 +283,13 @@ const runSeed = async () => {
     if (!trabalho1) {
       await Trabalho.create({
         titulo: 'Análise de Algoritmos para Simpósios',
-        autores: [{ nome: 'Autor 1', email: 'autor1@test.com' }],
-        palavras_chave: ['algoritmos', 'otimização'],
-        AreaAtuacao: areasCreated[0]._id,
+        autores: [{ nome: participants[1].nome, email: participants[1].email, cpf: participants[1].cpf }],
+        autor: participants[1]._id,
+        orientador: docente1._id,
+        tipoProjeto: 'PESQUISA',
+        resumo: 'Este trabalho apresenta uma análise detalhada de algoritmos aplicados na gestão de simpósios acadêmicos, focando em otimização de recursos e escalabilidade.',
+        palavras_chave: ['algoritmos', 'otimização', 'simpósios'],
+        concordanciaNormas: true,
         areaAtuacao: areaAtuacao._id,
         subarea: subarea._id,
         simposio: simposio._id,
@@ -266,9 +301,15 @@ const runSeed = async () => {
     if (!trabalho2) {
       await Trabalho.create({
         titulo: 'Estudo de Densidades Informacionais',
-        autores: [{ nome: 'Autor 2', email: 'autor2@test.com' }],
-        palavras_chave: ['informação', 'densidade'],
-        AreaAtuacao: areasCreated[0]._id,
+        autores: [{ nome: participants[2].nome, email: participants[2].email, cpf: participants[2].cpf }],
+        autor: participants[2]._id,
+        orientador: docente1._id,
+        tipoProjeto: 'PESQUISA',
+        resumo: 'Investigação sobre padrões de densidade informacional em sistemas distribuídos e sua aplicação em ambientes acadêmicos.',
+        palavras_chave: ['informação', 'densidade', 'sistemas distribuídos'],
+        concordanciaNormas: true,
+        areaAtuacao: areaAtuacao._id,
+        subarea: subarea._id,
         simposio: simposio._id,
         status: 'EM_AVALIACAO',
         atribuicoes: [
@@ -355,9 +396,9 @@ const runSeed = async () => {
     console.log(`   Trabalhos: ${await Trabalho.countDocuments()}`);
     console.log(`   Certificados: ${await Certificado.countDocuments()}`);
     
-    // Garantir que todos os mesários tenham Participant
-    const garantirParticipantsMesarios = require('../utils/garantirParticipantsMesarios');
-    await garantirParticipantsMesarios();
+    // Garantir que todos os mesários tenham Participant (já feito pelo hook do User)
+    // const garantirParticipantsMesarios = require('../utils/garantirParticipantsMesarios');
+    // await garantirParticipantsMesarios();
     
     // Inicializar templates de email
     console.log('📧 Inicializando templates de email...');

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
+import { BrSelect } from '@govbr-ds/react-components';
 import api from '../services/api';
 import useNotification from '../hooks/useNotification';
 
@@ -350,33 +351,20 @@ const AdminAcervo = () => {
                   </div>
                   
                   <div className="col-md-6 mb-3">
-                    <div className="br-input">
-                      <label htmlFor="anoEvento">Ano do Evento (Simpósio) *</label>
-                      <select
-                        id="anoEvento"
-                        value={formData.anoEvento}
-                        onChange={(e) => setFormData({ ...formData, anoEvento: e.target.value })}
-                        required
-                        style={{
-                          width: '100%',
-                          padding: '0.5rem 0.75rem',
-                          border: '1px solid #888',
-                          borderRadius: '8px',
-                          fontSize: '1rem',
-                          fontFamily: 'Rawline, sans-serif',
-                          backgroundColor: 'white',
-                          cursor: 'pointer',
-                          outline: 'none'
-                        }}
-                      >
-                        <option value="">Selecione o ano...</option>
-                        {simposios.map((simposio) => (
-                          <option key={simposio._id} value={simposio.ano}>
-                            {simposio.ano} - {simposio.titulo || simposio.nome}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                    <BrSelect
+                      label="Ano do Evento (Simpósio) *"
+                      placeholder="Selecione o ano"
+                      options={[
+                        { label: 'Selecione o ano...', value: '' },
+                        ...simposios.map(s => ({
+                          label: `${s.ano} - ${s.titulo || s.nome}`,
+                          value: s.ano
+                        }))
+                      ]}
+                      onChange={(value) => setFormData({ ...formData, anoEvento: value })}
+                      value={formData.anoEvento}
+                      emptyOptionsMessage="Nenhum simpósio encontrado"
+                    />
                   </div>
                   
                   <div className="col-md-6 mb-3">

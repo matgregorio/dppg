@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
+import { BrSelect } from '@govbr-ds/react-components';
 import api from '../services/api';
 import useNotification from '../hooks/useNotification';
 import TrabalhoDetalhesModal from '../components/modals/TrabalhoDetalhesModal';
@@ -211,31 +212,21 @@ const AdminTrabalhos = () => {
             </div>
           </div>
           <div className="col-md-3">
-            <div className="br-input">
-              <label htmlFor="status">Status</label>
-              <select
-                id="status"
-                style={{
-                  height: '40px',
-                  padding: '8px 12px',
-                  fontSize: '16px',
-                  lineHeight: '1.5',
-                  border: '1px solid #888',
-                  borderRadius: '4px',
-                  backgroundColor: '#fff',
-                  width: '100%'
-                }}
-                value={filtros.status}
-                onChange={(e) => handleFiltroChange('status', e.target.value)}
-              >
-                <option value="">Todos</option>
-                <option value="SUBMETIDO">SUBMETIDO</option>
-                <option value="EM_AVALIACAO">EM_AVALIACAO</option>
-                <option value="ACEITO">ACEITO</option>
-                <option value="REJEITADO">REJEITADO</option>
-                <option value="PUBLICADO">PUBLICADO</option>
-              </select>
-            </div>
+            <BrSelect
+              label="Status"
+              placeholder="Selecione o status"
+              options={[
+                { label: 'Todos', value: '' },
+                { label: 'Submetido', value: 'SUBMETIDO' },
+                { label: 'Em Avaliação', value: 'EM_AVALIACAO' },
+                { label: 'Aceito', value: 'ACEITO' },
+                { label: 'Rejeitado', value: 'REJEITADO' },
+                { label: 'Publicado', value: 'PUBLICADO' }
+              ]}
+              onChange={(value) => handleFiltroChange('status', value)}
+              value={filtros.status}
+              emptyOptionsMessage="Nenhuma opção encontrada"
+            />
           </div>
           <div className="col-md-6">
             <form onSubmit={handleBuscar}>
@@ -431,31 +422,18 @@ const AdminTrabalhos = () => {
                 <strong>Trabalho:</strong> {selectedTrabalho.titulo}
               </p>
               
-              <div className="br-input">
-                <label htmlFor="avaliador">Selecione um avaliador</label>
-                <select
-                  id="avaliador"
-                  style={{
-                    height: '40px',
-                    padding: '8px 12px',
-                    fontSize: '16px',
-                    lineHeight: '1.5',
-                    border: '1px solid #888',
-                    borderRadius: '4px',
-                    backgroundColor: '#fff',
-                    width: '100%'
-                  }}
-                  value={selectedAvaliadorId}
-                  onChange={(e) => setSelectedAvaliadorId(e.target.value)}
-                >
-                  <option value="">Selecione...</option>
-                  {avaliadores.map((av) => (
-                    <option key={av._id} value={av._id}>
-                      {av.nome} ({av.email})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              
+              <BrSelect
+                label="Selecione um avaliador"
+                placeholder="Selecione um avaliador"
+                options={avaliadores.map(av => ({ 
+                  label: `${av.nome} (${av.email})`, 
+                  value: av._id 
+                }))}
+                onChange={(value) => setSelectedAvaliadorId(value)}
+                value={selectedAvaliadorId}
+                emptyOptionsMessage="Nenhum avaliador encontrado"
+              />
             </div>
             <div className="br-modal-footer">
               <button

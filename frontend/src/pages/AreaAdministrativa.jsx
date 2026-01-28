@@ -1,11 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import './AreaAdministrativa.css';
 
 const AreaAdministrativa = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-
   const adminOptions = [
     { title: 'Área de Atuação', icon: 'fas fa-book-reader', link: '/admin/areas', color: '#1351B4' },
     { title: 'Subeventos', icon: 'fas fa-calendar-alt', link: '/admin/subeventos', color: '#1351B4' },
@@ -30,10 +28,7 @@ const AreaAdministrativa = () => {
     { title: 'Validar Certificado', icon: 'fas fa-check-circle', link: '/validar-certificado', color: '#1351B4' }
   ];
 
-  // Filtrar opções baseado na busca
-  const filteredOptions = adminOptions.filter(option =>
-    option.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+
 
   return (
     <MainLayout>
@@ -65,25 +60,11 @@ const AreaAdministrativa = () => {
           </div>
         </div>
 
-        {/* Barra de Busca */}
-        <div className="row mb-4">
-          <div className="col-lg-6 offset-lg-3">
-            <div className="br-input">
-              <input
-                type="text"
-                placeholder="Buscar funcionalidade..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="admin-search"
-              />
-              <i className="fas fa-search"></i>
-            </div>
-          </div>
-        </div>
+
 
         {/* Grid de Cards */}
         <div className="row g-4">
-          {filteredOptions.map((option, index) => (
+          {adminOptions.map((option, index) => (
             <div key={index} className="col-xl-3 col-lg-4 col-md-6 col-sm-12">
               <Link to={option.link} className="admin-card-link">
                 <div className="admin-card-simple" style={{ borderTopColor: option.color }}>
@@ -99,17 +80,7 @@ const AreaAdministrativa = () => {
           ))}
         </div>
 
-        {/* Mensagem quando não há resultados */}
-        {filteredOptions.length === 0 && (
-          <div className="row mt-5">
-            <div className="col-12 text-center">
-              <div className="alert alert-warning" role="alert">
-                <i className="fas fa-search mr-2"></i>
-                Nenhuma funcionalidade encontrada para "{searchTerm}"
-              </div>
-            </div>
-          </div>
-        )}
+
       </div>
     </MainLayout>
   );

@@ -117,6 +117,19 @@ userSchema.post('save', async function(doc) {
       const participantExists = await Participant.findOne({ user: doc._id });
       
       if (!participantExists) {
+        // Busca uma instituição padrão para associar
+        const Instituicao = require('./Instituicao');
+        let instituicao = await Instituicao.findOne();
+        
+        // Se não existir nenhuma instituição, cria uma padrão
+        if (!instituicao) {
+          instituicao = await Instituicao.create({
+            nome: 'IFMT - Campus Cuiabá',
+            sigla: 'IFMT',
+            tipo: 'PUBLICA',
+          });
+        }
+        
         // Cria automaticamente o Participant
         await Participant.create({
           user: doc._id,
@@ -124,7 +137,8 @@ userSchema.post('save', async function(doc) {
           nome: doc.nome,
           email: doc.email,
           telefone: doc.telefone || '',
-          tipoParticipante: 'DOCENTE'
+          tipoParticipante: 'DOCENTE',
+          instituicao: instituicao._id,
         });
         
         const { logAudit } = require('../utils/auditLogger');

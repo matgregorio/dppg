@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { BrSelect } from '@govbr-ds/react-components';
+import { BrSelect, BrUpload } from '@govbr-ds/react-components';
 import MainLayout from '../layouts/MainLayout';
 import api from '../services/api';
 
@@ -539,42 +539,18 @@ const SubmeterTrabalho = () => {
                     </>
                   )}
                 />
-                  >
-                    <option value="">
-                      {!areaAtuacaoSelecionada 
-                        ? 'Selecione primeiro uma Área de Atuação' 
-                        : subareasFiltradas.length === 0 
-                        ? 'Nenhuma subárea disponível'
-                        : 'Selecione...'}
-                    </option>
-                    {subareasFiltradas.map((sub) => (
-                      <option key={sub._id} value={sub._id}>
-                        {sub.nome}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.subarea && (
-                    <span className="feedback danger" role="alert">
-                      <i className="fas fa-times-circle" aria-hidden="true"></i>
-                      {errors.subarea.message}
-                    </span>
-                  )}
-                </div>
               </div>
               
-              <div className="br-upload mb-3">
-                <label htmlFor="arquivo" className="upload-label">
-                  <i className="fas fa-upload mr-2" aria-hidden="true"></i>
-                  <span>Arquivo do Trabalho (PDF)</span>
-                  <input
-                    id="arquivo"
-                    type="file"
-                    accept=".pdf"
-                    onChange={(e) => setArquivo(e.target.files[0])}
-                  />
-                </label>
+              <div className="mb-3">
+                <BrUpload
+                  label="Arquivo do Trabalho (PDF)"
+                  onChange={(e) => {
+                    const file = e?.target?.files?.[0] || e?.[0] || null;
+                    setArquivo(file);
+                  }}
+                />
                 {arquivo && (
-                  <div className="upload-list">
+                  <div className="upload-list mt-2">
                     <div className="br-item">
                       <div className="content">
                         <i className="fas fa-file-pdf mr-2"></i>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
-import { BrSelect } from '@govbr-ds/react-components';
+import { BrSelect, BrDateTimePicker } from '@govbr-ds/react-components';
 import api from '../services/api';
 import useNotification from '../hooks/useNotification';
 
@@ -997,31 +997,30 @@ const AdminSubeventos = () => {
                 </div>
 
                 <div className="row">
-                  <div className="col-md-4 mb-3">
-                    <div className="br-input">
-                      <label htmlFor="data">Data *</label>
-                      <input
-                        id="data"
-                        type="date"
-                        value={formData.data}
-                        onChange={(e) => setFormData({ ...formData, data: e.target.value })}
-                        required
-                      />
-                    </div>
+                  <div className="col-md-6 mb-3">
+                    <BrDateTimePicker
+                      label="Data *"
+                      dataMode="single"
+                      dataType="date"
+                      onChange={(date) => {
+                        if (date) setFormData({ ...formData, data: date });
+                      }}
+                    />
                   </div>
-                  <div className="col-md-4 mb-3">
-                    <div className="br-input">
-                      <label htmlFor="horarioInicio">Horário Início *</label>
-                      <input
-                        id="horarioInicio"
-                        type="time"
-                        value={formData.horarioInicio}
-                        onChange={(e) => setFormData({ ...formData, horarioInicio: e.target.value })}
-                        required
-                      />
-                    </div>
+                  <div className="col-md-6 mb-3">
+                    <BrDateTimePicker
+                      label="Horário Início *"
+                      dataMode="single"
+                      dataType="time"
+                      onChange={(time) => {
+                        if (time) setFormData({ ...formData, horarioInicio: time });
+                      }}
+                    />
                   </div>
-                  <div className="col-md-4 mb-3">
+                </div>
+                
+                <div className="row">
+                  <div className="col-md-12 mb-3">
                     <div className="br-input">
                       <label htmlFor="duracao">Duração (ex: 02:00) *</label>
                       <input
@@ -1046,15 +1045,6 @@ const AdminSubeventos = () => {
                       value={formData.simposio}
                       emptyOptionsMessage="Nenhum simpósio encontrado"
                     />
-                  </div>
-                        }}
-                      >
-                        <option value="">Selecione...</option>
-                        {simposios.map((s) => (
-                          <option key={s._id} value={s._id}>{String(s.ano)}</option>
-                        ))}
-                      </select>
-                    </div>
                   </div>
 
                   <div className="col-md-4 mb-3">
@@ -1551,41 +1541,23 @@ const AdminSubeventos = () => {
 
                 <div className="row">
                   <div className="col-md-6 mb-3">
-                    <label htmlFor="dataApresentacao" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-                      Data da Apresentação *
-                    </label>
-                    <input
-                      type="date"
-                      id="dataApresentacao"
-                      value={apresentacaoData.data}
-                      onChange={(e) => setApresentacaoData({ ...apresentacaoData, data: e.target.value })}
-                      required
-                      style={{
-                        width: '100%',
-                        padding: '0.5rem 0.75rem',
-                        border: '1px solid #888',
-                        borderRadius: '8px',
-                        fontSize: '1rem'
+                    <BrDateTimePicker
+                      label="Data da Apresentação *"
+                      dataMode="single"
+                      dataType="date"
+                      onChange={(date) => {
+                        if (date) setApresentacaoData({ ...apresentacaoData, data: date });
                       }}
                     />
                   </div>
 
                   <div className="col-md-6 mb-3">
-                    <label htmlFor="horarioInicio" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-                      Horário de Início *
-                    </label>
-                    <input
-                      type="time"
-                      id="horarioInicio"
-                      value={apresentacaoData.horarioInicio}
-                      onChange={(e) => setApresentacaoData({ ...apresentacaoData, horarioInicio: e.target.value })}
-                      required
-                      style={{
-                        width: '100%',
-                        padding: '0.5rem 0.75rem',
-                        border: '1px solid #888',
-                        borderRadius: '8px',
-                        fontSize: '1rem'
+                    <BrDateTimePicker
+                      label="Horário de Início *"
+                      dataMode="single"
+                      dataType="time"
+                      onChange={(time) => {
+                        if (time) setApresentacaoData({ ...apresentacaoData, horarioInicio: time });
                       }}
                     />
                   </div>
@@ -1649,25 +1621,25 @@ const AdminSubeventos = () => {
                 </div>
               </div>
 
-              <div className="br-modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', padding: '1rem 1.5rem', borderTop: '1px solid #ddd' }}>
-                <button
-                  className="br-button secondary"
-                  onClick={() => setShowApresentacaoModal(false)}
-                  type="button"
-                >
-                  <i className="fas fa-times mr-2"></i>
-                  Cancelar
-                </button>
-                <button className="br-button primary" type="submit">
-                  <i className="fas fa-save mr-2"></i>
-                  Salvar
-                </button>
-              </div>
-            </form>
-          </div>
-        </>
-      )}
-    </MainLayout>
+                <div className="br-modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', padding: '1rem 1.5rem', borderTop: '1px solid #ddd' }}>
+                  <button
+                    className="br-button secondary"
+                    onClick={() => setShowApresentacaoModal(false)}
+                    type="button"
+                  >
+                    <i className="fas fa-times mr-2"></i>
+                    Cancelar
+                  </button>
+                  <button className="br-button primary" type="submit">
+                    <i className="fas fa-save mr-2"></i>
+                    Salvar
+                  </button>
+                </div>
+              </form>
+            </div>
+          </>
+        )}
+      </MainLayout>
   );
 };
 

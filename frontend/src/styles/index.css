@@ -570,6 +570,21 @@ body.high-contrast .text-muted {
   color: #ccc !important;
 }
 
+/* Modal centralizado com br-scrim */
+.br-scrim.foco {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.7) !important;
+  z-index: 9998 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  backdrop-filter: blur(2px) !important;
+}
+
 @media (max-width: 768px) {
   .br-modal-dialog {
     margin: 10px;

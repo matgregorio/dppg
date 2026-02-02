@@ -209,19 +209,20 @@ const AdminApoios = () => {
       {/* Modal */}
       {showModal && (
         <>
-          <div className="br-scrim" onClick={() => setShowModal(false)}></div>
-          <div className="br-modal medium" style={{ display: 'block' }}>
+          <div className="br-scrim foco" onClick={() => setShowModal(false)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
+          <div className="br-modal medium" style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999, maxHeight: '90vh', overflow: 'auto' }}>
             <div className="br-modal-header">
               <h4>{editingItem ? 'Editar' : 'Novo'} Apoio</h4>
             </div>
             <FormProvider {...methods}>
               <form onSubmit={methods.handleSubmit(onSubmit)}>
                 <div className="br-modal-body">
-                  <FormInput name="nome" label="Nome" required />
-                  <FormInput name="sigla" label="Sigla" placeholder="Ex: FAPESP, CNPq..." />
+                  <FormInput name="nome" label="Nome *" placeholder="Digite o nome do apoio/instituição" required />
+                  <FormInput name="sigla" label="Sigla" placeholder="Ex: FAPESP, CNPq, CAPES" />
                   <FormSelect
                     name="tipo"
-                    label="Tipo de Apoio"
+                    label="Tipo de Apoio *"
+                    placeholder="Selecione o tipo de apoio"
                     required
                     options={tiposApoio}
                   />

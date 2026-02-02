@@ -12,6 +12,7 @@ const SelectGovBR = ({
   placeholder = 'Selecione o item',
   disabled = false,
   className = '',
+  searchable = true,
 }) => {
   const selectRef = useRef(null);
   const brSelectInstance = useRef(null);
@@ -20,6 +21,18 @@ const SelectGovBR = ({
   useEffect(() => {
     const el = selectRef.current;
     if (!el) return;
+
+    // Se não for searchable, não inicializa o BRSelect (sem busca/lupa)
+    if (!searchable) {
+      // Apenas escuta mudanças nos radios diretamente
+      const handleChange = () => {
+        const checked = el.querySelector('input[type="radio"]:checked');
+        const newValue = checked?.value ?? '';
+        onChange?.({ target: { value: newValue } });
+      };
+      el.addEventListener('change', handleChange);
+      return () => el.removeEventListener('change', handleChange);
+    }
 
     if (!window.core?.BRSelect) {
       console.warn(
@@ -42,7 +55,7 @@ const SelectGovBR = ({
 
     el.addEventListener('change', handleChange);
     return () => el.removeEventListener('change', handleChange);
-  }, [onChange]);
+  }, [onChange, searchable]);
 
   // Mantém o "checked" sincronizado quando value muda por fora
   useEffect(() => {
@@ -60,7 +73,13 @@ const SelectGovBR = ({
         {label && <label htmlFor={id}>{label}</label>}
 
         {/* no DS é um input texto normal (não readOnly), o core controla */}
-        <input id={id} type="text" placeholder={placeholder} disabled={disabled} />
+        <input 
+          id={id} 
+          type="text" 
+          placeholder={placeholder} 
+          disabled={disabled}
+          readOnly={!searchable}
+        />
 
         <button
           className="br-button"

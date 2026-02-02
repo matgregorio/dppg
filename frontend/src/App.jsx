@@ -38,8 +38,8 @@ import OrientadorTrabalhos from './pages/OrientadorTrabalhos';
 import AvaliarTrabalhoOrientador from './pages/AvaliarTrabalhoOrientador';
 
 // Admin Pages
-import AdminSimposio from './pages/AdminSimposio';
 import AdminCicloSimposio from './pages/AdminCicloSimposio';
+import AdminEditarSimposio from './pages/AdminEditarSimposio';
 import AdminCertificadosConfig from './pages/AdminCertificadosConfig';
 import ConfigurarDatas from './pages/ConfigurarDatas';
 import AdminTrabalhos from './pages/AdminTrabalhos';
@@ -264,7 +264,7 @@ function App() {
         element={
           <RequireAuth>
             <RequireRoles roles={['ADMIN', 'SUBADMIN']}>
-              <AdminSimposio />
+              <AdminEditarSimposio />
             </RequireRoles>
           </RequireAuth>
         }

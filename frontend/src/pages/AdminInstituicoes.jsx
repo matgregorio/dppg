@@ -201,25 +201,25 @@ const AdminInstituicoes = () => {
       {/* Modal */}
       {showModal && (
         <>
-          <div className="br-scrim" onClick={() => setShowModal(false)}></div>
-          <div className="br-modal medium" style={{ display: 'block' }}>
+          <div className="br-scrim foco" onClick={() => setShowModal(false)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
+          <div className="br-modal medium" style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999, maxHeight: '90vh', overflow: 'auto' }}>
             <div className="br-modal-header">
               <h4>{editingItem ? 'Editar' : 'Nova'} Instituição</h4>
             </div>
             <FormProvider {...methods}>
               <form onSubmit={methods.handleSubmit(onSubmit)}>
                 <div className="br-modal-body">
-                  <FormInput name="nome" label="Nome" required />
-                  <FormInput name="sigla" label="Sigla" placeholder="Ex: USP, UNESP..." />
+                  <FormInput name="nome" label="Nome *" placeholder="Digite o nome da instituição" required />
+                  <FormInput name="sigla" label="Sigla" placeholder="Ex: USP, UNESP, UNICAMP" />
                   <div className="row">
                     <div className="col-md-8">
-                      <FormInput name="cidade" label="Cidade" />
+                      <FormInput name="cidade" label="Cidade" placeholder="Digite a cidade" />
                     </div>
                     <div className="col-md-4">
                       <FormInput 
                         name="estado" 
                         label="Estado" 
-                        placeholder="SP" 
+                        placeholder="Ex: SP" 
                         maxLength={2}
                         style={{ textTransform: 'uppercase' }}
                       />

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
-import { BrSelect } from '@govbr-ds/react-components';
+import { BrSelect, BrUpload } from '@govbr-ds/react-components';
 import api from '../services/api';
 import useNotification from '../hooks/useNotification';
 
@@ -145,7 +145,9 @@ const AdminAcervo = () => {
   };
 
   const handleFileChange = (e) => {
-    setFormData({ ...formData, arquivo: e.target.files[0] });
+    // BrUpload pode passar o evento diretamente ou um array de arquivos
+    const file = e?.target?.files?.[0] || e?.[0] || null;
+    setFormData({ ...formData, arquivo: file });
   };
 
   return (
@@ -394,16 +396,11 @@ const AdminAcervo = () => {
                   </div>
                   
                   <div className="col-12 mb-3">
-                    <div className="br-input">
-                      <label htmlFor="arquivo">Arquivo (PDF, DOC, DOCX - máx 50MB)</label>
-                      <input
-                        id="arquivo"
-                        type="file"
-                        accept=".pdf,.doc,.docx"
-                        onChange={handleFileChange}
-                      />
-                      {editingId && <small className="text-muted">Deixe em branco para manter o arquivo atual</small>}
-                    </div>
+                    <BrUpload
+                      label="Arquivo (PDF, DOC, DOCX - máx 50MB)"
+                      onChange={handleFileChange}
+                    />
+                    {editingId && <small className="text-muted d-block mt-2">Deixe em branco para manter o arquivo atual</small>}
                   </div>
                 </div>
 

@@ -291,14 +291,7 @@ exports.atualizarSimposio = async (req, res) => {
       });
     }
 
-    if (simposio.finalizado) {
-      return res.status(400).json({
-        success: false,
-        message: 'Não é possível editar um simpósio finalizado',
-      });
-    }
-
-    // Atualiza apenas campos permitidos
+    // Atualiza apenas campos permitidos (permite edição de simpósios finalizados para fins de registro)
     const camposPermitidos = [
       'tema',
       'dataInicio',

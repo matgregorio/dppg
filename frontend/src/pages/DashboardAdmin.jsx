@@ -5,16 +5,13 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell 
 } from 'recharts';
 import MainLayout from '../layouts/MainLayout';
-import { BrSelect } from '@govbr-ds/react-components';
 import api from '../services/api';
 import useNotification from '../hooks/useNotification';
 
 const DashboardAdmin = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [simposioFiltro, setSimposioFiltro] = useState('');
-  const [simposios, setSimposios] = useState([]);
-  const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [simposioAtual, setSimposioAtual] = useState(null);
   const { showError, showSuccess } = useNotification();
 
   const COLORS = {
@@ -34,29 +31,32 @@ const DashboardAdmin = () => {
   };
 
   useEffect(() => {
-    fetchSimposios();
+    fetchSimposioAtual();
   }, []);
 
-  useEffect(() => {
-    fetchStats();
-  }, [simposioFiltro]);
-
-  const fetchSimposios = async () => {
+  const fetchSimposioAtual = async () => {
     try {
+      // Buscar simpósio em execução (status INICIALIZADO)
       const { data } = await api.get('/public/simposios');
-      if (data.success) {
-        setSimposios(data.data);
+      if (data.success && data.data.length > 0) {
+        // Pegar o simpósio mais recente ou em execução
+        const simposioEmExecucao = data.data.find(s => s.status === 'INICIALIZADO') || data.data[0];
+        setSimposioAtual(simposioEmExecucao);
+        fetchStats(simposioEmExecucao._id);
+      } else {
+        setLoading(false);
       }
     } catch (err) {
-      console.error('Erro ao carregar simpósios:', err);
+      showError('Erro ao carregar simpósio atual');
+      setLoading(false);
     }
   };
 
-  const fetchStats = async () => {
+  const fetchStats = async (simposioId) => {
     try {
       setLoading(true);
       const { data } = await api.get('/admin/dashboard/stats', {
-        params: simposioFiltro ? { simposio: simposioFiltro } : {},
+        params: { simposio: simposioId },
       });
       
       if (data.success) {
@@ -66,46 +66,6 @@ const DashboardAdmin = () => {
       showError(err.response?.data?.message || 'Erro ao carregar estatísticas');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleUploadBanner = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    // Validar tipo de arquivo
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-    if (!validTypes.includes(file.type)) {
-      showError('Formato inválido. Use JPG ou PNG.');
-      return;
-    }
-
-    // Validar tamanho (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      showError('Arquivo muito grande. Tamanho máximo: 5MB.');
-      return;
-    }
-
-    try {
-      setUploadingBanner(true);
-      const formData = new FormData();
-      formData.append('banner', file);
-
-      const { data } = await api.post('/admin/upload-banner', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      if (data.success) {
-        showSuccess('Banner atualizado com sucesso! Recarregue a página inicial para ver.');
-        // Limpar input
-        event.target.value = '';
-      }
-    } catch (err) {
-      showError(err.response?.data?.message || 'Erro ao fazer upload do banner');
-    } finally {
-      setUploadingBanner(false);
     }
   };
 
@@ -154,99 +114,40 @@ const DashboardAdmin = () => {
 
       <div className="my-4">
         <div className="d-flex justify-content-between align-items-center mb-4">
-          <h1 className="text-up-03 text-weight-bold">
-            <i className="fas fa-chart-line mr-2"></i>
-            Dashboard Administrativo
-          </h1>
-          
-          
-          <BrSelect
-            placeholder="Selecione o simpósio"
-            options={[
-              { label: 'Todos os Simpósios', value: '' },
-              ...simposios.map(s => ({ label: s.ano.toString(), value: s._id }))
-            ]}
-            onChange={(value) => setSimposioFiltro(value)}
-            value={simposioFiltro}
-            emptyOptionsMessage="Nenhum simpósio encontrado"
-            type="single"
-            className="" 
-            style={{ minWidth: '200px' }}
-          />
-        </div>
-
-        {/* Upload de Banner */}
-        <div className="row mb-4">
-          <div className="col-12">
-            <div className="br-card">
-              <div className="card-header" style={{ background: '#1351B4', color: 'white' }}>
-                <h5 className="mb-0">
-                  <i className="fas fa-image mr-2"></i>
-                  Gerenciar Banner da Página Inicial
-                </h5>
-              </div>
-              <div className="card-content p-4">
-                <div className="row align-items-center">
-                  <div className="col-md-8">
-                    <p className="mb-2">
-                      <strong>Atualize o banner principal</strong> que aparece na página inicial do sistema.
-                    </p>
-                    <p className="text-muted mb-0">
-                      <i className="fas fa-info-circle mr-1"></i>
-                      Formatos aceitos: JPG ou PNG | Tamanho máximo: 5MB | Dimensões recomendadas: 1920x400px
-                    </p>
-                  </div>
-                  <div className="col-md-4 text-center">
-                    <label 
-                      htmlFor="banner-upload" 
-                      className="br-button primary"
-                      style={{ cursor: uploadingBanner ? 'not-allowed' : 'pointer', opacity: uploadingBanner ? 0.6 : 1 }}
-                    >
-                      {uploadingBanner ? (
-                        <>
-                          <span className="spinner-border spinner-border-sm mr-2" role="status"></span>
-                          Enviando...
-                        </>
-                      ) : (
-                        <>
-                          <i className="fas fa-upload mr-2"></i>
-                          Escolher Banner
-                        </>
-                      )}
-                    </label>
-                    <input
-                      id="banner-upload"
-                      type="file"
-                      accept="image/jpeg,image/jpg,image/png"
-                      onChange={handleUploadBanner}
-                      disabled={uploadingBanner}
-                      style={{ display: 'none' }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div>
+            <h1 className="text-up-03 text-weight-bold">
+              <i className="fas fa-chart-line mr-2"></i>
+              Dashboard Administrativo
+            </h1>
+            {simposioAtual && (
+              <p className="text-muted mb-0">
+                <i className="fas fa-calendar mr-2"></i>
+                Simpósio {simposioAtual.ano}
+              </p>
+            )}
           </div>
         </div>
+      </div>
 
-        {/* Cards de Resumo */}
+      <div className="my-4">
         <div className="row mb-4">
           <div className="col-md-3">
             <Link to="/admin/trabalhos" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <div className="br-card" style={{ 
-                background: '#E8F5E9', 
-                borderLeft: '4px solid #28A745',
-                cursor: 'pointer',
-                transition: 'transform 0.2s, box-shadow 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
-              }}>
+              <div className="br-card" 
+                style={{ 
+                  background: '#E8F5E9', 
+                  borderLeft: '4px solid #28A745',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}>
                 <div className="card-content p-3">
                   <div className="d-flex justify-content-between align-items-center">
                     <div>
@@ -262,20 +163,21 @@ const DashboardAdmin = () => {
 
           <div className="col-md-3">
             <Link to="/admin/participantes" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <div className="br-card" style={{ 
-                background: '#E3F2FD', 
-                borderLeft: '4px solid #2196F3',
-                cursor: 'pointer',
-                transition: 'transform 0.2s, box-shadow 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
-              }}>
+              <div className="br-card" 
+                style={{ 
+                  background: '#E3F2FD', 
+                  borderLeft: '4px solid #2196F3',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}>
                 <div className="card-content p-3">
                   <div className="d-flex justify-content-between align-items-center">
                     <div>
@@ -291,20 +193,21 @@ const DashboardAdmin = () => {
 
           <div className="col-md-3">
             <Link to="/admin/avaliadores" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <div className="br-card" style={{ 
-                background: '#FFF3E0', 
-                borderLeft: '4px solid #FF9800',
-                cursor: 'pointer',
-                transition: 'transform 0.2s, box-shadow 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
-              }}>
+              <div className="br-card" 
+                style={{ 
+                  background: '#FFF3E0', 
+                  borderLeft: '4px solid #FF9800',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}>
                 <div className="card-content p-3">
                   <div className="d-flex justify-content-between align-items-center">
                     <div>
@@ -319,21 +222,22 @@ const DashboardAdmin = () => {
           </div>
 
           <div className="col-md-3">
-            <Link to="/admin/participantes" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <div className="br-card" style={{ 
-                background: '#FCE4EC', 
-                borderLeft: '4px solid #E91E63',
-                cursor: 'pointer',
-                transition: 'transform 0.2s, box-shadow 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
-              }}>
+            <Link to="/admin/inscricoes" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div className="br-card" 
+                style={{ 
+                  background: '#FCE4EC', 
+                  borderLeft: '4px solid #E91E63',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}>
                 <div className="card-content p-3">
                   <div className="d-flex justify-content-between align-items-center">
                     <div>
@@ -341,6 +245,303 @@ const DashboardAdmin = () => {
                       <h2 className="mb-0">{stats.totais.inscricoes}</h2>
                     </div>
                     <i className="fas fa-clipboard-check fa-3x" style={{ color: '#E91E63', opacity: 0.3 }}></i>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </div>
+        </div>
+
+        {/* Linha adicional de cards */}
+        <div className="row mb-4">
+          <div className="col-md-3">
+            <Link to="/admin/docentes" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div className="br-card" 
+                style={{ 
+                  background: '#F3E5F5', 
+                  borderLeft: '4px solid #9C27B0',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}>
+                <div className="card-content p-3">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <p className="text-muted mb-1">Docentes</p>
+                      <h2 className="mb-0">{stats.totais.docentes || 0}</h2>
+                    </div>
+                    <i className="fas fa-chalkboard-teacher fa-3x" style={{ color: '#9C27B0', opacity: 0.3 }}></i>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </div>
+
+          <div className="col-md-3">
+            <Link to="/admin/instituicoes" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div className="br-card" 
+                style={{ 
+                  background: '#E0F2F1', 
+                  borderLeft: '4px solid #009688',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}>
+                <div className="card-content p-3">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <p className="text-muted mb-1">Instituições</p>
+                      <h2 className="mb-0">{stats.totais.instituicoes || 0}</h2>
+                    </div>
+                    <i className="fas fa-university fa-3x" style={{ color: '#009688', opacity: 0.3 }}></i>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </div>
+
+          <div className="col-md-3">
+            <Link to="/admin/subeventos" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div className="br-card" 
+                style={{ 
+                  background: '#FFF8E1', 
+                  borderLeft: '4px solid #FBC02D',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}>
+                <div className="card-content p-3">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <p className="text-muted mb-1">Subeventos</p>
+                      <h2 className="mb-0">{stats.totais.subeventos || 0}</h2>
+                    </div>
+                    <i className="fas fa-calendar-alt fa-3x" style={{ color: '#FBC02D', opacity: 0.3 }}></i>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </div>
+
+          <div className="col-md-3">
+            <Link to="/admin/areas" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div className="br-card" 
+                style={{ 
+                  background: '#FFEBEE', 
+                  borderLeft: '4px solid #F44336',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}>
+                <div className="card-content p-3">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <p className="text-muted mb-1">Áreas de Atuação</p>
+                      <h2 className="mb-0">{stats.totais.areasAtuacao || 0}</h2>
+                    </div>
+                    <i className="fas fa-book-reader fa-3x" style={{ color: '#F44336', opacity: 0.3 }}></i>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </div>
+        </div>
+
+        {/* Ações Rápidas */}
+        <div className="row mb-4">
+          <div className="col-12">
+            <h3 className="text-up-02 text-weight-semi-bold mb-3">
+              <i className="fas fa-bolt mr-2"></i>
+              Ações Rápidas
+            </h3>
+          </div>
+          
+          <div className="col-md-4">
+            <Link to="/admin/simposio" style={{ textDecoration: 'none' }}>
+              <div className="br-card" 
+                style={{ 
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  borderTop: '3px solid #1351B4'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}>
+                <div className="card-content p-3">
+                  <div className="text-center">
+                    <i className="fas fa-cog fa-2x mb-2" style={{ color: '#1351B4' }}></i>
+                    <h5 className="mb-1">Gerenciar Simpósio</h5>
+                    <p className="text-muted small mb-0">Configure datas, áreas e subeventos</p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </div>
+
+          <div className="col-md-4">
+            <Link to="/admin/certificados" style={{ textDecoration: 'none' }}>
+              <div className="br-card" 
+                style={{ 
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  borderTop: '3px solid #28A745'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}>
+                <div className="card-content p-3">
+                  <div className="text-center">
+                    <i className="fas fa-certificate fa-2x mb-2" style={{ color: '#28A745' }}></i>
+                    <h5 className="mb-1">Certificados</h5>
+                    <p className="text-muted small mb-0">Gerar e enviar certificados</p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </div>
+
+          <div className="col-md-4">
+            <Link to="/admin/paginas" style={{ textDecoration: 'none' }}>
+              <div className="br-card" 
+                style={{ 
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  borderTop: '3px solid #9C27B0'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}>
+                <div className="card-content p-3">
+                  <div className="text-center">
+                    <i className="fas fa-file-alt fa-2x mb-2" style={{ color: '#9C27B0' }}></i>
+                    <h5 className="mb-1">Páginas Estáticas</h5>
+                    <p className="text-muted small mb-0">Editar conteúdo e banner da página inicial</p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </div>
+        </div>
+
+        <div className="row mb-4">
+          <div className="col-md-4">
+            <Link to="/admin/relatorios" style={{ textDecoration: 'none' }}>
+              <div className="br-card" 
+                style={{ 
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  borderTop: '3px solid #FF9800'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}>
+                <div className="card-content p-3">
+                  <div className="text-center">
+                    <i className="fas fa-file-pdf fa-2x mb-2" style={{ color: '#FF9800' }}></i>
+                    <h5 className="mb-1">Relatórios</h5>
+                    <p className="text-muted small mb-0">Exportar relatórios e estatísticas</p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </div>
+
+          <div className="col-md-4">
+            <Link to="/admin/acervo" style={{ textDecoration: 'none' }}>
+              <div className="br-card" 
+                style={{ 
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  borderTop: '3px solid #17A2B8'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}>
+                <div className="card-content p-3">
+                  <div className="text-center">
+                    <i className="fas fa-archive fa-2x mb-2" style={{ color: '#17A2B8' }}></i>
+                    <h5 className="mb-1">Acervo</h5>
+                    <p className="text-muted small mb-0">Gerenciar trabalhos publicados</p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </div>
+
+          <div className="col-md-4">
+            <Link to="/admin/funcoes" style={{ textDecoration: 'none' }}>
+              <div className="br-card" 
+                style={{ 
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  borderTop: '3px solid #E91E63'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}>
+                <div className="card-content p-3">
+                  <div className="text-center">
+                    <i className="fas fa-user-shield fa-2x mb-2" style={{ color: '#E91E63' }}></i>
+                    <h5 className="mb-1">Funções Administrativas</h5>
+                    <p className="text-muted small mb-0">Gerenciar permissões de usuários</p>
                   </div>
                 </div>
               </div>

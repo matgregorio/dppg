@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { BrDateTimePicker } from '@govbr-ds/react-components';
 import MainLayout from '../layouts/MainLayout';
 import api from '../services/api';
 
@@ -144,7 +145,7 @@ const ConfigurarDatas = () => {
           </li>
           <li className="crumb">
             <i className="icon fas fa-chevron-right"></i>
-            <Link to={`/admin/simposios/${anoAtual}`}>Gerenciar Simpósio</Link>
+            <Link to="/area-administrativa">Área Administrativa</Link>
           </li>
           <li className="crumb">
             <i className="icon fas fa-chevron-right"></i>
@@ -180,196 +181,142 @@ const ConfigurarDatas = () => {
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="br-card mb-3">
-              <div className="card-header">
-                <h3 className="text-weight-semi-bold">
-                  <i className="fas fa-users mr-2"></i>
-                  Inscrição de Participantes
-                </h3>
-              </div>
-              <div className="card-content">
-                <div className="row">
-                  <div className="col-md-6 mb-3">
-                    <div className="br-input">
-                      <label htmlFor="inscricaoParticipante_inicio">
-                        <i className="fas fa-calendar-check mr-1"></i>
-                        Data e Hora de Início
-                      </label>
-                      <input
-                        type="datetime-local"
-                        id="inscricaoParticipante_inicio"
-                        {...register('inscricaoParticipante_inicio')}
-                      />
-                      {errors.inscricaoParticipante_inicio && (
-                        <span className="feedback danger" role="alert">
-                          {errors.inscricaoParticipante_inicio.message}
-                        </span>
-                      )}
+            {/* Primeira linha com 2 cards */}
+            <div className="row mb-3">
+              <div className="col-md-6">
+                <div className="br-card h-100">
+                  <div className="card-header">
+                    <h3 className="text-weight-semi-bold">
+                      <i className="fas fa-users mr-2"></i>
+                      Inscrição de Participantes
+                    </h3>
+                  </div>
+                  <div className="card-content">
+                    <div className="row">
+                      <div className="col-md-12 mb-3">
+                        <BrDateTimePicker
+                          label="Período de Inscrição de Participantes"
+                          dataMode="range"
+                          dataType="datetime-local"
+                          onChange={(dates) => {
+                            if (dates && dates.length === 2) {
+                              setValue('inscricaoParticipante_inicio', dates[0]);
+                              setValue('inscricaoParticipante_fim', dates[1]);
+                            }
+                          }}
+                        />
+                        {(errors.inscricaoParticipante_inicio || errors.inscricaoParticipante_fim) && (
+                          <span className="feedback danger" role="alert">
+                            <i className="fas fa-times-circle" aria-hidden="true"></i>
+                            {errors.inscricaoParticipante_inicio?.message || errors.inscricaoParticipante_fim?.message}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  <div className="col-md-6 mb-3">
-                    <div className="br-input">
-                      <label htmlFor="inscricaoParticipante_fim">
-                        <i className="fas fa-calendar-times mr-1"></i>
-                        Data e Hora de Fim
-                      </label>
-                      <input
-                        type="datetime-local"
-                        id="inscricaoParticipante_fim"
-                        {...register('inscricaoParticipante_fim')}
-                      />
-                      {errors.inscricaoParticipante_fim && (
-                        <span className="feedback danger" role="alert">
-                          {errors.inscricaoParticipante_fim.message}
-                        </span>
-                      )}
+                </div>
+              </div>
+              
+              <div className="col-md-6">
+                <div className="br-card h-100">
+                  <div className="card-header">
+                    <h3 className="text-weight-semi-bold">
+                      <i className="fas fa-file-alt mr-2"></i>
+                      Submissão de Trabalhos
+                    </h3>
+                  </div>
+                  <div className="card-content">
+                    <div className="row">
+                      <div className="col-md-12 mb-3">
+                        <BrDateTimePicker
+                          label="Período de Submissão de Trabalhos"
+                          dataMode="range"
+                          dataType="datetime-local"
+                          onChange={(dates) => {
+                            if (dates && dates.length === 2) {
+                              setValue('submissaoTrabalhos_inicio', dates[0]);
+                              setValue('submissaoTrabalhos_fim', dates[1]);
+                            }
+                          }}
+                        />
+                        {(errors.submissaoTrabalhos_inicio || errors.submissaoTrabalhos_fim) && (
+                          <span className="feedback danger" role="alert">
+                            <i className="fas fa-times-circle" aria-hidden="true"></i>
+                            {errors.submissaoTrabalhos_inicio?.message || errors.submissaoTrabalhos_fim?.message}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
             
-            <div className="br-card mb-3">
-              <div className="card-header">
-                <h3 className="text-weight-semi-bold">
-                  <i className="fas fa-file-alt mr-2"></i>
-                  Submissão de Trabalhos
-                </h3>
-              </div>
-              <div className="card-content">
-                <div className="row">
-                  <div className="col-md-6 mb-3">
-                    <div className="br-input">
-                      <label htmlFor="submissaoTrabalhos_inicio">
-                        <i className="fas fa-calendar-check mr-1"></i>
-                        Data e Hora de Início
-                      </label>
-                      <input
-                        type="datetime-local"
-                        id="submissaoTrabalhos_inicio"
-                        {...register('submissaoTrabalhos_inicio')}
-                      />
-                      {errors.submissaoTrabalhos_inicio && (
-                        <span className="feedback danger" role="alert">
-                          {errors.submissaoTrabalhos_inicio.message}
-                        </span>
-                      )}
-                    </div>
+            {/* Segunda linha com 2 cards */}
+            <div className="row mb-3">
+              <div className="col-md-6">
+                <div className="br-card h-100">
+                  <div className="card-header">
+                    <h3 className="text-weight-semi-bold">
+                      <i className="fas fa-clipboard-check mr-2"></i>
+                      Prazo de Avaliação
+                    </h3>
                   </div>
-                  <div className="col-md-6 mb-3">
-                    <div className="br-input">
-                      <label htmlFor="submissaoTrabalhos_fim">
-                        <i className="fas fa-calendar-times mr-1"></i>
-                        Data e Hora de Fim
-                      </label>
-                      <input
-                        type="datetime-local"
-                        id="submissaoTrabalhos_fim"
-                        {...register('submissaoTrabalhos_fim')}
-                      />
-                      {errors.submissaoTrabalhos_fim && (
-                        <span className="feedback danger" role="alert">
-                          {errors.submissaoTrabalhos_fim.message}
-                        </span>
-                      )}
+                  <div className="card-content">
+                    <div className="row">
+                      <div className="col-md-12 mb-3">
+                        <BrDateTimePicker
+                          label="Período de Avaliação"
+                          dataMode="range"
+                          dataType="datetime-local"
+                          onChange={(dates) => {
+                            if (dates && dates.length === 2) {
+                              setValue('prazoAvaliacao_inicio', dates[0]);
+                              setValue('prazoAvaliacao_fim', dates[1]);
+                            }
+                          }}
+                        />
+                        {(errors.prazoAvaliacao_inicio || errors.prazoAvaliacao_fim) && (
+                          <span className="feedback danger" role="alert">
+                            <i className="fas fa-times-circle" aria-hidden="true"></i>
+                            {errors.prazoAvaliacao_inicio?.message || errors.prazoAvaliacao_fim?.message}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-            
-            <div className="br-card mb-3">
-              <div className="card-header">
-                <h3 className="text-weight-semi-bold">
-                  <i className="fas fa-clipboard-check mr-2"></i>
-                  Prazo de Avaliação
-                </h3>
-              </div>
-              <div className="card-content">
-                <div className="row">
-                  <div className="col-md-6 mb-3">
-                    <div className="br-input">
-                      <label htmlFor="prazoAvaliacao_inicio">
-                        <i className="fas fa-calendar-check mr-1"></i>
-                        Data e Hora de Início
-                      </label>
-                      <input
-                        type="datetime-local"
-                        id="prazoAvaliacao_inicio"
-                        {...register('prazoAvaliacao_inicio')}
-                      />
-                      {errors.prazoAvaliacao_inicio && (
-                        <span className="feedback danger" role="alert">
-                          {errors.prazoAvaliacao_inicio.message}
-                        </span>
-                      )}
-                    </div>
+              
+              <div className="col-md-6">
+                <div className="br-card h-100">
+                  <div className="card-header">
+                    <h3 className="text-weight-semi-bold">
+                      <i className="fas fa-star mr-2"></i>
+                      Notas de Avaliação Externa
+                    </h3>
                   </div>
-                  <div className="col-md-6 mb-3">
-                    <div className="br-input">
-                      <label htmlFor="prazoAvaliacao_fim">
-                        <i className="fas fa-calendar-times mr-1"></i>
-                        Data e Hora de Fim
-                      </label>
-                      <input
-                        type="datetime-local"
-                        id="prazoAvaliacao_fim"
-                        {...register('prazoAvaliacao_fim')}
-                      />
-                      {errors.prazoAvaliacao_fim && (
-                        <span className="feedback danger" role="alert">
-                          {errors.prazoAvaliacao_fim.message}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="br-card mb-3">
-              <div className="card-header">
-                <h3 className="text-weight-semi-bold">
-                  <i className="fas fa-star mr-2"></i>
-                  Notas de Avaliação Externa
-                </h3>
-              </div>
-              <div className="card-content">
-                <div className="row">
-                  <div className="col-md-6 mb-3">
-                    <div className="br-input">
-                      <label htmlFor="notasAvaliacaoExterna_inicio">
-                        <i className="fas fa-calendar-check mr-1"></i>
-                        Data e Hora de Início
-                      </label>
-                      <input
-                        type="datetime-local"
-                        id="notasAvaliacaoExterna_inicio"
-                        {...register('notasAvaliacaoExterna_inicio')}
-                      />
-                      {errors.notasAvaliacaoExterna_inicio && (
-                        <span className="feedback danger" role="alert">
-                          {errors.notasAvaliacaoExterna_inicio.message}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="col-md-6 mb-3">
-                    <div className="br-input">
-                      <label htmlFor="notasAvaliacaoExterna_fim">
-                        <i className="fas fa-calendar-times mr-1"></i>
-                        Data e Hora de Fim
-                      </label>
-                      <input
-                        type="datetime-local"
-                        id="notasAvaliacaoExterna_fim"
-                        {...register('notasAvaliacaoExterna_fim')}
-                      />
-                      {errors.notasAvaliacaoExterna_fim && (
-                        <span className="feedback danger" role="alert">
-                          {errors.notasAvaliacaoExterna_fim.message}
-                        </span>
-                      )}
+                  <div className="card-content">
+                    <div className="row">
+                      <div className="col-md-12 mb-3">
+                        <BrDateTimePicker
+                          label="Período de Notas de Avaliação Externa"
+                          dataMode="range"
+                          dataType="datetime-local"
+                          onChange={(dates) => {
+                            if (dates && dates.length === 2) {
+                              setValue('notasAvaliacaoExterna_inicio', dates[0]);
+                              setValue('notasAvaliacaoExterna_fim', dates[1]);
+                            }
+                          }}
+                        />
+                        {(errors.notasAvaliacaoExterna_inicio || errors.notasAvaliacaoExterna_fim) && (
+                          <span className="feedback danger" role="alert">
+                            <i className="fas fa-times-circle" aria-hidden="true"></i>
+                            {errors.notasAvaliacaoExterna_inicio?.message || errors.notasAvaliacaoExterna_fim?.message}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

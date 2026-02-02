@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { BrDateTimePicker } from '@govbr-ds/react-components';
 import MainLayout from '../layouts/MainLayout';
 import api from '../services/api';
 import useNotification from '../hooks/useNotification';
@@ -350,29 +351,17 @@ const AdminCicloSimposio = () => {
                     </h6>
 
                     <div className="row">
-                      <div className="col-md-6 mb-3">
-                        <div className="br-input">
-                          <label htmlFor="dataInicio">Data de Início *</label>
-                          <input
-                            id="dataInicio"
-                            type="date"
-                            value={formData.dataInicio}
-                            onChange={(e) => setFormData({ ...formData, dataInicio: e.target.value })}
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-6 mb-3">
-                        <div className="br-input">
-                          <label htmlFor="dataFim">Data de Término *</label>
-                          <input
-                            id="dataFim"
-                            type="date"
-                            value={formData.dataFim}
-                            onChange={(e) => setFormData({ ...formData, dataFim: e.target.value })}
-                            required
-                          />
-                        </div>
+                      <div className="col-md-12 mb-3">
+                        <BrDateTimePicker
+                          label="Período do Evento *"
+                          dataMode="range"
+                          dataType="date"
+                          onChange={(dates) => {
+                            if (dates && dates.length === 2) {
+                              setFormData({ ...formData, dataInicio: dates[0], dataFim: dates[1] });
+                            }
+                          }}
+                        />
                       </div>
                     </div>
 
@@ -383,27 +372,17 @@ const AdminCicloSimposio = () => {
                     </h6>
 
                     <div className="row">
-                      <div className="col-md-6 mb-3">
-                        <div className="br-input">
-                          <label htmlFor="dataInicioSubmissoes">Início das Submissões</label>
-                          <input
-                            id="dataInicioSubmissoes"
-                            type="date"
-                            value={formData.dataInicioSubmissoes}
-                            onChange={(e) => setFormData({ ...formData, dataInicioSubmissoes: e.target.value })}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-6 mb-3">
-                        <div className="br-input">
-                          <label htmlFor="dataFimSubmissoes">Fim das Submissões</label>
-                          <input
-                            id="dataFimSubmissoes"
-                            type="date"
-                            value={formData.dataFimSubmissoes}
-                            onChange={(e) => setFormData({ ...formData, dataFimSubmissoes: e.target.value })}
-                          />
-                        </div>
+                      <div className="col-md-12 mb-3">
+                        <BrDateTimePicker
+                          label="Período de Submissão de Trabalhos (opcional)"
+                          dataMode="range"
+                          dataType="date"
+                          onChange={(dates) => {
+                            if (dates && dates.length === 2) {
+                              setFormData({ ...formData, dataInicioSubmissoes: dates[0], dataFimSubmissoes: dates[1] });
+                            }
+                          }}
+                        />
                       </div>
                     </div>
 
@@ -414,27 +393,17 @@ const AdminCicloSimposio = () => {
                     </h6>
 
                     <div className="row">
-                      <div className="col-md-6 mb-3">
-                        <div className="br-input">
-                          <label htmlFor="dataInicioInscricoes">Início das Inscrições</label>
-                          <input
-                            id="dataInicioInscricoes"
-                            type="date"
-                            value={formData.dataInicioInscricoes}
-                            onChange={(e) => setFormData({ ...formData, dataInicioInscricoes: e.target.value })}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-6 mb-3">
-                        <div className="br-input">
-                          <label htmlFor="dataFimInscricoes">Fim das Inscrições</label>
-                          <input
-                            id="dataFimInscricoes"
-                            type="date"
-                            value={formData.dataFimInscricoes}
-                            onChange={(e) => setFormData({ ...formData, dataFimInscricoes: e.target.value })}
-                          />
-                        </div>
+                      <div className="col-md-12 mb-3">
+                        <BrDateTimePicker
+                          label="Período de Inscrições (opcional)"
+                          dataMode="range"
+                          dataType="date"
+                          onChange={(dates) => {
+                            if (dates && dates.length === 2) {
+                              setFormData({ ...formData, dataInicioInscricoes: dates[0], dataFimInscricoes: dates[1] });
+                            }
+                          }}
+                        />
                       </div>
                     </div>
 

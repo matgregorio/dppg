@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { BrUpload } from '@govbr-ds/react-components';
 import MainLayout from '../layouts/MainLayout';
 import api from '../services/api';
 import useNotification from '../hooks/useNotification';
@@ -12,6 +13,7 @@ const AdminPaginas = () => {
   const [loading, setLoading] = useState(true);
   const [editingSlug, setEditingSlug] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
   
   const [formData, setFormData] = useState({
     conteudo: '',
@@ -153,6 +155,46 @@ const AdminPaginas = () => {
     setFormData({ ...formData, pdf: e.target.files[0] });
   };
 
+  const handleUploadBanner = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validar tipo de arquivo
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!validTypes.includes(file.type)) {
+      showError('Formato inválido. Use JPG ou PNG.');
+      return;
+    }
+
+    // Validar tamanho (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showError('Arquivo muito grande. Tamanho máximo: 5MB.');
+      return;
+    }
+
+    try {
+      setUploadingBanner(true);
+      const formData = new FormData();
+      formData.append('banner', file);
+
+      const { data } = await api.post('/admin/upload-banner', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (data.success) {
+        showSuccess('Banner atualizado com sucesso! Recarregue a página inicial para ver.');
+        // Limpar input
+        event.target.value = '';
+      }
+    } catch (err) {
+      showError(err.response?.data?.message || 'Erro ao fazer upload do banner');
+    } finally {
+      setUploadingBanner(false);
+    }
+  };
+
   // Criar lista de todas as páginas possíveis
   const todasPaginas = Object.keys(slugLabels).map(slug => {
     const paginaExistente = paginas.find(p => p.slug === slug);
@@ -170,8 +212,20 @@ const AdminPaginas = () => {
           <div className="col">
             <nav className="br-breadcrumb" aria-label="Breadcrumbs">
               <ol className="crumb-list" role="list">
-                <li className="crumb home"><Link to="/">Início</Link></li>
-                <li className="crumb" data-active="active"><span>Admin - Páginas Estáticas</span></li>
+                <li className="crumb home">
+                  <Link className="br-button circle" to="/">
+                    <span className="sr-only">Página inicial</span>
+                    <i className="fas fa-home"></i>
+                  </Link>
+                </li>
+                <li className="crumb">
+                  <i className="icon fas fa-chevron-right"></i>
+                  <Link to="/area-administrativa">Área Administrativa</Link>
+                </li>
+                <li className="crumb">
+                  <i className="icon fas fa-chevron-right"></i>
+                  <span>Páginas Estáticas</span>
+                </li>
               </ol>
             </nav>
           </div>
@@ -184,6 +238,32 @@ const AdminPaginas = () => {
               Edite o conteúdo das páginas públicas do site. Você pode adicionar texto HTML, 
               links externos ou fazer upload de arquivos PDF.
             </p>
+          </div>
+        </div>
+
+        {/* Upload de Banner da Página Inicial */}
+        <div className="row mb-4">
+          <div className="col">
+            <div className="br-card">
+              <div className="card-header" style={{ background: '#1351B4', color: 'white' }}>
+                <h4 className="mb-0">
+                  <i className="fas fa-image mr-2"></i>
+                  Gerenciar Banner da Página Inicial
+                </h4>
+              </div>
+              <div className="card-content p-4">
+                <p className="mb-3">
+                  Faça upload de uma imagem para o banner principal da página inicial. 
+                  Formatos aceitos: JPG, PNG. Tamanho máximo: 5MB.
+                </p>
+                <BrUpload
+                  disabled={uploadingBanner}
+                  accept="image/jpeg,image/jpg,image/png"
+                  onChange={handleUploadBanner}
+                  label={uploadingBanner ? "Enviando..." : "Selecionar imagem do banner"}
+                />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -313,18 +393,13 @@ const AdminPaginas = () => {
                   </div>
                   
                   <div className="col-12 mb-3">
-                    <div className="br-input">
-                      <label htmlFor="pdf">Arquivo PDF (opcional)</label>
-                      <input
-                        id="pdf"
-                        type="file"
-                        accept=".pdf"
-                        onChange={handleFileChange}
-                      />
-                      <small className="text-muted">
-                        PDF para download (máx 20MB). Deixe em branco para manter o arquivo atual.
-                      </small>
-                    </div>
+                    <BrUpload
+                      label="Arquivo PDF (opcional)"
+                      onChange={handleFileChange}
+                    />
+                    <small className="text-muted d-block mt-2">
+                      PDF para download (máx 20MB). Deixe em branco para manter o arquivo atual.
+                    </small>
                   </div>
                 </div>
 

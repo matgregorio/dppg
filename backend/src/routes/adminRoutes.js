@@ -1413,16 +1413,18 @@ const adminController = {
   // Obter estatísticas para dashboard
   getStats: async (req, res) => {
     try {
+      const mongoose = require('mongoose');
       const Trabalho = require('../models/Trabalho');
       const Participant = require('../models/Participant');
       const InscricaoSimposio = require('../models/InscricaoSimposio');
       const User = require('../models/User');
       
       const { simposio } = req.query;
+      const simposioId = simposio ? new mongoose.Types.ObjectId(simposio) : null;
       
       // Estatísticas de trabalhos por status
       const trabalhosAgg = await Trabalho.aggregate([
-        ...(simposio ? [{ $match: { simposio: require('mongoose').Types.ObjectId(simposio) } }] : []),
+        ...(simposioId ? [{ $match: { simposio: simposioId } }] : []),
         {
           $group: {
             _id: '$status',
@@ -1461,7 +1463,7 @@ const adminController = {
       
       // Inscrições por tipo
       const inscricoesAgg = await InscricaoSimposio.aggregate([
-        ...(simposio ? [{ $match: { simposio: require('mongoose').Types.ObjectId(simposio) } }] : []),
+        ...(simposioId ? [{ $match: { simposio: simposioId } }] : []),
         {
           $group: {
             _id: '$tipoInscricao',
@@ -1482,7 +1484,7 @@ const adminController = {
       const timelineAgg = await Trabalho.aggregate([
         {
           $match: {
-            ...(simposio ? { simposio: require('mongoose').Types.ObjectId(simposio) } : {}),
+            ...(simposioId ? { simposio: simposioId } : {}),
             createdAt: { $gte: dataLimite }
           }
         },
@@ -1505,10 +1507,28 @@ const adminController = {
       }));
       
       // Totais gerais
+      const Docente = require('../models/Docente');
+      const Instituicao = require('../models/Instituicao');
+      const Subevento = require('../models/Subevento');
+      const AreaAtuacao = require('../models/AreaAtuacao');
+      
       const totalTrabalhos = await Trabalho.countDocuments(simposio ? { simposio } : {});
-      const totalParticipantes = await Participant.countDocuments(simposio ? { simposio } : {});
-      const totalAvaliadores = await User.countDocuments({ papel: 'AVALIADOR', deleted_at: null });
+      
+      // Participantes: contar participantes únicos que têm inscrições no simpósio
+      let totalParticipantes;
+      if (simposio) {
+        const inscricoesComParticipante = await InscricaoSimposio.distinct('participante', { simposio });
+        totalParticipantes = inscricoesComParticipante.length;
+      } else {
+        totalParticipantes = await Participant.countDocuments();
+      }
+      
+      const totalAvaliadores = await User.countDocuments({ roles: 'AVALIADOR' });
       const totalInscricoes = await InscricaoSimposio.countDocuments(simposio ? { simposio } : {});
+      const totalDocentes = await Docente.countDocuments({ deleted_at: null });
+      const totalInstituicoes = await Instituicao.countDocuments({ deleted_at: null });
+      const totalSubeventos = await Subevento.countDocuments(simposio ? { simposio } : {});
+      const totalAreasAtuacao = await AreaAtuacao.countDocuments();
       
       res.json({
         success: true,
@@ -1523,6 +1543,10 @@ const adminController = {
             participantes: totalParticipantes,
             avaliadores: totalAvaliadores,
             inscricoes: totalInscricoes,
+            docentes: totalDocentes,
+            instituicoes: totalInstituicoes,
+            subeventos: totalSubeventos,
+            areasAtuacao: totalAreasAtuacao,
           }
         }
       });
@@ -1536,36 +1560,30 @@ const adminController = {
   promoverUsuario: async (req, res) => {
     try {
       const User = require('../models/User');
-      const bcrypt = require('bcryptjs');
-      
-      // Verificar senha do admin que está fazendo a promoção
-      const { senha } = req.body;
-      const admin = await User.findById(req.user.id);
-      
-      if (!senha || !await bcrypt.compare(senha, admin.password)) {
-        return res.status(403).json({ 
-          success: false, 
-          message: 'Senha incorreta' 
-        });
-      }
       
       const usuario = await User.findById(req.params.id);
       if (!usuario) {
         return res.status(404).json({ success: false, message: 'Usuário não encontrado' });
       }
       
-      if (usuario.role === 'ADMIN') {
+      if (usuario.roles && usuario.roles.includes('ADMIN')) {
         return res.status(400).json({ success: false, message: 'Usuário já é administrador' });
       }
       
-      usuario.role = 'ADMIN';
+      // Adicionar role ADMIN ao array de roles
+      if (!usuario.roles) {
+        usuario.roles = [];
+      }
+      if (!usuario.roles.includes('ADMIN')) {
+        usuario.roles.push('ADMIN');
+      }
       await usuario.save();
       
       const { logAudit } = require('../utils/auditLogger');
       logAudit('USUARIO_PROMOVIDO', req.user.id, {
         usuarioId: usuario._id,
         nomeUsuario: usuario.nome,
-        roleAnterior: usuario.role,
+        rolesAtuais: usuario.roles,
       });
       
       res.json({ 
@@ -1575,6 +1593,66 @@ const adminController = {
       });
     } catch (error) {
       console.error('Erro ao promover usuário:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
+  removerAdmin: async (req, res) => {
+    try {
+      const User = require('../models/User');
+      
+      const usuario = await User.findById(req.params.id);
+      if (!usuario) {
+        return res.status(404).json({ success: false, message: 'Usuário não encontrado' });
+      }
+      
+      if (!usuario.roles || !usuario.roles.includes('ADMIN')) {
+        return res.status(400).json({ success: false, message: 'Usuário não é administrador' });
+      }
+      
+      // Remover role ADMIN do array de roles
+      usuario.roles = usuario.roles.filter(role => role !== 'ADMIN');
+      
+      // Se não tiver outras roles, adicionar USER como padrão
+      if (usuario.roles.length === 0) {
+        usuario.roles = ['USER'];
+      }
+      
+      await usuario.save();
+      
+      const { logAudit } = require('../utils/auditLogger');
+      logAudit('ADMIN_REMOVIDO', req.user.id, {
+        usuarioId: usuario._id,
+        nomeUsuario: usuario.nome,
+        rolesAtuais: usuario.roles,
+      });
+      
+      res.json({ 
+        success: true, 
+        message: `Permissões de administrador removidas de ${usuario.nome}`,
+        data: usuario 
+      });
+    } catch (error) {
+      console.error('Erro ao remover administrador:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
+  listarUsuarios: async (req, res) => {
+    try {
+      const User = require('../models/User');
+      
+      const usuarios = await User.find({ ativo: true })
+        .select('nome email cpf roles createdAt')
+        .sort({ nome: 1 });
+      
+      res.json({ 
+        success: true, 
+        usuarios: usuarios,
+        total: usuarios.length
+      });
+    } catch (error) {
+      console.error('Erro ao listar usuários:', error);
       res.status(500).json({ success: false, message: error.message });
     }
   },
@@ -2204,7 +2282,9 @@ router.get('/trabalhos-aprovados', auth, requireRoles(['ADMIN', 'SUBADMIN']), ad
 router.put('/trabalhos-aprovados/:id/apresentacao', auth, requireRoles(['ADMIN', 'SUBADMIN']), adminController.atualizarApresentacao);
 
 // Funções Administrativas
+router.get('/usuarios', auth, requireRoles(['ADMIN']), adminController.listarUsuarios);
 router.post('/usuarios/:id/promover', auth, requireRoles(['ADMIN']), adminController.promoverUsuario);
+router.post('/usuarios/:id/remover-admin', auth, requireRoles(['ADMIN']), adminController.removerAdmin);
 router.post('/simposio/finalizar-completo', auth, requireRoles(['ADMIN']), adminController.finalizarSimposioCompleto);
 
 // Docentes

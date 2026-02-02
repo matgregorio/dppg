@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { BrUpload } from '@govbr-ds/react-components';
 import MainLayout from '../layouts/MainLayout';
 import api from '../services/api';
 import useNotification from '../hooks/useNotification';
@@ -175,23 +176,16 @@ const AdminCertificadosConfig = () => {
           <p className="text-muted mb-3">Nenhuma imagem cadastrada</p>
         )}
         
-        <div className="br-upload">
-          <label className="upload-label">
-            <input
-              type="file"
-              accept="image/jpeg,image/jpg,image/png"
-              onChange={(e) => e.target.files[0] && handleUploadImagem(tipo, e.target.files[0])}
-              disabled={processando}
-            />
-            <span className="upload-button">
-              <i className="fas fa-upload mr-2"></i>
-              {imagemAtual ? 'Substituir Imagem' : 'Enviar Imagem'}
-            </span>
-          </label>
-          <small className="text-muted d-block mt-2">
-            Formatos: JPG, JPEG, PNG (máx. 5MB)
-          </small>
-        </div>
+        <BrUpload
+          label={imagemAtual ? 'Substituir Imagem' : 'Enviar Imagem'}
+          onChange={(e) => {
+            const file = e?.target?.files?.[0] || e?.[0] || null;
+            if (file) handleUploadImagem(tipo, file);
+          }}
+        />
+        <small className="text-muted d-block mt-2">
+          Formatos: JPG, JPEG, PNG (máx. 5MB)
+        </small>
       </div>
     </div>
   );
